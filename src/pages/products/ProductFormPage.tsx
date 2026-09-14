@@ -244,25 +244,8 @@ const ProductFormPage: React.FC = () => {
 
   const handleRemovePhoto = (photoId: string) => {
     if (isReadOnly) return;
-    setPhotos((prev) => {
-      const remaining = prev.filter((p) => p.id !== photoId);
-      if (remaining.length > 0 && !remaining.some((p) => p.is_primary)) {
-        remaining[0].is_primary = true;
-      }
-      return remaining;
-    });
+    setPhotos((prev) => prev.filter((p) => p.id !== photoId));
     showToast(lang === 'id' ? 'Foto referensi dihapus.' : 'Photo removed.');
-  };
-
-  const handleSetPrimaryPhoto = (photoId: string) => {
-    if (isReadOnly) return;
-    setPhotos((prev) =>
-      prev.map((p) => ({
-        ...p,
-        is_primary: p.id === photoId,
-      }))
-    );
-    showToast(lang === 'id' ? 'Foto utama ditetapkan.' : 'Primary photo set.');
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -1069,33 +1052,25 @@ const ProductFormPage: React.FC = () => {
                   <div
                     key={p.id}
                     style={{
-                      border: p.is_primary
-                        ? '1.5px solid var(--sah-copper)'
-                        : '1px solid var(--sah-line)',
+                      border: '1px solid var(--sah-line)',
                       borderRadius: 18,
                       overflow: 'hidden',
                       background: 'var(--sah-white)',
                       display: 'flex',
                       flexDirection: 'column',
-                      boxShadow: p.is_primary
-                        ? '0 4px 14px rgba(197,138,99,.2)'
-                        : '0 2px 8px rgba(23,36,58,.04)',
+                      boxShadow: '0 2px 8px rgba(23,36,58,.04)',
                       transition: 'all .2s cubic-bezier(0.4, 0, 0.2, 1)',
                     }}
                     onMouseEnter={(e) => {
                       if (!isReadOnly) {
                         e.currentTarget.style.transform = 'translateY(-3px)';
-                        e.currentTarget.style.boxShadow = p.is_primary
-                          ? '0 8px 22px rgba(197,138,99,.28)'
-                          : '0 8px 20px rgba(23,36,58,.1)';
+                        e.currentTarget.style.boxShadow = '0 8px 20px rgba(23,36,58,.1)';
                       }
                     }}
                     onMouseLeave={(e) => {
                       if (!isReadOnly) {
                         e.currentTarget.style.transform = 'translateY(0)';
-                        e.currentTarget.style.boxShadow = p.is_primary
-                          ? '0 4px 14px rgba(197,138,99,.2)'
-                          : '0 2px 8px rgba(23,36,58,.04)';
+                        e.currentTarget.style.boxShadow = '0 2px 8px rgba(23,36,58,.04)';
                       }
                     }}
                   >
@@ -1120,29 +1095,6 @@ const ProductFormPage: React.FC = () => {
                           }}
                         >
                           IMG
-                        </span>
-                      )}
-
-                      {p.is_primary && (
-                        <span
-                          style={{
-                            position: 'absolute',
-                            right: 9,
-                            top: 9,
-                            padding: '4px 10px',
-                            borderRadius: 999,
-                            background: 'linear-gradient(135deg, #c58a63 0%, #a46c47 100%)',
-                            color: 'var(--sah-white)',
-                            fontSize: 9.5,
-                            fontWeight: 800,
-                            letterSpacing: '0.03em',
-                            boxShadow: '0 2px 8px rgba(0,0,0,.25)',
-                            zIndex: 2,
-                            display: 'flex',
-                            alignItems: 'center',
-                          }}
-                        >
-                          <span>FOTO UTAMA</span>
                         </span>
                       )}
                     </div>
@@ -1184,46 +1136,13 @@ const ProductFormPage: React.FC = () => {
                       </div>
 
                       {!isReadOnly && (
-                        <div style={{ display: 'flex', gap: 6, marginTop: 2 }}>
-                          {!p.is_primary && (
-                            <button
-                              type="button"
-                              onClick={() => handleSetPrimaryPhoto(p.id)}
-                              style={{
-                                flex: 1,
-                                height: 28,
-                                borderRadius: 9,
-                                border: '1px solid var(--sah-line)',
-                                background: 'var(--sah-ivory)',
-                                fontSize: 11,
-                                fontWeight: 700,
-                                color: 'var(--sah-navy)',
-                                cursor: 'pointer',
-                                transition: 'all .15s ease',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                              }}
-                              onMouseEnter={(e) => {
-                                e.currentTarget.style.borderColor = 'var(--sah-copper)';
-                                e.currentTarget.style.background = 'var(--sah-copper-pale)';
-                                e.currentTarget.style.color = 'var(--sah-copper-dark)';
-                              }}
-                              onMouseLeave={(e) => {
-                                e.currentTarget.style.borderColor = 'var(--sah-line)';
-                                e.currentTarget.style.background = 'var(--sah-ivory)';
-                                e.currentTarget.style.color = 'var(--sah-navy)';
-                              }}
-                            >
-                              <span>Jadikan Utama</span>
-                            </button>
-                          )}
+                        <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 4 }}>
                           <button
                             type="button"
                             onClick={() => handleRemovePhoto(p.id)}
                             style={{
                               height: 28,
-                              padding: '0 10px',
+                              padding: '0 12px',
                               borderRadius: 9,
                               border: '1px solid rgba(197,75,60,.2)',
                               background: 'rgba(197,75,60,.06)',
@@ -1235,7 +1154,7 @@ const ProductFormPage: React.FC = () => {
                               display: 'flex',
                               alignItems: 'center',
                               justifyContent: 'center',
-                              gap: 4,
+                              gap: 5,
                             }}
                             onMouseEnter={(e) => {
                               e.currentTarget.style.background = 'rgba(197,75,60,.14)';
