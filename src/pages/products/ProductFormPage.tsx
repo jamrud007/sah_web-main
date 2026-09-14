@@ -108,11 +108,11 @@ const ProductFormPage: React.FC = () => {
     }
   }, [existingProduct]);
 
-  // Process files from file input or drag-and-drop with PNG/JPEG & 5MB validation
+  // Process files from file input or drag-and-drop with PNG/JPEG & 15MB validation
   const processFiles = (files: File[]) => {
     if (!files || files.length === 0) return;
 
-    const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5 MB
+    const MAX_FILE_SIZE = 15 * 1024 * 1024; // 15 MB
     const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/jpg'];
 
     const validFiles: File[] = [];
@@ -128,8 +128,8 @@ const ProductFormPage: React.FC = () => {
       if (file.size > MAX_FILE_SIZE) {
         showToast(
           lang === 'id'
-            ? `Berkas "${file.name}" ditolak. Ukuran berkas melebihi batas 5 MB.`
-            : `File "${file.name}" rejected. File size exceeds 5 MB.`
+            ? `Berkas "${file.name}" ditolak. Ukuran berkas melebihi batas 15 MB.`
+            : `File "${file.name}" rejected. File size exceeds 15 MB.`
         );
         continue;
       }
@@ -928,7 +928,7 @@ const ProductFormPage: React.FC = () => {
               <span style={{ fontSize: 11, color: 'var(--sah-muted)' }}>
                 {isReadOnly
                   ? 'Peran US-04 hanya memiliki hak baca modul ini.'
-                  : 'Klik untuk memilih berkas atau seret & lepas berkas PNG / JPEG (Maks. 5 MB)'}
+                  : 'Klik untuk memilih berkas atau seret & lepas berkas PNG / JPEG (Maks. 15 MB)'}
               </span>
             </div>
 
