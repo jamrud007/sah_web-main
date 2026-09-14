@@ -811,7 +811,7 @@ const ProductFormPage: React.FC = () => {
                   )}
                 </div>
                 <div style={{ fontSize: 12.5, color: 'var(--sah-muted)', marginTop: 3 }}>
-                  Satu SKU dapat memiliki lebih dari satu foto referensi (AR-03). Unggah foto kemasan untuk pengindeksan visual AI.
+                  Satu SKU dapat memiliki lebih dari satu foto referensi (AR-03). Disarankan mengunggah foto kemasan dari berbagai sudut (depan, belakang, samping, dan tutup) untuk akurasi pengindeksan visual AI.
                 </div>
               </div>
 
@@ -947,7 +947,7 @@ const ProductFormPage: React.FC = () => {
               </div>
 
               {/* Text & Interactive CTA */}
-              <div style={{ textAlign: 'center', display: 'flex', flexDirection: 'column', gap: 4 }}>
+              <div style={{ textAlign: 'center', display: 'flex', flexDirection: 'column', gap: 5, maxWidth: 500 }}>
                 <div
                   style={{
                     fontSize: 13.5,
@@ -978,6 +978,11 @@ const ProductFormPage: React.FC = () => {
                     </>
                   )}
                 </div>
+                {!isReadOnly && !isDragging && (
+                  <div style={{ fontSize: 12, color: 'var(--sah-muted)', lineHeight: 1.4 }}>
+                    Contoh: foto tampak depan, belakang, sisi kiri/kanan, atau tutup kemasan
+                  </div>
+                )}
               </div>
 
               {/* Feature/Format Pill Badges */}
