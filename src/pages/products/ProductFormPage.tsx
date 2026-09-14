@@ -866,7 +866,6 @@ const ProductFormPage: React.FC = () => {
                   }}
                   title="Buat preview kemasan otomatis untuk demo"
                 >
-                  <span style={{ fontSize: 13 }}>✨</span>
                   <span>+ Contoh Kemasan</span>
                 </button>
               )}
@@ -1012,7 +1011,6 @@ const ProductFormPage: React.FC = () => {
                   style={{
                     display: 'inline-flex',
                     alignItems: 'center',
-                    gap: 5,
                     padding: '3px 10px',
                     borderRadius: 999,
                     background: 'rgba(23,36,58,0.04)',
@@ -1022,13 +1020,12 @@ const ProductFormPage: React.FC = () => {
                     color: 'var(--sah-muted)',
                   }}
                 >
-                  <span>🖼️</span> PNG, JPG, WEBP
+                  PNG, JPG, WEBP
                 </span>
                 <span
                   style={{
                     display: 'inline-flex',
                     alignItems: 'center',
-                    gap: 5,
                     padding: '3px 10px',
                     borderRadius: 999,
                     background: 'rgba(23,36,58,0.04)',
@@ -1038,13 +1035,12 @@ const ProductFormPage: React.FC = () => {
                     color: 'var(--sah-muted)',
                   }}
                 >
-                  <span>⚡</span> Maks. 15 MB / foto
+                  Maks. 15 MB / foto
                 </span>
                 <span
                   style={{
                     display: 'inline-flex',
                     alignItems: 'center',
-                    gap: 5,
                     padding: '3px 10px',
                     borderRadius: 999,
                     background: 'rgba(23,36,58,0.04)',
@@ -1054,7 +1050,7 @@ const ProductFormPage: React.FC = () => {
                     color: 'var(--sah-muted)',
                   }}
                 >
-                  <span>📂</span> Multi-upload didukung
+                  Multi-upload didukung
                 </span>
               </div>
             </div>
@@ -1144,10 +1140,8 @@ const ProductFormPage: React.FC = () => {
                             zIndex: 2,
                             display: 'flex',
                             alignItems: 'center',
-                            gap: 4,
                           }}
                         >
-                          <span>★</span>
                           <span>FOTO UTAMA</span>
                         </span>
                       )}
@@ -1209,7 +1203,6 @@ const ProductFormPage: React.FC = () => {
                                 display: 'flex',
                                 alignItems: 'center',
                                 justifyContent: 'center',
-                                gap: 4,
                               }}
                               onMouseEnter={(e) => {
                                 e.currentTarget.style.borderColor = 'var(--sah-copper)';
@@ -1222,7 +1215,6 @@ const ProductFormPage: React.FC = () => {
                                 e.currentTarget.style.color = 'var(--sah-navy)';
                               }}
                             >
-                              <span>★</span>
                               <span>Jadikan Utama</span>
                             </button>
                           )}
