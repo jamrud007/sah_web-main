@@ -9,7 +9,6 @@ import { createProduct, updateProduct } from '../../store/productSlice';
 import { useSahToast } from '../../context/ToastContext';
 import type { Product, Photo, HalalStatus } from '../../types/apiDef';
 import type { SahRole } from '../../store/authSlice';
-import { normalizePackageSide } from '../../services/photoService';
 
 const CATEGORIES = [
   'Bumbu & saus',
@@ -28,8 +27,6 @@ const HALAL_STATUS_OPTIONS = [
   { value: 'pending', label: 'Menunggu pembaruan sertifikat' },
   { value: 'non_halal', label: 'Tidak bersertifikat' },
 ];
-
-const ANGLES = ['Depan', 'Belakang', 'Sisi kiri', 'Sisi kanan', 'Tutup', 'Kemasan isi ulang'];
 
 const ProductFormPage: React.FC = () => {
   const navigate = useNavigate();
@@ -141,7 +138,6 @@ const ProductFormPage: React.FC = () => {
     const hasExistingPrimary = photos.some((p) => p.is_primary);
 
     validFiles.forEach((file, idx) => {
-      const assignedAngle = ANGLES[(photos.length + idx) % ANGLES.length];
       const isPrimary = !hasExistingPrimary && idx === 0;
 
       const reader = new FileReader();
@@ -152,8 +148,8 @@ const ProductFormPage: React.FC = () => {
           product_id: existingProduct?.id || 'temp',
           url: dataUrl,
           file_name: file.name,
-          angle: assignedAngle,
-          package_side: normalizePackageSide(assignedAngle),
+          angle: 'Depan',
+          package_side: 'front',
           dimensions: `${(file.size / (1024 * 1024)).toFixed(1)} MB`,
           status: 'indexed',
           index_status: 'indexed',
@@ -163,8 +159,8 @@ const ProductFormPage: React.FC = () => {
         setPhotos((prev) => [...prev, newPhoto]);
         showToast(
           lang === 'id'
-            ? `Foto "${file.name}" (${assignedAngle}) berhasil ditambahkan.`
-            : `Photo "${file.name}" (${assignedAngle}) added.`
+            ? `Foto "${file.name}" berhasil ditambahkan.`
+            : `Photo "${file.name}" added.`
         );
       };
       reader.readAsDataURL(file);
@@ -173,26 +169,6 @@ const ProductFormPage: React.FC = () => {
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
-  };
-
-  const handleUpdatePhotoAngle = (photoId: string, newAngle: string) => {
-    if (isReadOnly) return;
-    setPhotos((prev) =>
-      prev.map((p) =>
-        p.id === photoId
-          ? {
-              ...p,
-              angle: newAngle,
-              package_side: normalizePackageSide(newAngle),
-            }
-          : p
-      )
-    );
-    showToast(
-      lang === 'id'
-        ? `Sudut foto diubah ke "${newAngle}".`
-        : `Photo angle changed to "${newAngle}".`
-    );
   };
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -226,7 +202,6 @@ const ProductFormPage: React.FC = () => {
   // Add instant realistic mock photo (convenience for demo / testing)
   const handleAddSamplePhoto = () => {
     if (isReadOnly) return;
-    const nextAngle = ANGLES[photos.length % ANGLES.length];
     const cleanProdName = name.trim() || 'Produk Halal';
     const svgData = `<svg xmlns="http://www.w3.org/2000/svg" width="400" height="400" viewBox="0 0 400 400">
       <defs>
@@ -241,7 +216,7 @@ const ProductFormPage: React.FC = () => {
       <text x="200" y="155" font-family="'Plus Jakarta Sans', sans-serif" font-size="20" font-weight="800" fill="#fffdf8" text-anchor="middle">HALAL</text>
       <text x="200" y="185" font-family="'Plus Jakarta Sans', sans-serif" font-size="12" font-weight="600" fill="#c58a63" text-anchor="middle">BPJPH INDONESIA</text>
       <rect x="50" y="260" width="300" height="44" rx="12" fill="rgba(255,253,248,0.12)"/>
-      <text x="200" y="288" font-family="'Plus Jakarta Sans', sans-serif" font-size="13.5" font-weight="700" fill="#fffdf8" text-anchor="middle">${nextAngle.toUpperCase()} · ${cleanProdName.slice(0, 22)}</text>
+      <text x="200" y="288" font-family="'Plus Jakarta Sans', sans-serif" font-size="13.5" font-weight="700" fill="#fffdf8" text-anchor="middle">FOTO · ${cleanProdName.slice(0, 22)}</text>
       <text x="200" y="340" font-family="'Plus Jakarta Sans', sans-serif" font-size="11" fill="rgba(255,253,248,0.6)" text-anchor="middle">2048 × 2048 · SAH VISUAL INDEX</text>
     </svg>`;
     const dataUrl = `data:image/svg+xml;utf8,${encodeURIComponent(svgData)}`;
@@ -250,9 +225,9 @@ const ProductFormPage: React.FC = () => {
       id: `photo-sample-${Date.now()}-${Math.random().toString(36).substr(2, 4)}`,
       product_id: existingProduct?.id || 'temp',
       url: dataUrl,
-      file_name: `${(name || skuCode).toLowerCase().replace(/[^a-z0-9]/g, '_')}_${nextAngle.toLowerCase().replace(/\s+/g, '_')}.jpg`,
-      angle: nextAngle,
-      package_side: normalizePackageSide(nextAngle),
+      file_name: `${(name || skuCode).toLowerCase().replace(/[^a-z0-9]/g, '_')}_sample_${photos.length + 1}.jpg`,
+      angle: 'Depan',
+      package_side: 'front',
       dimensions: '2048 × 2048 · 1.8 MB',
       status: 'indexed',
       index_status: 'indexed',
@@ -262,8 +237,8 @@ const ProductFormPage: React.FC = () => {
     setPhotos((prev) => [...prev, newPhoto]);
     showToast(
       lang === 'id'
-        ? `Contoh foto sudut "${nextAngle}" ditambahkan.`
-        : `Sample photo (${nextAngle}) added.`
+        ? 'Contoh foto referensi ditambahkan.'
+        : 'Sample reference photo added.'
     );
   };
 
@@ -973,50 +948,13 @@ const ProductFormPage: React.FC = () => {
                           style={{
                             fontFamily: "'Plus Jakarta Sans', sans-serif",
                             fontWeight: 800,
-                            fontSize: 20,
-                            color: 'rgba(255,253,248,.9)',
+                            fontSize: 18,
+                            color: 'rgba(255,253,248,.8)',
                           }}
                         >
-                          {p.angle ? p.angle.slice(0, 2).toUpperCase() : 'FT'}
+                          IMG
                         </span>
                       )}
-
-                      {/* Compact Angle Selector positioned directly on the image */}
-                      <select
-                        value={p.angle || 'Depan'}
-                        onChange={(e) => handleUpdatePhotoAngle(p.id, e.target.value)}
-                        disabled={isReadOnly}
-                        style={{
-                          position: 'absolute',
-                          left: 8,
-                          top: 8,
-                          height: 24,
-                          padding: '0 18px 0 8px',
-                          borderRadius: 999,
-                          background: 'rgba(255,253,248,0.95)',
-                          backdropFilter: 'blur(4px)',
-                          fontSize: 10.5,
-                          fontWeight: 700,
-                          color: 'var(--sah-navy)',
-                          boxShadow: '0 1px 4px rgba(0,0,0,.15)',
-                          border: '1px solid rgba(23,36,58,.15)',
-                          outline: 'none',
-                          cursor: isReadOnly ? 'not-allowed' : 'pointer',
-                          appearance: 'none',
-                          WebkitAppearance: 'none',
-                          backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='5' viewBox='0 0 8 5'%3E%3Cpath fill='%2317243a' d='M0 0l4 5 4-5z'/%3E%3C/svg%3E")`,
-                          backgroundRepeat: 'no-repeat',
-                          backgroundPosition: 'right 6px center',
-                          zIndex: 2,
-                        }}
-                        title="Pilih sudut untuk foto ini"
-                      >
-                        {ANGLES.map((ang) => (
-                          <option key={ang} value={ang}>
-                            {ang}
-                          </option>
-                        ))}
-                      </select>
 
                       {p.is_primary && (
                         <span
@@ -1044,7 +982,7 @@ const ProductFormPage: React.FC = () => {
                         padding: '10px 12px',
                         display: 'flex',
                         flexDirection: 'column',
-                        gap: 6,
+                        gap: 8,
                       }}
                     >
                       <div
@@ -1061,39 +999,8 @@ const ProductFormPage: React.FC = () => {
                         {p.file_name}
                       </div>
 
-                      {/* Compact Angle Selector positioned directly under the image */}
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                        <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--sah-muted)' }}>
-                          Sudut:
-                        </span>
-                        <select
-                          value={p.angle || 'Depan'}
-                          onChange={(e) => handleUpdatePhotoAngle(p.id, e.target.value)}
-                          disabled={isReadOnly}
-                          style={{
-                            flex: 1,
-                            height: 26,
-                            borderRadius: 8,
-                            border: '1px solid var(--sah-line)',
-                            background: 'var(--sah-white)',
-                            fontSize: 11,
-                            fontWeight: 600,
-                            color: 'var(--sah-navy)',
-                            padding: '0 6px',
-                            outline: 'none',
-                            cursor: isReadOnly ? 'not-allowed' : 'pointer',
-                          }}
-                        >
-                          {ANGLES.map((ang) => (
-                            <option key={ang} value={ang}>
-                              {ang}
-                            </option>
-                          ))}
-                        </select>
-                      </div>
-
                       {!isReadOnly && (
-                        <div style={{ display: 'flex', gap: 6, marginTop: 4 }}>
+                        <div style={{ display: 'flex', gap: 6 }}>
                           {!p.is_primary && (
                             <button
                               type="button"
