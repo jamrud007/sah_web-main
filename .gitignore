@@ -27,3 +27,13 @@ open-api.yaml
 
 .env
 last_update.txt
+
+# Dev-only extraction scripts & artifacts (not needed by other developers)
+extract.py
+dump_script.py
+inspect_tpl.py
+extracted_template.html
+extracted_markup.html
+extracted_script.js
+extracted_manifest.json
+SAH Web Admin (standalone).html
