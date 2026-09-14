@@ -9,6 +9,7 @@ import { createProduct, updateProduct } from '../../store/productSlice';
 import { useSahToast } from '../../context/ToastContext';
 import type { Product, Photo, HalalStatus } from '../../types/apiDef';
 import type { SahRole } from '../../store/authSlice';
+import { normalizePackageSide } from '../../services/photoService';
 
 const CATEGORIES = [
   'Bumbu & saus',
@@ -83,7 +84,6 @@ const ProductFormPage: React.FC = () => {
 
   // Inline Photos (Gambar 2 requirement)
   const [photos, setPhotos] = useState<Photo[]>(existingProduct?.photos || []);
-  const [selectedAngle, setSelectedAngle] = useState('Depan');
   const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -108,11 +108,42 @@ const ProductFormPage: React.FC = () => {
     }
   }, [existingProduct]);
 
-  // Process files from file input or drag-and-drop
+  // Process files from file input or drag-and-drop with PNG/JPEG & 5MB validation
   const processFiles = (files: File[]) => {
     if (!files || files.length === 0) return;
 
-    files.forEach((file) => {
+    const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5 MB
+    const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/jpg'];
+
+    const validFiles: File[] = [];
+    for (const file of files) {
+      if (!ALLOWED_TYPES.includes(file.type.toLowerCase())) {
+        showToast(
+          lang === 'id'
+            ? `Berkas "${file.name}" ditolak. Format harus PNG atau JPEG.`
+            : `File "${file.name}" rejected. Format must be PNG or JPEG.`
+        );
+        continue;
+      }
+      if (file.size > MAX_FILE_SIZE) {
+        showToast(
+          lang === 'id'
+            ? `Berkas "${file.name}" ditolak. Ukuran berkas melebihi batas 5 MB.`
+            : `File "${file.name}" rejected. File size exceeds 5 MB.`
+        );
+        continue;
+      }
+      validFiles.push(file);
+    }
+
+    if (validFiles.length === 0) return;
+
+    const hasExistingPrimary = photos.some((p) => p.is_primary);
+
+    validFiles.forEach((file, idx) => {
+      const assignedAngle = ANGLES[(photos.length + idx) % ANGLES.length];
+      const isPrimary = !hasExistingPrimary && idx === 0;
+
       const reader = new FileReader();
       reader.onload = (event) => {
         const dataUrl = event.target?.result as string;
@@ -121,18 +152,19 @@ const ProductFormPage: React.FC = () => {
           product_id: existingProduct?.id || 'temp',
           url: dataUrl,
           file_name: file.name,
-          angle: selectedAngle,
-          dimensions: '2048 × 2048 · 1.8 MB',
+          angle: assignedAngle,
+          package_side: normalizePackageSide(assignedAngle),
+          dimensions: `${(file.size / (1024 * 1024)).toFixed(1)} MB`,
           status: 'indexed',
           index_status: 'indexed',
-          is_primary: photos.length === 0,
+          is_primary: isPrimary,
           created_at: new Date().toISOString(),
         };
         setPhotos((prev) => [...prev, newPhoto]);
         showToast(
           lang === 'id'
-            ? `Foto "${file.name}" (${selectedAngle}) berhasil ditambahkan.`
-            : `Photo "${file.name}" (${selectedAngle}) added.`
+            ? `Foto "${file.name}" (${assignedAngle}) berhasil ditambahkan.`
+            : `Photo "${file.name}" (${assignedAngle}) added.`
         );
       };
       reader.readAsDataURL(file);
@@ -141,6 +173,26 @@ const ProductFormPage: React.FC = () => {
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
+  };
+
+  const handleUpdatePhotoAngle = (photoId: string, newAngle: string) => {
+    if (isReadOnly) return;
+    setPhotos((prev) =>
+      prev.map((p) =>
+        p.id === photoId
+          ? {
+              ...p,
+              angle: newAngle,
+              package_side: normalizePackageSide(newAngle),
+            }
+          : p
+      )
+    );
+    showToast(
+      lang === 'id'
+        ? `Sudut foto diubah ke "${newAngle}".`
+        : `Photo angle changed to "${newAngle}".`
+    );
   };
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -174,7 +226,7 @@ const ProductFormPage: React.FC = () => {
   // Add instant realistic mock photo (convenience for demo / testing)
   const handleAddSamplePhoto = () => {
     if (isReadOnly) return;
-    const nextAngle = selectedAngle || 'Depan';
+    const nextAngle = ANGLES[photos.length % ANGLES.length];
     const cleanProdName = name.trim() || 'Produk Halal';
     const svgData = `<svg xmlns="http://www.w3.org/2000/svg" width="400" height="400" viewBox="0 0 400 400">
       <defs>
@@ -200,6 +252,7 @@ const ProductFormPage: React.FC = () => {
       url: dataUrl,
       file_name: `${(name || skuCode).toLowerCase().replace(/[^a-z0-9]/g, '_')}_${nextAngle.toLowerCase().replace(/\s+/g, '_')}.jpg`,
       angle: nextAngle,
+      package_side: normalizePackageSide(nextAngle),
       dimensions: '2048 × 2048 · 1.8 MB',
       status: 'indexed',
       index_status: 'indexed',
@@ -216,7 +269,13 @@ const ProductFormPage: React.FC = () => {
 
   const handleRemovePhoto = (photoId: string) => {
     if (isReadOnly) return;
-    setPhotos((prev) => prev.filter((p) => p.id !== photoId));
+    setPhotos((prev) => {
+      const remaining = prev.filter((p) => p.id !== photoId);
+      if (remaining.length > 0 && !remaining.some((p) => p.is_primary)) {
+        remaining[0].is_primary = true;
+      }
+      return remaining;
+    });
     showToast(lang === 'id' ? 'Foto referensi dihapus.' : 'Photo removed.');
   };
 
@@ -769,36 +828,8 @@ const ProductFormPage: React.FC = () => {
                 </div>
               </div>
 
-              {/* Controls: Sudut Selector & Quick Sample Button */}
+              {/* Controls: Quick Sample Button */}
               <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                  <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--sah-blue)' }}>
-                    Sudut:
-                  </span>
-                  <select
-                    value={selectedAngle}
-                    onChange={(e) => setSelectedAngle(e.target.value)}
-                    disabled={isReadOnly}
-                    style={{
-                      height: 34,
-                      padding: '0 10px',
-                      borderRadius: 11,
-                      border: '1px solid var(--sah-line)',
-                      background: 'var(--sah-ivory)',
-                      fontSize: 12,
-                      fontWeight: 600,
-                      color: 'var(--sah-navy)',
-                      cursor: isReadOnly ? 'not-allowed' : 'pointer',
-                    }}
-                  >
-                    {ANGLES.map((ang) => (
-                      <option key={ang} value={ang}>
-                        {ang}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
                 {!isReadOnly && (
                   <button
                     type="button"
@@ -891,7 +922,7 @@ const ProductFormPage: React.FC = () => {
                 >
                   {isReadOnly
                     ? 'Pengunggahan foto dinonaktifkan untuk peran ini'
-                    : `+ Unggah materi gambar (sudut: ${selectedAngle})`}
+                    : '+ Unggah materi gambar'}
                 </span>
               </div>
               <span style={{ fontSize: 11, color: 'var(--sah-muted)' }}>
@@ -901,12 +932,12 @@ const ProductFormPage: React.FC = () => {
               </span>
             </div>
 
-            {/* Photos Preview Grid */}
+            {/* Photos Preview Grid (3-column layout with wrapping) */}
             {photos.length > 0 && (
               <div
                 style={{
                   display: 'grid',
-                  gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))',
+                  gridTemplateColumns: 'repeat(3, minmax(0, 1fr))',
                   gap: 12,
                   marginTop: 4,
                 }}
@@ -949,23 +980,44 @@ const ProductFormPage: React.FC = () => {
                           {p.angle ? p.angle.slice(0, 2).toUpperCase() : 'FT'}
                         </span>
                       )}
-                      <span
+
+                      {/* Compact Angle Selector positioned directly on the image */}
+                      <select
+                        value={p.angle || 'Depan'}
+                        onChange={(e) => handleUpdatePhotoAngle(p.id, e.target.value)}
+                        disabled={isReadOnly}
                         style={{
                           position: 'absolute',
                           left: 8,
                           top: 8,
-                          padding: '3px 8px',
+                          height: 24,
+                          padding: '0 18px 0 8px',
                           borderRadius: 999,
-                          background: 'rgba(255,253,248,0.92)',
+                          background: 'rgba(255,253,248,0.95)',
                           backdropFilter: 'blur(4px)',
-                          fontSize: 10,
+                          fontSize: 10.5,
                           fontWeight: 700,
                           color: 'var(--sah-navy)',
-                          boxShadow: '0 1px 4px rgba(0,0,0,.1)',
+                          boxShadow: '0 1px 4px rgba(0,0,0,.15)',
+                          border: '1px solid rgba(23,36,58,.15)',
+                          outline: 'none',
+                          cursor: isReadOnly ? 'not-allowed' : 'pointer',
+                          appearance: 'none',
+                          WebkitAppearance: 'none',
+                          backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='5' viewBox='0 0 8 5'%3E%3Cpath fill='%2317243a' d='M0 0l4 5 4-5z'/%3E%3C/svg%3E")`,
+                          backgroundRepeat: 'no-repeat',
+                          backgroundPosition: 'right 6px center',
+                          zIndex: 2,
                         }}
+                        title="Pilih sudut untuk foto ini"
                       >
-                        {p.angle || 'Depan'}
-                      </span>
+                        {ANGLES.map((ang) => (
+                          <option key={ang} value={ang}>
+                            {ang}
+                          </option>
+                        ))}
+                      </select>
+
                       {p.is_primary && (
                         <span
                           style={{
@@ -979,6 +1031,7 @@ const ProductFormPage: React.FC = () => {
                             fontSize: 9.5,
                             fontWeight: 800,
                             boxShadow: '0 1px 4px rgba(0,0,0,.15)',
+                            zIndex: 2,
                           }}
                         >
                           ★ Utama
@@ -1006,6 +1059,37 @@ const ProductFormPage: React.FC = () => {
                         title={p.file_name}
                       >
                         {p.file_name}
+                      </div>
+
+                      {/* Compact Angle Selector positioned directly under the image */}
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                        <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--sah-muted)' }}>
+                          Sudut:
+                        </span>
+                        <select
+                          value={p.angle || 'Depan'}
+                          onChange={(e) => handleUpdatePhotoAngle(p.id, e.target.value)}
+                          disabled={isReadOnly}
+                          style={{
+                            flex: 1,
+                            height: 26,
+                            borderRadius: 8,
+                            border: '1px solid var(--sah-line)',
+                            background: 'var(--sah-white)',
+                            fontSize: 11,
+                            fontWeight: 600,
+                            color: 'var(--sah-navy)',
+                            padding: '0 6px',
+                            outline: 'none',
+                            cursor: isReadOnly ? 'not-allowed' : 'pointer',
+                          }}
+                        >
+                          {ANGLES.map((ang) => (
+                            <option key={ang} value={ang}>
+                              {ang}
+                            </option>
+                          ))}
+                        </select>
                       </div>
 
                       {!isReadOnly && (
