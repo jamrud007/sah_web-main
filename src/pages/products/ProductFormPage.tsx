@@ -778,91 +778,142 @@ const ProductFormPage: React.FC = () => {
               gap: 16,
             }}
           >
+            {/* Header: Title + Dynamic Counter Badge + Quick Sample Button */}
             <div
               style={{
                 display: 'flex',
-                alignItems: 'center',
                 justifyContent: 'space-between',
-                flexWrap: 'wrap',
-                gap: 10,
+                alignItems: 'flex-start',
+                gap: 16,
               }}
             >
-              <div>
-                <div
-                  style={{
-                    fontFamily: "'Plus Jakarta Sans', sans-serif",
-                    fontWeight: 700,
-                    fontSize: 15.5,
-                    color: 'var(--sah-navy)',
-                  }}
-                >
-                  Foto referensi produk (Upload Gambar 2)
+              <div style={{ flex: 1 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+                  <span
+                    style={{
+                      fontFamily: "'Plus Jakarta Sans', sans-serif",
+                      fontWeight: 800,
+                      fontSize: 16,
+                      color: 'var(--sah-navy)',
+                      letterSpacing: '-0.01em',
+                    }}
+                  >
+                    Foto Referensi Produk
+                  </span>
+                  {photos.length > 0 && (
+                    <span
+                      style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: 5,
+                        padding: '3px 10px',
+                        borderRadius: 999,
+                        background: 'rgba(197,138,99,0.12)',
+                        color: 'var(--sah-copper-dark)',
+                        fontSize: 11,
+                        fontWeight: 700,
+                        border: '1px solid rgba(197,138,99,0.25)',
+                      }}
+                    >
+                      <span
+                        style={{
+                          width: 6,
+                          height: 6,
+                          borderRadius: '50%',
+                          background: 'var(--sah-copper)',
+                        }}
+                      />
+                      {photos.length} foto tersimpan
+                    </span>
+                  )}
                 </div>
-                <div style={{ fontSize: 12.5, color: 'var(--sah-muted)' }}>
-                  Satu SKU dapat memiliki lebih dari satu foto referensi (AR-03). Unggah foto kemasan untuk pengindeksan visual.
+                <div style={{ fontSize: 12.5, color: 'var(--sah-muted)', marginTop: 3 }}>
+                  Satu SKU dapat memiliki lebih dari satu foto referensi (AR-03). Unggah foto kemasan untuk pengindeksan visual AI.
                 </div>
               </div>
 
               {/* Controls: Quick Sample Button */}
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
-                {!isReadOnly && (
-                  <button
-                    type="button"
-                    onClick={handleAddSamplePhoto}
-                    style={{
-                      height: 34,
-                      padding: '0 12px',
-                      borderRadius: 11,
-                      border: '1px solid var(--sah-line)',
-                      background: 'var(--sah-white)',
-                      color: 'var(--sah-copper-dark)',
-                      fontSize: 11.5,
-                      fontWeight: 700,
-                      cursor: 'pointer',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: 6,
-                    }}
-                    title="Buat preview kemasan otomatis untuk demo"
-                  >
-                    <span>+ Contoh Kemasan</span>
-                  </button>
-                )}
-              </div>
+              {!isReadOnly && (
+                <button
+                  type="button"
+                  onClick={handleAddSamplePhoto}
+                  style={{
+                    height: 36,
+                    padding: '0 14px',
+                    borderRadius: 12,
+                    border: '1px solid rgba(197,138,99,0.3)',
+                    background: 'linear-gradient(180deg, #ffffff 0%, #faf6f2 100%)',
+                    color: 'var(--sah-copper-dark)',
+                    fontSize: 12,
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 7,
+                    flexShrink: 0,
+                    boxShadow: '0 1px 4px rgba(23,36,58,0.04)',
+                    transition: 'all .2s ease',
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.borderColor = 'var(--sah-copper)';
+                    e.currentTarget.style.transform = 'translateY(-1px)';
+                    e.currentTarget.style.boxShadow = '0 3px 8px rgba(197,138,99,0.18)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.borderColor = 'rgba(197,138,99,0.3)';
+                    e.currentTarget.style.transform = 'translateY(0)';
+                    e.currentTarget.style.boxShadow = '0 1px 4px rgba(23,36,58,0.04)';
+                  }}
+                  title="Buat preview kemasan otomatis untuk demo"
+                >
+                  <span style={{ fontSize: 13 }}>✨</span>
+                  <span>+ Contoh Kemasan</span>
+                </button>
+              )}
             </div>
 
-            {/* Dropzone Upload Box with Drag & Drop */}
+            {/* Dropzone Upload Box with SaaS Icon Bubble & Specs Chips */}
             <div
               onClick={() => !isReadOnly && fileInputRef.current?.click()}
               onDragOver={handleDragOver}
               onDragLeave={handleDragLeave}
               onDrop={handleDrop}
               style={{
-                height: 120,
+                minHeight: 154,
+                padding: '24px 20px',
                 border: isDragging
                   ? '2px dashed var(--sah-copper-dark)'
-                  : '1.5px dashed var(--sah-copper)',
-                borderRadius: 16,
+                  : '1.5px dashed rgba(197, 138, 99, 0.45)',
+                borderRadius: 20,
                 background: isDragging
-                  ? '#ebd9cb'
-                  : (isReadOnly ? 'rgba(23,36,58,.04)' : 'var(--sah-copper-pale)'),
+                  ? 'linear-gradient(180deg, #fdf8f4 0%, #f6e8dd 100%)'
+                  : (isReadOnly
+                      ? 'rgba(23,36,58,.03)'
+                      : 'linear-gradient(180deg, #ffffff 0%, rgba(248, 244, 239, 0.65) 100%)'),
+                boxShadow: isDragging
+                  ? '0 0 0 4px rgba(197,138,99,0.18), 0 8px 24px -4px rgba(197,138,99,0.25)'
+                  : '0 2px 10px rgba(23,36,58,0.02)',
                 display: 'flex',
                 flexDirection: 'column',
                 alignItems: 'center',
                 justifyContent: 'center',
-                gap: 6,
-                color: 'var(--sah-frame)',
+                gap: 12,
                 cursor: isReadOnly ? 'not-allowed' : 'pointer',
-                transition: 'all .15s ease',
+                transition: 'all .2s cubic-bezier(0.4, 0, 0.2, 1)',
+                transform: isDragging ? 'scale(1.01)' : 'scale(1)',
               }}
               onMouseEnter={(e) => {
                 if (!isReadOnly && !isDragging) {
-                  e.currentTarget.style.background = '#e8d2c2';
+                  e.currentTarget.style.borderColor = 'var(--sah-copper)';
+                  e.currentTarget.style.background = 'linear-gradient(180deg, #ffffff 0%, rgba(243, 234, 225, 0.75) 100%)';
+                  e.currentTarget.style.boxShadow = '0 6px 18px rgba(197,138,99,0.12)';
                 }
               }}
               onMouseLeave={(e) => {
                 if (!isReadOnly && !isDragging) {
-                  e.currentTarget.style.background = 'var(--sah-copper-pale)';
+                  e.currentTarget.style.borderColor = 'rgba(197, 138, 99, 0.45)';
+                  e.currentTarget.style.background = 'linear-gradient(180deg, #ffffff 0%, rgba(248, 244, 239, 0.65) 100%)';
+                  e.currentTarget.style.boxShadow = '0 2px 10px rgba(23,36,58,0.02)';
                 }
               }}
             >
@@ -875,36 +926,137 @@ const ProductFormPage: React.FC = () => {
                 style={{ display: 'none' }}
                 disabled={isReadOnly}
               />
-              <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
+
+              {/* Centered Glowing Icon Bubble */}
+              <div
+                style={{
+                  width: 48,
+                  height: 48,
+                  borderRadius: '50%',
+                  background: isDragging
+                    ? 'var(--sah-copper)'
+                    : 'linear-gradient(135deg, #fefdfb 0%, #f4e7dc 100%)',
+                  border: isDragging
+                    ? '2px solid #fff'
+                    : '1.5px solid rgba(197,138,99,0.35)',
+                  boxShadow: isDragging
+                    ? '0 4px 14px rgba(197,138,99,0.4)'
+                    : '0 4px 12px rgba(197,138,99,0.15)',
+                  display: 'grid',
+                  placeItems: 'center',
+                  transition: 'all .2s ease',
+                  transform: isDragging ? 'scale(1.1)' : 'scale(1)',
+                }}
+              >
                 <svg
-                  width="18"
-                  height="18"
+                  width="22"
+                  height="22"
                   viewBox="0 0 24 24"
                   fill="none"
-                  stroke="var(--sah-copper-dark)"
-                  strokeWidth="2"
+                  stroke={isDragging ? '#ffffff' : 'var(--sah-copper-dark)'}
+                  strokeWidth="2.2"
                   strokeLinecap="round"
                   strokeLinejoin="round"
                 >
-                  <path d="M4 8h3l1.5-2h7L17 8h3a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1M12 17a4 4 0 1 0 0-8 4 4 0 0 0 0 8" />
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                  <polyline points="17 8 12 3 7 8" />
+                  <line x1="12" y1="3" x2="12" y2="15" />
                 </svg>
-                <span
+              </div>
+
+              {/* Text & Interactive CTA */}
+              <div style={{ textAlign: 'center', display: 'flex', flexDirection: 'column', gap: 4 }}>
+                <div
                   style={{
-                    fontSize: 13,
+                    fontSize: 13.5,
                     fontWeight: 700,
-                    color: isReadOnly ? 'var(--sah-muted)' : 'var(--sah-copper-dark)',
+                    color: isReadOnly ? 'var(--sah-muted)' : 'var(--sah-navy)',
+                    fontFamily: "'Plus Jakarta Sans', sans-serif",
                   }}
                 >
-                  {isReadOnly
-                    ? 'Pengunggahan foto dinonaktifkan untuk peran ini'
-                    : '+ Unggah materi gambar'}
+                  {isReadOnly ? (
+                    'Pengunggahan foto dinonaktifkan untuk peran ini'
+                  ) : isDragging ? (
+                    <span style={{ color: 'var(--sah-copper-dark)' }}>
+                      Lepaskan berkas foto di sini untuk mengunggah...
+                    </span>
+                  ) : (
+                    <>
+                      Tarik & lepas foto kemasan ke sini, atau{' '}
+                      <span
+                        style={{
+                          color: 'var(--sah-copper-dark)',
+                          textDecoration: 'underline',
+                          textUnderlineOffset: 3,
+                          cursor: 'pointer',
+                        }}
+                      >
+                        pilih berkas
+                      </span>
+                    </>
+                  )}
+                </div>
+              </div>
+
+              {/* Feature/Format Pill Badges */}
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 8,
+                  flexWrap: 'wrap',
+                  justifyContent: 'center',
+                }}
+              >
+                <span
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: 5,
+                    padding: '3px 10px',
+                    borderRadius: 999,
+                    background: 'rgba(23,36,58,0.04)',
+                    border: '1px solid rgba(23,36,58,0.07)',
+                    fontSize: 11,
+                    fontWeight: 600,
+                    color: 'var(--sah-muted)',
+                  }}
+                >
+                  <span>🖼️</span> PNG, JPG, WEBP
+                </span>
+                <span
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: 5,
+                    padding: '3px 10px',
+                    borderRadius: 999,
+                    background: 'rgba(23,36,58,0.04)',
+                    border: '1px solid rgba(23,36,58,0.07)',
+                    fontSize: 11,
+                    fontWeight: 600,
+                    color: 'var(--sah-muted)',
+                  }}
+                >
+                  <span>⚡</span> Maks. 15 MB / foto
+                </span>
+                <span
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: 5,
+                    padding: '3px 10px',
+                    borderRadius: 999,
+                    background: 'rgba(23,36,58,0.04)',
+                    border: '1px solid rgba(23,36,58,0.07)',
+                    fontSize: 11,
+                    fontWeight: 600,
+                    color: 'var(--sah-muted)',
+                  }}
+                >
+                  <span>📂</span> Multi-upload didukung
                 </span>
               </div>
-              <span style={{ fontSize: 11, color: 'var(--sah-muted)' }}>
-                {isReadOnly
-                  ? 'Peran US-04 hanya memiliki hak baca modul ini.'
-                  : 'Klik untuk memilih berkas atau seret & lepas berkas PNG / JPEG (Maks. 15 MB)'}
-              </span>
             </div>
 
             {/* Photos Preview Grid (3-column layout with wrapping) */}
@@ -913,8 +1065,8 @@ const ProductFormPage: React.FC = () => {
                 style={{
                   display: 'grid',
                   gridTemplateColumns: 'repeat(3, minmax(0, 1fr))',
-                  gap: 12,
-                  marginTop: 4,
+                  gap: 14,
+                  marginTop: 6,
                 }}
               >
                 {photos.map((p) => (
@@ -924,17 +1076,36 @@ const ProductFormPage: React.FC = () => {
                       border: p.is_primary
                         ? '1.5px solid var(--sah-copper)'
                         : '1px solid var(--sah-line)',
-                      borderRadius: 16,
+                      borderRadius: 18,
                       overflow: 'hidden',
-                      background: 'var(--sah-ivory)',
+                      background: 'var(--sah-white)',
                       display: 'flex',
                       flexDirection: 'column',
-                      boxShadow: p.is_primary ? '0 2px 8px rgba(197,138,99,.18)' : 'none',
+                      boxShadow: p.is_primary
+                        ? '0 4px 14px rgba(197,138,99,.2)'
+                        : '0 2px 8px rgba(23,36,58,.04)',
+                      transition: 'all .2s cubic-bezier(0.4, 0, 0.2, 1)',
+                    }}
+                    onMouseEnter={(e) => {
+                      if (!isReadOnly) {
+                        e.currentTarget.style.transform = 'translateY(-3px)';
+                        e.currentTarget.style.boxShadow = p.is_primary
+                          ? '0 8px 22px rgba(197,138,99,.28)'
+                          : '0 8px 20px rgba(23,36,58,.1)';
+                      }
+                    }}
+                    onMouseLeave={(e) => {
+                      if (!isReadOnly) {
+                        e.currentTarget.style.transform = 'translateY(0)';
+                        e.currentTarget.style.boxShadow = p.is_primary
+                          ? '0 4px 14px rgba(197,138,99,.2)'
+                          : '0 2px 8px rgba(23,36,58,.04)';
+                      }
                     }}
                   >
                     <div
                       style={{
-                        height: 110,
+                        height: 120,
                         background: p.url
                           ? `url(${p.url}) center / cover no-repeat`
                           : 'linear-gradient(145deg,#477fa2,#25384a 58%,#6f3f32)',
@@ -960,82 +1131,134 @@ const ProductFormPage: React.FC = () => {
                         <span
                           style={{
                             position: 'absolute',
-                            right: 8,
-                            top: 8,
-                            padding: '3px 8px',
+                            right: 9,
+                            top: 9,
+                            padding: '4px 10px',
                             borderRadius: 999,
-                            background: 'var(--sah-copper)',
+                            background: 'linear-gradient(135deg, #c58a63 0%, #a46c47 100%)',
                             color: 'var(--sah-white)',
                             fontSize: 9.5,
                             fontWeight: 800,
-                            boxShadow: '0 1px 4px rgba(0,0,0,.15)',
+                            letterSpacing: '0.03em',
+                            boxShadow: '0 2px 8px rgba(0,0,0,.25)',
                             zIndex: 2,
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: 4,
                           }}
                         >
-                          ★ Utama
+                          <span>★</span>
+                          <span>FOTO UTAMA</span>
                         </span>
                       )}
                     </div>
 
                     <div
                       style={{
-                        padding: '10px 12px',
+                        padding: '12px 14px',
                         display: 'flex',
                         flexDirection: 'column',
                         gap: 8,
                       }}
                     >
-                      <div
-                        style={{
-                          fontSize: 11.5,
-                          fontWeight: 600,
-                          overflow: 'hidden',
-                          textOverflow: 'ellipsis',
-                          whiteSpace: 'nowrap',
-                          color: 'var(--sah-navy)',
-                        }}
-                        title={p.file_name}
-                      >
-                        {p.file_name}
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 6 }}>
+                        <div
+                          style={{
+                            fontSize: 12,
+                            fontWeight: 700,
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis',
+                            whiteSpace: 'nowrap',
+                            color: 'var(--sah-navy)',
+                          }}
+                          title={p.file_name}
+                        >
+                          {p.file_name}
+                        </div>
+                        {p.dimensions && (
+                          <span
+                            style={{
+                              fontSize: 10,
+                              fontWeight: 600,
+                              color: 'var(--sah-muted)',
+                              flexShrink: 0,
+                            }}
+                          >
+                            {p.dimensions.split('·')[1]?.trim() || p.dimensions}
+                          </span>
+                        )}
                       </div>
 
                       {!isReadOnly && (
-                        <div style={{ display: 'flex', gap: 6 }}>
+                        <div style={{ display: 'flex', gap: 6, marginTop: 2 }}>
                           {!p.is_primary && (
                             <button
                               type="button"
                               onClick={() => handleSetPrimaryPhoto(p.id)}
                               style={{
                                 flex: 1,
-                                height: 26,
-                                borderRadius: 8,
+                                height: 28,
+                                borderRadius: 9,
                                 border: '1px solid var(--sah-line)',
-                                background: 'var(--sah-white)',
-                                fontSize: 10.5,
-                                fontWeight: 600,
+                                background: 'var(--sah-ivory)',
+                                fontSize: 11,
+                                fontWeight: 700,
                                 color: 'var(--sah-navy)',
                                 cursor: 'pointer',
+                                transition: 'all .15s ease',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                gap: 4,
+                              }}
+                              onMouseEnter={(e) => {
+                                e.currentTarget.style.borderColor = 'var(--sah-copper)';
+                                e.currentTarget.style.background = 'var(--sah-copper-pale)';
+                                e.currentTarget.style.color = 'var(--sah-copper-dark)';
+                              }}
+                              onMouseLeave={(e) => {
+                                e.currentTarget.style.borderColor = 'var(--sah-line)';
+                                e.currentTarget.style.background = 'var(--sah-ivory)';
+                                e.currentTarget.style.color = 'var(--sah-navy)';
                               }}
                             >
-                              Jadikan Utama
+                              <span>★</span>
+                              <span>Jadikan Utama</span>
                             </button>
                           )}
                           <button
                             type="button"
                             onClick={() => handleRemovePhoto(p.id)}
                             style={{
-                              height: 26,
-                              padding: '0 8px',
-                              borderRadius: 8,
-                              border: '1px solid var(--sah-line)',
-                              background: 'rgba(168,95,79,.08)',
-                              color: 'var(--danger)',
-                              fontSize: 10.5,
-                              fontWeight: 600,
+                              height: 28,
+                              padding: '0 10px',
+                              borderRadius: 9,
+                              border: '1px solid rgba(197,75,60,.2)',
+                              background: 'rgba(197,75,60,.06)',
+                              color: '#c54b3c',
+                              fontSize: 11,
+                              fontWeight: 700,
                               cursor: 'pointer',
+                              transition: 'all .15s ease',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              gap: 4,
+                            }}
+                            onMouseEnter={(e) => {
+                              e.currentTarget.style.background = 'rgba(197,75,60,.14)';
+                              e.currentTarget.style.borderColor = '#c54b3c';
+                            }}
+                            onMouseLeave={(e) => {
+                              e.currentTarget.style.background = 'rgba(197,75,60,.06)';
+                              e.currentTarget.style.borderColor = 'rgba(197,75,60,.2)';
                             }}
                           >
-                            Hapus
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                              <polyline points="3 6 5 6 21 6" />
+                              <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                            </svg>
+                            <span>Hapus</span>
                           </button>
                         </div>
                       )}
