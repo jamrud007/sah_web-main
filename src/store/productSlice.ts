@@ -2,7 +2,7 @@
 import { createSlice, createAsyncThunk, type PayloadAction } from '@reduxjs/toolkit';
 import type { Product, Photo } from '../types/apiDef';
 import { productService, type ProductListParams } from '../services/productService';
-import { photoService } from '../services/photoService';
+import { photoService, packageSideDisplayLabel } from '../services/photoService';
 
 // ─── Initial Mock Data from SAH Web Admin (standalone).html ───────────────
 
@@ -436,50 +436,120 @@ export const deleteProduct = createAsyncThunk(
 
 export const uploadPhoto = createAsyncThunk(
   'products/uploadPhoto',
-  async ({ productId, file, packageSide }: { productId: string; file: File; packageSide?: string }) => {
+  async (
+    {
+      productId,
+      file,
+      packageSide,
+    }: { productId: string; file: File; packageSide?: string },
+    { rejectWithValue },
+  ) => {
+    const objectUrl = URL.createObjectURL(file);
     try {
-      const photo = await photoService.upload(productId, file, packageSide);
-      return { productId, photo };
-    } catch {
-      // Fallback: create mock photo object
-      const objectUrl = URL.createObjectURL(file);
-      const mockPhoto: Photo = {
-        id: 'ph-' + Date.now().toString(36),
+      const res = await photoService.upload(productId, file, packageSide);
+      const photo: Photo = {
+        id: res.photo_id || 'ph-' + Date.now().toString(36),
         product_id: productId,
         url: objectUrl,
-        package_side: packageSide,
-        status: 'indexed',
+        package_side: res.package_side || packageSide || 'front',
+        angle: packageSideDisplayLabel(res.package_side || packageSide || 'front'),
+        status: 'pending',
+        index_status: 'pending',
+        file_name: file.name,
+        file_size: file.size,
         width: 1920,
         height: 1920,
-        file_size: file.size,
+        dimensions: `${file.name.slice(0, 16)} · ${(file.size / (1024 * 1024)).toFixed(1)} MB`,
         created_at: new Date().toISOString(),
       };
-      return { productId, photo: mockPhoto };
+      return { productId, photo, raw: res };
+    } catch (err: any) {
+      // If productId is mock or offline without valid UUID, allow graceful local simulation
+      const isMock = productId.startsWith('prod-') || !productId.includes('-');
+      if (isMock) {
+        const mockPhoto: Photo = {
+          id: 'ph-' + Date.now().toString(36),
+          product_id: productId,
+          url: objectUrl,
+          package_side: packageSide || 'front',
+          angle: packageSideDisplayLabel(packageSide || 'front'),
+          status: 'pending',
+          index_status: 'pending',
+          file_name: file.name,
+          file_size: file.size,
+          width: 1920,
+          height: 1920,
+          dimensions: `${file.name.slice(0, 16)} · ${(file.size / (1024 * 1024)).toFixed(1)} MB`,
+          created_at: new Date().toISOString(),
+        };
+        return { productId, photo: mockPhoto, raw: { state: 'PENDING' } };
+      }
+
+      const message =
+        err.response?.data?.error?.user_message ||
+        err.response?.data?.error?.message ||
+        err.message ||
+        'Gagal mengunggah foto';
+      return rejectWithValue(message);
     }
   },
 );
 
 export const deletePhoto = createAsyncThunk(
   'products/deletePhoto',
-  async ({ productId, photoId }: { productId: string; photoId: string }) => {
+  async (
+    { productId, photoId }: { productId: string; photoId: string },
+    { rejectWithValue },
+  ) => {
     try {
-      await photoService.remove(productId, photoId);
-    } catch {
-      // Ignored for local fallback
+      const res = await photoService.remove(productId, photoId);
+      return { productId, photoId, raw: res };
+    } catch (err: any) {
+      // If mock ID, allow graceful local delete
+      if (
+        photoId.startsWith('ph-') ||
+        photoId.startsWith('photo-') ||
+        productId.startsWith('prod-') ||
+        !productId.includes('-')
+      ) {
+        return { productId, photoId, raw: { state: 'DELETE_PENDING' } };
+      }
+      const message =
+        err.response?.data?.error?.user_message ||
+        err.response?.data?.error?.message ||
+        err.message ||
+        'Gagal menghapus foto';
+      return rejectWithValue(message);
     }
-    return { productId, photoId };
   },
 );
 
 export const reindexPhoto = createAsyncThunk(
   'products/reindexPhoto',
-  async ({ productId, photoId }: { productId: string; photoId: string }) => {
+  async (
+    { productId, photoId }: { productId: string; photoId: string },
+    { rejectWithValue },
+  ) => {
     try {
-      await photoService.reindex(productId, photoId);
-    } catch {
-      // Ignored for local fallback
+      const res = await photoService.reindex(productId, photoId);
+      return { productId, photoId, raw: res };
+    } catch (err: any) {
+      // If mock ID, allow graceful local reindex
+      if (
+        photoId.startsWith('ph-') ||
+        photoId.startsWith('photo-') ||
+        productId.startsWith('prod-') ||
+        !productId.includes('-')
+      ) {
+        return { productId, photoId, raw: { state: 'PENDING' } };
+      }
+      const message =
+        err.response?.data?.error?.user_message ||
+        err.response?.data?.error?.message ||
+        err.message ||
+        'Gagal melakukan indeks ulang';
+      return rejectWithValue(message);
     }
-    return { productId, photoId };
   },
 );
 
@@ -608,6 +678,14 @@ const productSlice = createSlice({
           state.photosByProductId[productId] = [];
         }
         state.photosByProductId[productId].push(photo);
+
+        if (state.selectedProduct?.id === productId) {
+          state.selectedProduct.photos = [...(state.selectedProduct.photos || []), photo];
+        }
+        const item = state.items.find((p) => p.id === productId);
+        if (item) {
+          item.photos = [...(item.photos || []), photo];
+        }
       })
       .addCase(uploadPhoto.rejected, (state, action) => {
         state.photoLoading = false;
@@ -623,6 +701,13 @@ const productSlice = createSlice({
             productId
           ].filter((p) => p.id !== photoId);
         }
+        if (state.selectedProduct?.id === productId && state.selectedProduct.photos) {
+          state.selectedProduct.photos = state.selectedProduct.photos.filter((p) => p.id !== photoId);
+        }
+        const item = state.items.find((p) => p.id === productId);
+        if (item && item.photos) {
+          item.photos = item.photos.filter((p) => p.id !== photoId);
+        }
       })
       .addCase(deletePhoto.rejected, (state, action) => {
         state.error = action.payload as string;
@@ -635,7 +720,25 @@ const productSlice = createSlice({
         const photos = state.photosByProductId[productId];
         if (photos) {
           const photo = photos.find((p) => p.id === photoId);
-          if (photo) photo.status = 'pending';
+          if (photo) {
+            photo.status = 'pending';
+            photo.index_status = 'pending';
+          }
+        }
+        if (state.selectedProduct?.id === productId && state.selectedProduct.photos) {
+          const photo = state.selectedProduct.photos.find((p) => p.id === photoId);
+          if (photo) {
+            photo.status = 'pending';
+            photo.index_status = 'pending';
+          }
+        }
+        const item = state.items.find((p) => p.id === productId);
+        if (item && item.photos) {
+          const photo = item.photos.find((p) => p.id === photoId);
+          if (photo) {
+            photo.status = 'pending';
+            photo.index_status = 'pending';
+          }
         }
       });
   },

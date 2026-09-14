@@ -93,7 +93,17 @@ export interface ProductUpdate {
 
 // ─── Photo ────────────────────────────────────────────────────────────────
 
+export type BackendPhotoPackageSide =
+  | 'front'
+  | 'back'
+  | 'left'
+  | 'right'
+  | 'top'
+  | 'bottom'
+  | 'other';
+
 export type PhotoPackageSide =
+  | BackendPhotoPackageSide
   | 'depan'
   | 'belakang'
   | 'sisi_kiri'
@@ -125,6 +135,18 @@ export interface Photo {
 export interface PhotoUploadInput {
   photo: File;
   package_side?: string;
+}
+
+export interface PhotoUploadResponse {
+  photo_id: string;
+  message_id?: string;
+  state?: string;
+  package_side?: string;
+}
+
+export interface PhotoActionResponse {
+  message_id?: string;
+  state?: string;
 }
 
 // ─── Story ────────────────────────────────────────────────────────────────
