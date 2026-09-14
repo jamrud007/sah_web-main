@@ -1,0 +1,18 @@
+version: "3.8"
+
+services:
+  web:
+    build: .
+    image: sah_platform/web:1.0.0
+    container_name: sah_web
+    restart: always
+    ports:
+      - "127.0.0.1:${APP_PORT:-8011}:80"
+    environment:
+      TZ: Asia/Jakarta
+    networks:
+      - sah_network
+
+networks:
+  sah_network:
+    driver: bridge

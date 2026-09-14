@@ -1,0 +1,830 @@
+<!DOCTYPE html>
+<html><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+/* cyrillic-ext */
+@font-face {
+  font-family: 'Cormorant Garamond';
+  font-style: italic;
+  font-weight: 600;
+  font-display: swap;
+  src: url("4c399ecd-bfd7-4e58-be95-c0e6c321ab34") format('woff2');
+  unicode-range: U+0460-052F, U+1C80-1C8A, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+}
+/* cyrillic */
+@font-face {
+  font-family: 'Cormorant Garamond';
+  font-style: italic;
+  font-weight: 600;
+  font-display: swap;
+  src: url("d15cf52a-63d7-47ff-91e9-a3f8127321f9") format('woff2');
+  unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+}
+/* vietnamese */
+@font-face {
+  font-family: 'Cormorant Garamond';
+  font-style: italic;
+  font-weight: 600;
+  font-display: swap;
+  src: url("bf742c88-ef48-49fd-94ef-ae856e990c20") format('woff2');
+  unicode-range: U+0102-0103, U+0110-0111, U+0128-0129, U+0168-0169, U+01A0-01A1, U+01AF-01B0, U+0300-0301, U+0303-0304, U+0308-0309, U+0323, U+0329, U+1EA0-1EF9, U+20AB;
+}
+/* latin-ext */
+@font-face {
+  font-family: 'Cormorant Garamond';
+  font-style: italic;
+  font-weight: 600;
+  font-display: swap;
+  src: url("cdf2a8fd-33b8-4a12-a261-675a796e1e84") format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+/* latin */
+@font-face {
+  font-family: 'Cormorant Garamond';
+  font-style: italic;
+  font-weight: 600;
+  font-display: swap;
+  src: url("46563211-1a6b-4291-9228-357ec62b05a6") format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+/* latin-ext */
+@font-face {
+  font-family: 'DM Sans';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("66e5e843-36fd-4643-bd86-f81801227b39") format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+/* latin */
+@font-face {
+  font-family: 'DM Sans';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("899bf4b8-dce7-4312-baa0-10345bd2543b") format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+/* latin-ext */
+@font-face {
+  font-family: 'DM Sans';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url("66e5e843-36fd-4643-bd86-f81801227b39") format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+/* latin */
+@font-face {
+  font-family: 'DM Sans';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url("899bf4b8-dce7-4312-baa0-10345bd2543b") format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+/* latin-ext */
+@font-face {
+  font-family: 'DM Sans';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url("66e5e843-36fd-4643-bd86-f81801227b39") format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+/* latin */
+@font-face {
+  font-family: 'DM Sans';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url("899bf4b8-dce7-4312-baa0-10345bd2543b") format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+/* latin-ext */
+@font-face {
+  font-family: 'DM Sans';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url("66e5e843-36fd-4643-bd86-f81801227b39") format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+/* latin */
+@font-face {
+  font-family: 'DM Sans';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url("899bf4b8-dce7-4312-baa0-10345bd2543b") format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+/* cyrillic-ext */
+@font-face {
+  font-family: 'Plus Jakarta Sans';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url("d6ded88f-a491-47a9-9786-16ce8cbc2129") format('woff2');
+  unicode-range: U+0460-052F, U+1C80-1C8A, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+}
+/* vietnamese */
+@font-face {
+  font-family: 'Plus Jakarta Sans';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url("758d0a88-e26f-4571-9184-d030369117ac") format('woff2');
+  unicode-range: U+0102-0103, U+0110-0111, U+0128-0129, U+0168-0169, U+01A0-01A1, U+01AF-01B0, U+0300-0301, U+0303-0304, U+0308-0309, U+0323, U+0329, U+1EA0-1EF9, U+20AB;
+}
+/* latin-ext */
+@font-face {
+  font-family: 'Plus Jakarta Sans';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url("9314dc15-2b98-47f1-8a83-5523e1939cff") format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+/* latin */
+@font-face {
+  font-family: 'Plus Jakarta Sans';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url("8931bd77-a740-44f8-8482-8b91ff5cf8d5") format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+/* cyrillic-ext */
+@font-face {
+  font-family: 'Plus Jakarta Sans';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url("d6ded88f-a491-47a9-9786-16ce8cbc2129") format('woff2');
+  unicode-range: U+0460-052F, U+1C80-1C8A, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+}
+/* vietnamese */
+@font-face {
+  font-family: 'Plus Jakarta Sans';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url("758d0a88-e26f-4571-9184-d030369117ac") format('woff2');
+  unicode-range: U+0102-0103, U+0110-0111, U+0128-0129, U+0168-0169, U+01A0-01A1, U+01AF-01B0, U+0300-0301, U+0303-0304, U+0308-0309, U+0323, U+0329, U+1EA0-1EF9, U+20AB;
+}
+/* latin-ext */
+@font-face {
+  font-family: 'Plus Jakarta Sans';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url("9314dc15-2b98-47f1-8a83-5523e1939cff") format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+/* latin */
+@font-face {
+  font-family: 'Plus Jakarta Sans';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url("8931bd77-a740-44f8-8482-8b91ff5cf8d5") format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+/* cyrillic-ext */
+@font-face {
+  font-family: 'Plus Jakarta Sans';
+  font-style: normal;
+  font-weight: 800;
+  font-display: swap;
+  src: url("d6ded88f-a491-47a9-9786-16ce8cbc2129") format('woff2');
+  unicode-range: U+0460-052F, U+1C80-1C8A, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+}
+/* vietnamese */
+@font-face {
+  font-family: 'Plus Jakarta Sans';
+  font-style: normal;
+  font-weight: 800;
+  font-display: swap;
+  src: url("758d0a88-e26f-4571-9184-d030369117ac") format('woff2');
+  unicode-range: U+0102-0103, U+0110-0111, U+0128-0129, U+0168-0169, U+01A0-01A1, U+01AF-01B0, U+0300-0301, U+0303-0304, U+0308-0309, U+0323, U+0329, U+1EA0-1EF9, U+20AB;
+}
+/* latin-ext */
+@font-face {
+  font-family: 'Plus Jakarta Sans';
+  font-style: normal;
+  font-weight: 800;
+  font-display: swap;
+  src: url("9314dc15-2b98-47f1-8a83-5523e1939cff") format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+/* latin */
+@font-face {
+  font-family: 'Plus Jakarta Sans';
+  font-style: normal;
+  font-weight: 800;
+  font-display: swap;
+  src: url("8931bd77-a740-44f8-8482-8b91ff5cf8d5") format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+:root{
+  --sah-navy:#17243a; --sah-frame:#111927; --sah-ivory:#faf7f0; --sah-white:#fffdf8;
+  --sah-copper:#c58a63; --sah-copper-dark:#9b664b; --sah-copper-pale:#f0e0d4; --sah-copper-pressed:#ad7352;
+  --sah-mist:#a9c2cf; --sah-mist-soft:#dce7eb; --sah-sand:#e6d8c5; --sah-blue:#38536b; --sah-blue-strong:#315e78; --sah-muted:#6b7788;
+  --sah-line:rgba(23,36,58,.11); --sah-glass:rgba(255,253,248,.78); --sah-shadow:0 18px 42px rgba(23,36,58,.13); --danger:#a85f4f;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--sah-ivory);color:var(--sah-navy);font-family:'DM Sans',system-ui,sans-serif;font-size:14px;line-height:1.5;-webkit-font-smoothing:antialiased;text-wrap:pretty}
+a{color:var(--sah-copper-dark);text-decoration:none}
+a:hover{color:var(--sah-copper-pressed)}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+table{border-collapse:collapse}
+:focus-visible{outline:2px solid var(--sah-copper);outline-offset:2px}
+::selection{background:var(--sah-copper-pale)}
+@keyframes shim{0%{background-position:-360px 0}100%{background-position:360px 0}}
+@keyframes rise{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+::-webkit-scrollbar{width:10px;height:10px}
+::-webkit-scrollbar-thumb{background:rgba(23,36,58,.16);border-radius:999px}
+</style>
+</helmet>
+
+
+
+<sc-if value="{{ vLogin }}" hint-placeholder-val="{{ false }}">
+  <div style="min-height:100vh;display:grid;grid-template-columns:1.05fr .95fr;background:var(--sah-ivory)">
+    <div style="padding:56px 60px;display:flex;flex-direction:column;justify-content:space-between;background:linear-gradient(145deg,#477fa2,#25384a 58%,#6f3f32);color:var(--sah-white)">
+      <div style="display:flex;align-items:center;gap:12px">
+        <div style="width:38px;height:38px;border-radius:13px;background:var(--sah-white);color:var(--sah-navy);display:grid;place-items:center;font-family:'Plus Jakarta Sans';font-weight:800;font-size:15px">SH</div>
+        <div style="font-family:'Plus Jakarta Sans';font-weight:700;letter-spacing:-.2px">Sahabat Halal</div>
+      </div>
+      <div style="max-width:420px;display:flex;flex-direction:column;gap:18px">
+        <div style="font-family:'DM Sans';font-weight:700;font-size:10px;letter-spacing:1.8px;text-transform:uppercase;color:var(--sah-copper-pale)">Aplikasi Web Administratif</div>
+        <div style="font-family:'Plus Jakarta Sans';font-weight:800;font-size:40px;line-height:1.08;letter-spacing:-1.2px">Katalog, kurasi, dan moderasi dalam satu tempat kerja.</div>
+        <div style="font-family:'Cormorant Garamond';font-style:italic;font-weight:600;font-size:21px;color:var(--sah-copper-pale)">Setiap keputusan meninggalkan jejak bukti.</div>
+      </div>
+      <div style="font-size:12px;color:rgba(255,253,248,.72);max-width:400px">Akses administratif memerlukan autentikasi (AR-05, FR-USR-05). Akun internal terpisah dari akun konsumen (BR-36).</div>
+    </div>
+    <div style="display:grid;place-items:center;padding:40px">
+      <div style="width:100%;max-width:392px;background:var(--sah-white);border:1px solid var(--sah-line);border-radius:25px;box-shadow:var(--sah-shadow);padding:34px 32px;display:flex;flex-direction:column;gap:20px">
+        <div style="display:flex;justify-content:space-between;align-items:baseline">
+          <div style="font-family:'Plus Jakarta Sans';font-weight:700;font-size:22px;letter-spacing:-.5px">Masuk Admin</div>
+          <div style="font-family:'DM Sans';font-size:10px;font-weight:700;letter-spacing:1.4px;color:var(--sah-muted)">SCR-WEB-01</div>
+        </div>
+        <label style="display:flex;flex-direction:column;gap:7px"><span style="font-size:12.5px;font-weight:600;color:var(--sah-blue)">Email kerja</span><input type="email" value="budi.santoso@sahabathalal.id" style="height:46px;padding:0 14px;border:1px solid var(--sah-line);border-radius:15px;background:var(--sah-ivory)"></label>
+        <label style="display:flex;flex-direction:column;gap:7px"><span style="font-size:12.5px;font-weight:600;color:var(--sah-blue)">Kata sandi</span><input type="password" value="............" style="height:46px;padding:0 14px;border:1px solid var(--sah-line);border-radius:15px;background:var(--sah-ivory)"></label>
+        <div style="display:flex;align-items:flex-start;gap:10px;padding:12px 14px;border-radius:15px;background:rgba(168,95,79,.1);border:1px solid var(--sah-line)">
+          <span style="color:var(--danger);font-size:10px;line-height:20px">●</span>
+          <div style="font-size:12.5px;color:var(--sah-frame)">Email atau kata sandi tidak sesuai. <span style="color:var(--sah-muted)">Pesan galat generik — tidak menyebut akun mana yang keliru (FR-USR-09).</span></div>
+        </div>
+        <button sc-camel-on-click="{{ login }}" style="height:48px;border:0;border-radius:16px;background:var(--sah-copper);color:var(--sah-white);font-family:'Plus Jakarta Sans';font-weight:700;font-size:14.5px;text-align:left;padding:0 18px;display:flex;align-items:center;justify-content:space-between" style-hover="background:var(--sah-copper-pressed)"><span>Masuk</span><span style="font-size:16px">→</span></button>
+        <div style="font-size:11.5px;color:var(--sah-muted)">Percobaan gagal berulang akan membatasi laju masuk (FR-USR-03). Sesi aktif dapat dicabut dari Profil &amp; Kata Sandi.</div>
+      </div>
+    </div>
+  </div>
+</sc-if>
+
+<sc-if value="{{ vApp }}" hint-placeholder-val="{{ true }}">
+<div style="display:flex;min-height:100vh;background:var(--sah-ivory)">
+
+  <div style="width:248px;flex:none;background:var(--sah-navy);color:var(--sah-white);display:flex;flex-direction:column;position:sticky;top:0;height:100vh">
+    <div style="padding:22px 20px 18px;display:flex;align-items:center;gap:11px;border-bottom:1px solid rgba(255,253,248,.1)">
+      <div style="width:34px;height:34px;border-radius:12px;background:var(--sah-copper);display:grid;place-items:center;font-family:'Plus Jakarta Sans';font-weight:800;font-size:13.5px;color:var(--sah-white)">SH</div>
+      <div><div style="font-family:'Plus Jakarta Sans';font-weight:700;font-size:14.5px;letter-spacing:-.2px">Sahabat Halal</div><div style="font-size:10.5px;color:rgba(255,253,248,.55);letter-spacing:.4px">Web Administratif</div></div>
+    </div>
+    <div style="flex:1;overflow:auto;padding:14px 12px 10px;display:flex;flex-direction:column;gap:16px">
+      <sc-for list="{{ nav }}" as="g" hint-placeholder-count="5">
+        <div style="display:flex;flex-direction:column;gap:3px">
+          <div style="padding:0 10px 6px;font-size:9.5px;font-weight:700;letter-spacing:1.8px;text-transform:uppercase;color:var(--sah-copper)">{{ g.label }}</div>
+          <sc-for list="{{ g.items }}" as="it" hint-placeholder-count="3">
+            <a href="{{ it.href }}" style="display:flex;align-items:center;gap:10px;padding:9px 11px;border-radius:13px;background:{{ it.bg }};border:1px solid {{ it.bd }};color:{{ it.fg }};font-size:13px;font-weight:{{ it.fw }}" style-hover="background:rgba(255,253,248,.07)">
+              <svg width="17" height="17" sc-camel-view-box="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="flex:none;opacity:.9"><path d="{{ it.icon }}"></path></svg>
+              <span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ it.label }}</span>
+              <span style="font-size:9px;letter-spacing:.5px;color:rgba(255,253,248,.4)">{{ it.num }}</span>
+            </a>
+          </sc-for>
+        </div>
+      </sc-for>
+    </div>
+    <div style="padding:14px 16px;border-top:1px solid rgba(255,253,248,.1);display:flex;align-items:center;gap:11px">
+      <div style="width:34px;height:34px;border-radius:12px;background:var(--sah-blue);display:grid;place-items:center;font-family:'Plus Jakarta Sans';font-weight:700;font-size:12.5px">{{ meInit }}</div>
+      <div style="flex:1;min-width:0"><div style="font-size:12.5px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ meName }}</div><div style="font-size:10.5px;color:rgba(255,253,248,.55)">{{ roleName }}</div></div>
+      <a href="#/masuk" title="Keluar" style="color:rgba(255,253,248,.6)"><svg width="17" height="17" sc-camel-view-box="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M15 17l5-5-5-5M20 12H9M12 20H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h6"></path></svg></a>
+    </div>
+  </div>
+
+  <div style="flex:1;min-width:0;display:flex;flex-direction:column">
+    <div style="height:64px;flex:none;position:sticky;top:0;z-index:20;background:var(--sah-glass);backdrop-filter:blur(18px);border-bottom:1px solid var(--sah-line);display:flex;align-items:center;gap:18px;padding:0 28px">
+      <div style="min-width:0">
+        <div style="font-size:10.5px;color:var(--sah-muted);letter-spacing:.3px">{{ crumb }}</div>
+        <div style="font-family:'Plus Jakarta Sans';font-weight:700;font-size:16.5px;letter-spacing:-.35px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ title }}</div>
+      </div>
+      <div style="flex:1"></div>
+      <label style="display:flex;align-items:center;gap:8px;height:38px;padding:0 14px;border:1px solid var(--sah-line);border-radius:14px;background:var(--sah-white);width:236px">
+        <svg width="15" height="15" sc-camel-view-box="0 0 24 24" fill="none" stroke="var(--sah-muted)" stroke-width="1.8" stroke-linecap="round"><path d="M11 19a8 8 0 1 1 0-16 8 8 0 0 1 0 16M21 21l-4.3-4.3"></path></svg>
+        <input placeholder="{{ t.search }}" style="border:0;background:none;outline:none;width:100%;font-size:13px">
+      </label>
+      <button title="Notifikasi" sc-camel-on-click="{{ ping }}" style="position:relative;width:38px;height:38px;border:1px solid var(--sah-line);border-radius:14px;background:var(--sah-white);display:grid;place-items:center">
+        <svg width="16" height="16" sc-camel-view-box="0 0 24 24" fill="none" stroke="var(--sah-navy)" stroke-width="1.8" stroke-linecap="round"><path d="M18 8a6 6 0 1 0-12 0c0 7-3 8-3 8h18s-3-1-3-8M13.7 21a2 2 0 0 1-3.4 0"></path></svg>
+        <span style="position:absolute;top:8px;right:9px;width:7px;height:7px;border-radius:999px;background:var(--sah-copper)"></span>
+      </button>
+      <label style="display:flex;align-items:center;gap:7px;height:38px;padding:0 12px;border:1px solid var(--sah-line);border-radius:14px;background:var(--sah-white)">
+        <span style="font-size:9.5px;font-weight:700;letter-spacing:1.4px;text-transform:uppercase;color:var(--sah-copper)">{{ t.roleLbl }}</span>
+        <sc-raw-select value="{{ role }}" sc-camel-on-change="{{ setRole }}" style="border:0;background:none;outline:none;font-size:12.5px;font-weight:600;max-width:150px">
+          <sc-for list="{{ roleOpts }}" as="r" hint-placeholder-count="5"><option value="{{ r.v }}">{{ r.n }}</option></sc-for>
+        </sc-raw-select>
+      </label>
+      <div style="display:flex;border:1px solid var(--sah-line);border-radius:14px;overflow:hidden;background:var(--sah-white)">
+        <button sc-camel-on-click="{{ setId }}" style="padding:0 12px;height:38px;border:0;background:{{ idBg }};color:{{ idFg }};font-size:12px;font-weight:700">ID</button>
+        <button sc-camel-on-click="{{ setEn }}" style="padding:0 12px;height:38px;border:0;border-left:1px solid var(--sah-line);background:{{ enBg }};color:{{ enFg }};font-size:12px;font-weight:700">EN</button>
+      </div>
+    </div>
+
+    <div style="flex:1;padding:28px 28px 64px">
+      <div style="max-width:1200px;margin:0 auto;display:flex;flex-direction:column;gap:20px">
+
+        <div style="display:flex;align-items:flex-end;gap:16px;flex-wrap:wrap">
+          <div style="min-width:0;flex:1">
+            <div style="font-size:9.5px;font-weight:700;letter-spacing:1.8px;text-transform:uppercase;color:var(--sah-copper)">{{ modLabel }}</div>
+            <div style="font-family:'Plus Jakarta Sans';font-weight:800;font-size:27px;letter-spacing:-.8px;margin-top:4px">{{ title }}</div>
+            <div style="font-size:13px;color:var(--sah-muted);margin-top:3px">{{ purpose }}</div>
+          </div>
+          <sc-if value="{{ hasStates }}" hint-placeholder-val="{{ true }}">
+            <div style="display:flex;align-items:center;gap:8px">
+              <span style="font-size:10.5px;color:var(--sah-muted)">{{ t.stateDemo }}</span>
+              <div style="display:flex;border:1px solid var(--sah-line);border-radius:999px;overflow:hidden;background:var(--sah-white)">
+                <sc-for list="{{ stateOpts }}" as="s" hint-placeholder-count="4">
+                  <button sc-camel-on-click="{{ s.go }}" style="padding:7px 13px;border:0;background:{{ s.bg }};color:{{ s.fg }};font-size:11.5px;font-weight:600">{{ s.n }}</button>
+                </sc-for>
+              </div>
+            </div>
+          </sc-if>
+          <div style="font-family:'DM Sans';font-size:10px;font-weight:700;letter-spacing:1.5px;color:var(--sah-muted);border:1px solid var(--sah-line);border-radius:999px;padding:6px 12px;background:var(--sah-white)">{{ code }}</div>
+        </div>
+
+        <sc-if value="{{ readOnly }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex;align-items:center;gap:10px;padding:11px 16px;border:1px solid var(--sah-line);border-radius:16px;background:var(--sah-mist-soft)">
+            <span style="color:var(--sah-blue-strong);font-size:10px">●</span>
+            <div style="font-size:12.5px;color:var(--sah-frame)">{{ readOnlyMsg }}</div>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ gap }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex;align-items:flex-start;gap:10px;padding:11px 16px;border:1px dashed var(--sah-copper);border-radius:16px;background:var(--sah-copper-pale)">
+            <span style="font-family:'Cormorant Garamond';font-style:italic;font-weight:600;font-size:17px;color:var(--sah-copper-dark);line-height:1.2">§</span>
+            <div style="font-size:12.5px;color:var(--sah-frame)">{{ gap }}</div>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ vDenied }}" hint-placeholder-val="{{ false }}">
+          <div style="background:var(--sah-white);border:1px solid var(--sah-line);border-radius:24px;box-shadow:var(--sah-shadow);padding:56px 40px;display:flex;flex-direction:column;align-items:flex-start;gap:14px;max-width:620px">
+            <div style="width:46px;height:46px;border-radius:16px;background:var(--sah-sand);display:grid;place-items:center"><svg width="22" height="22" sc-camel-view-box="0 0 24 24" fill="none" stroke="var(--sah-frame)" stroke-width="1.8" stroke-linecap="round"><path d="M5 11h14a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-6a2 2 0 0 1 2-2M8 11V7a4 4 0 0 1 8 0v4"></path></svg></div>
+            <div style="font-family:'Plus Jakarta Sans';font-weight:700;font-size:20px;letter-spacing:-.4px">{{ t.deniedT }}</div>
+            <div style="font-size:13.5px;color:var(--sah-muted);max-width:460px">{{ deniedMsg }}</div>
+            <a href="#/beranda" style="margin-top:6px;display:inline-flex;align-items:center;gap:8px;height:42px;padding:0 18px;border-radius:15px;background:var(--sah-navy);color:var(--sah-white);font-weight:600;font-size:13px">{{ t.toHome }} <span>→</span></a>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ vHome }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex;flex-direction:column;gap:20px">
+            <div style="border-radius:25px;padding:26px 28px;background:linear-gradient(145deg,#477fa2,#25384a 58%,#6f3f32);color:var(--sah-white);box-shadow:var(--sah-shadow);display:flex;gap:28px;flex-wrap:wrap;align-items:flex-end">
+              <div style="flex:1;min-width:260px">
+                <div style="font-size:9.5px;font-weight:700;letter-spacing:1.8px;text-transform:uppercase;color:var(--sah-copper-pale)">{{ homeEyebrow }}</div>
+                <div style="font-family:'Plus Jakarta Sans';font-weight:800;font-size:26px;letter-spacing:-.7px;margin-top:6px">{{ homeHi }}</div>
+                <div style="font-size:13px;color:rgba(255,253,248,.78);margin-top:4px;max-width:440px">{{ homeSub }}</div>
+              </div>
+              <div style="display:flex;gap:34px;flex-wrap:wrap">
+                <sc-for list="{{ kpis }}" as="k" hint-placeholder-count="3">
+                  <div><div style="font-family:'Plus Jakarta Sans';font-weight:800;font-size:34px;letter-spacing:-1.2px;line-height:1">{{ k.v }}</div><div style="font-size:11.5px;color:rgba(255,253,248,.72);margin-top:4px">{{ k.l }}</div></div>
+                </sc-for>
+              </div>
+            </div>
+            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(268px,1fr));gap:16px">
+              <sc-for list="{{ queues }}" as="q" hint-placeholder-count="3">
+                <a href="{{ q.href }}" style="background:var(--sah-white);border:1px solid var(--sah-line);border-radius:22px;padding:20px;display:flex;flex-direction:column;gap:12px;color:var(--sah-navy)" style-hover="border-color:var(--sah-copper)">
+                  <div style="display:flex;align-items:center;justify-content:space-between"><span style="font-size:9.5px;font-weight:700;letter-spacing:1.6px;text-transform:uppercase;color:var(--sah-copper)">{{ q.tag }}</span><span style="font-size:10px;letter-spacing:1px;color:var(--sah-muted)">{{ q.code }}</span></div>
+                  <div style="display:flex;align-items:baseline;gap:10px"><span style="font-family:'Plus Jakarta Sans';font-weight:800;font-size:30px;letter-spacing:-1px">{{ q.n }}</span><span style="font-size:13px;font-weight:600">{{ q.t }}</span></div>
+                  <div style="font-size:12.5px;color:var(--sah-muted)">{{ q.d }}</div>
+                  <div style="height:5px;border-radius:999px;background:var(--sah-mist-soft);overflow:hidden"><div style="height:100%;width:{{ q.pct }};background:{{ q.bar }}"></div></div>
+                  <div style="font-size:11.5px;color:var(--sah-frame)">{{ q.meta }}</div>
+                </a>
+              </sc-for>
+            </div>
+            <div style="background:var(--sah-white);border:1px solid var(--sah-line);border-radius:22px;padding:20px 22px;display:flex;flex-direction:column;gap:14px">
+              <div style="display:flex;align-items:baseline;justify-content:space-between"><div style="font-family:'Plus Jakarta Sans';font-weight:700;font-size:15px">{{ t.shortcuts }}</div><div style="font-size:11.5px;color:var(--sah-muted)">{{ shortcutNote }}</div></div>
+              <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(196px,1fr));gap:10px">
+                <sc-for list="{{ shortcuts }}" as="s" hint-placeholder-count="6">
+                  <a href="{{ s.href }}" style="display:flex;align-items:center;gap:11px;padding:13px 14px;border:1px solid var(--sah-line);border-radius:16px;background:var(--sah-ivory);color:var(--sah-navy)" style-hover="background:var(--sah-copper-pale)">
+                    <svg width="17" height="17" sc-camel-view-box="0 0 24 24" fill="none" stroke="var(--sah-copper-dark)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="flex:none"><path d="{{ s.icon }}"></path></svg>
+                    <div style="min-width:0"><div style="font-size:12.5px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ s.label }}</div><div style="font-size:10px;letter-spacing:.8px;color:var(--sah-muted)">{{ s.code }}</div></div>
+                  </a>
+                </sc-for>
+              </div>
+            </div>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ vTable }}" hint-placeholder-val="{{ false }}">
+          <div style="background:var(--sah-white);border:1px solid var(--sah-line);border-radius:24px;box-shadow:var(--sah-shadow);overflow:hidden">
+            <div style="padding:16px 18px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;border-bottom:1px solid var(--sah-line)">
+              <label style="display:flex;align-items:center;gap:8px;height:36px;padding:0 13px;border:1px solid var(--sah-line);border-radius:13px;background:var(--sah-ivory);flex:1;min-width:190px;max-width:300px">
+                <svg width="14" height="14" sc-camel-view-box="0 0 24 24" fill="none" stroke="var(--sah-muted)" stroke-width="1.8" stroke-linecap="round"><path d="M11 19a8 8 0 1 1 0-16 8 8 0 0 1 0 16M21 21l-4.3-4.3"></path></svg>
+                <input placeholder="{{ tb.ph }}" style="border:0;background:none;outline:none;width:100%;font-size:12.5px">
+              </label>
+              <sc-for list="{{ tb.filters }}" as="f" hint-placeholder-count="3">
+                <button style="height:36px;padding:0 13px;border:1px solid var(--sah-line);border-radius:13px;background:var(--sah-white);font-size:12.5px;font-weight:600;display:inline-flex;align-items:center;gap:7px" style-hover="border-color:var(--sah-copper)">{{ f }}<span style="color:var(--sah-muted);font-size:9px">▾</span></button>
+              </sc-for>
+              <div style="flex:1"></div>
+              <sc-for list="{{ tb.actions }}" as="a" hint-placeholder-count="1">
+                <button sc-camel-on-click="{{ a.go }}" style="height:36px;padding:0 15px;border:1px solid {{ a.bd }};border-radius:13px;background:{{ a.bg }};color:{{ a.fg }};font-size:12.5px;font-weight:700;font-family:'Plus Jakarta Sans'">{{ a.label }}</button>
+              </sc-for>
+            </div>
+            <sc-if value="{{ showData }}" hint-placeholder-val="{{ true }}">
+              <div style="overflow-x:auto">
+                <sc-raw-table style="width:100%;min-width:760px;font-size:13px">
+                  <sc-raw-thead><sc-raw-tr>
+                    <sc-for list="{{ cols }}" as="c" hint-placeholder-count="5">
+                      <sc-raw-th style="background:var(--sah-mist-soft);text-align:{{ c.al }};padding:11px 16px;font-size:10.5px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:var(--sah-blue-strong);white-space:nowrap;width:{{ c.w }};border-bottom:1px solid var(--sah-line)">{{ c.label }}</sc-raw-th>
+                    </sc-for>
+                  </sc-raw-tr></sc-raw-thead>
+                  <sc-raw-tbody>
+                    <sc-for list="{{ rows }}" as="r" hint-placeholder-count="8">
+                      <sc-raw-tr style="height:54px;background:{{ r.bg }}">
+                        <sc-for list="{{ r.cells }}" as="c" hint-placeholder-count="5">
+                          <sc-raw-td style="padding:8px 16px;border-bottom:1px solid var(--sah-line);text-align:{{ c.al }};vertical-align:middle">
+                            <sc-if value="{{ c.isChip }}" hint-placeholder-val="{{ false }}">
+                              <span style="display:inline-flex;align-items:center;gap:6px;padding:5px 11px;border-radius:999px;font-size:11.5px;font-weight:600;white-space:nowrap;background:{{ c.bg }};border:1px solid {{ c.bd }};color:var(--sah-frame)"><span style="font-size:9px;color:{{ c.gc }}">{{ c.g }}</span>{{ c.text }}</span>
+                            </sc-if>
+                            <sc-if value="{{ c.isText }}" hint-placeholder-val="{{ true }}">
+                              <div style="color:{{ c.fg }};font-weight:{{ c.fw }};font-family:{{ c.ff }};font-size:{{ c.fs }}">{{ c.text }}</div>
+                              <sc-if value="{{ c.sub }}" hint-placeholder-val="{{ false }}"><div style="font-size:11.5px;color:var(--sah-muted);margin-top:1px">{{ c.sub }}</div></sc-if>
+                            </sc-if>
+                          </sc-raw-td>
+                        </sc-for>
+                        <sc-raw-td style="padding:8px 16px;border-bottom:1px solid var(--sah-line);text-align:right;white-space:nowrap">
+                          <sc-for list="{{ r.acts }}" as="a" hint-placeholder-count="2">
+                            <button sc-camel-on-click="{{ a.go }}" style="height:31px;padding:0 12px;margin-left:6px;border:1px solid var(--sah-line);border-radius:11px;background:{{ a.bg }};color:{{ a.fg }};font-size:12px;font-weight:600" style-hover="border-color:var(--sah-copper)">{{ a.label }}</button>
+                          </sc-for>
+                        </sc-raw-td>
+                      </sc-raw-tr>
+                    </sc-for>
+                  </sc-raw-tbody>
+                </sc-raw-table>
+              </div>
+              <div style="padding:14px 18px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;border-top:1px solid var(--sah-line)">
+                <div style="font-size:12px;color:var(--sah-muted);flex:1">{{ pageInfo }}</div>
+                <div style="display:flex;gap:6px">
+                  <sc-for list="{{ pages }}" as="p" hint-placeholder-count="4"><button style="min-width:33px;height:33px;padding:0 9px;border:1px solid var(--sah-line);border-radius:11px;background:{{ p.bg }};color:{{ p.fg }};font-size:12.5px;font-weight:600">{{ p.n }}</button></sc-for>
+                </div>
+              </div>
+            </sc-if>
+            <sc-if value="{{ showLoading }}" hint-placeholder-val="{{ false }}">
+              <div style="padding:18px">
+                <sc-for list="{{ skels }}" as="s" hint-placeholder-count="7">
+                  <div style="height:38px;border-radius:12px;margin-bottom:9px;background:linear-gradient(90deg,rgba(23,36,58,.04) 0%,rgba(23,36,58,.09) 40%,rgba(23,36,58,.04) 80%);background-size:360px 100%;animation:shim 1.25s linear infinite;width:{{ s.w }}"></div>
+                </sc-for>
+                <div style="font-size:12px;color:var(--sah-muted);margin-top:4px">{{ t.loading }}</div>
+              </div>
+            </sc-if>
+            <sc-if value="{{ showEmpty }}" hint-placeholder-val="{{ false }}">
+              <div style="padding:64px 32px;display:flex;flex-direction:column;align-items:center;gap:12px;text-align:center">
+                <div style="width:52px;height:52px;border-radius:18px;background:var(--sah-mist-soft);display:grid;place-items:center"><svg width="24" height="24" sc-camel-view-box="0 0 24 24" fill="none" stroke="var(--sah-blue-strong)" stroke-width="1.8" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h9"></path></svg></div>
+                <div style="font-family:'Plus Jakarta Sans';font-weight:700;font-size:17px">{{ t.emptyT }}</div>
+                <div style="font-size:13px;color:var(--sah-muted);max-width:400px">{{ emptyMsg }}</div>
+              </div>
+            </sc-if>
+            <sc-if value="{{ showError }}" hint-placeholder-val="{{ false }}">
+              <div style="padding:56px 32px;display:flex;flex-direction:column;align-items:center;gap:12px;text-align:center">
+                <div style="width:52px;height:52px;border-radius:18px;background:rgba(168,95,79,.12);display:grid;place-items:center"><svg width="24" height="24" sc-camel-view-box="0 0 24 24" fill="none" stroke="var(--danger)" stroke-width="1.8" stroke-linecap="round"><path d="M12 8v5M12 16.5v.5M10.3 3.9 2.5 18a1.7 1.7 0 0 0 1.5 2.5h16a1.7 1.7 0 0 0 1.5-2.5L13.7 3.9a1.7 1.7 0 0 0-3 0"></path></svg></div>
+                <div style="font-family:'Plus Jakarta Sans';font-weight:700;font-size:17px">{{ t.errorT }}</div>
+                <div style="font-size:13px;color:var(--sah-muted);max-width:420px">{{ t.errorD }}</div>
+                <button sc-camel-on-click="{{ retry }}" style="margin-top:6px;height:40px;padding:0 18px;border:0;border-radius:14px;background:var(--sah-copper);color:var(--sah-white);font-weight:700;font-size:13px">{{ t.retry }}</button>
+              </div>
+            </sc-if>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ vForm }}" hint-placeholder-val="{{ false }}">
+          <div style="display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:20px;align-items:start">
+            <div style="display:flex;flex-direction:column;gap:16px">
+              <sc-for list="{{ form.sections }}" as="s" hint-placeholder-count="2">
+                <div style="background:var(--sah-white);border:1px solid var(--sah-line);border-radius:24px;box-shadow:var(--sah-shadow);padding:22px 24px;display:flex;flex-direction:column;gap:16px">
+                  <div><div style="font-family:'Plus Jakarta Sans';font-weight:700;font-size:15.5px">{{ s.title }}</div><div style="font-size:12.5px;color:var(--sah-muted)">{{ s.note }}</div></div>
+                  <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px">
+                    <sc-for list="{{ s.fields }}" as="f" hint-placeholder-count="4">
+                      <label style="display:flex;flex-direction:column;gap:6px;grid-column:span {{ f.span }}">
+                        <span style="font-size:12px;font-weight:600;color:var(--sah-blue)">{{ f.label }}<span style="color:var(--sah-copper-dark)">{{ f.req }}</span></span>
+                        <sc-if value="{{ f.isText }}" hint-placeholder-val="{{ true }}"><input value="{{ f.value }}" placeholder="{{ f.ph }}" style="height:44px;padding:0 14px;border:1px solid var(--sah-line);border-radius:14px;background:var(--sah-ivory);font-size:13px"></sc-if>
+                        <sc-if value="{{ f.isArea }}" hint-placeholder-val="{{ false }}"><textarea rows="4" style="padding:11px 14px;border:1px solid var(--sah-line);border-radius:14px;background:var(--sah-ivory);font-size:13px;resize:vertical">{{ f.value }}</textarea></sc-if>
+                        <sc-if value="{{ f.isSelect }}" hint-placeholder-val="{{ false }}">
+                          <sc-raw-select style="height:44px;padding:0 12px;border:1px solid var(--sah-line);border-radius:14px;background:var(--sah-ivory);font-size:13px">
+                            <sc-for list="{{ f.options }}" as="o" hint-placeholder-count="3"><option>{{ o }}</option></sc-for>
+                          </sc-raw-select>
+                        </sc-if>
+                        <sc-if value="{{ f.isToggle }}" hint-placeholder-val="{{ false }}">
+                          <div style="display:flex;align-items:center;gap:10px;height:44px;padding:0 14px;border:1px solid var(--sah-line);border-radius:14px;background:var(--sah-ivory)">
+                            <span style="width:40px;height:22px;border-radius:999px;background:{{ f.onBg }};position:relative;flex:none"><span style="position:absolute;top:3px;left:{{ f.knob }};width:16px;height:16px;border-radius:999px;background:var(--sah-white)"></span></span>
+                            <span style="font-size:12.5px;font-weight:600">{{ f.value }}</span>
+                          </div>
+                        </sc-if>
+                        <sc-if value="{{ f.isUpload }}" hint-placeholder-val="{{ false }}">
+                          <div style="height:120px;border:1.5px dashed var(--sah-copper);border-radius:16px;background:var(--sah-copper-pale);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;color:var(--sah-frame)">
+                            <span style="font-size:12.5px;font-weight:700">+ Unggah materi gambar</span>
+                            <span style="font-size:11px;color:var(--sah-muted)">Mock — belum ada unggahan sungguhan</span>
+                          </div>
+                        </sc-if>
+                        <sc-if value="{{ f.isChips }}" hint-placeholder-val="{{ false }}">
+                          <div style="display:flex;gap:8px;flex-wrap:wrap">
+                            <sc-for list="{{ f.chipOpts }}" as="o" hint-placeholder-count="4">
+                              <button sc-camel-on-click="{{ o.go }}" style="height:40px;padding:0 14px;border-radius:13px;border:1.5px solid {{ o.bd }};background:{{ o.bg }};color:{{ o.fg }};font-size:12.5px;font-weight:700;display:inline-flex;align-items:center;gap:7px">
+                                <sc-if value="{{ o.dotG }}" hint-placeholder-val="{{ false }}"><span style="font-size:9px;color:{{ o.dotColor }}">{{ o.dotG }}</span></sc-if>{{ o.label }}
+                              </button>
+                            </sc-for>
+                          </div>
+                        </sc-if>
+                        <sc-if value="{{ f.link }}" hint-placeholder-val="{{ false }}"><button sc-camel-on-click="{{ f.link.go }}" style="align-self:flex-start;font-size:11.5px;font-weight:600;color:var(--sah-copper-dark);background:none;border:0;padding:0;text-decoration:underline">{{ f.link.label }}</button></sc-if>
+                        <sc-if value="{{ f.hint }}" hint-placeholder-val="{{ false }}"><span style="font-size:11.5px;color:var(--sah-muted)">{{ f.hint }}</span></sc-if>
+                        <sc-if value="{{ f.err }}" hint-placeholder-val="{{ false }}"><span style="font-size:11.5px;color:var(--danger);font-weight:600">{{ f.err }}</span></sc-if>
+                      </label>
+                    </sc-for>
+                  </div>
+                </div>
+              </sc-for>
+            </div>
+            <div style="position:sticky;top:88px;background:var(--sah-white);border:1px solid var(--sah-line);border-radius:24px;box-shadow:var(--sah-shadow);padding:20px;display:flex;flex-direction:column;gap:12px">
+              <div style="font-family:'Plus Jakarta Sans';font-weight:700;font-size:14.5px">{{ t.saveT }}</div>
+              <div style="font-size:12.5px;color:var(--sah-muted)">{{ form.note }}</div>
+              <sc-for list="{{ form.actions }}" as="a" hint-placeholder-count="2">
+                <button sc-camel-on-click="{{ a.go }}" style="height:{{ a.h }};border:{{ a.bd }};border-radius:{{ a.r }};background:{{ a.bg }};color:{{ a.fg }};font-family:'Plus Jakarta Sans';font-weight:700;font-size:13.5px;text-align:left;padding:0 16px;display:flex;align-items:center;justify-content:{{ a.jc }}" style-hover="{{ a.hoverStyle }}">
+                  <span>{{ a.label }}</span><sc-if value="{{ a.arrow }}" hint-placeholder-val="{{ false }}"><span>→</span></sc-if>
+                </button>
+              </sc-for>
+              <div style="height:1px;background:var(--sah-line);margin:4px 0"></div>
+              <sc-for list="{{ form.meta }}" as="m" hint-placeholder-count="2">
+                <div style="display:flex;justify-content:space-between;gap:10px;font-size:12px"><span style="color:var(--sah-muted)">{{ m.k }}</span><span style="font-weight:600;text-align:right">{{ m.v }}</span></div>
+              </sc-for>
+            </div>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ v34 }}" hint-placeholder-val="{{ false }}">
+          <div style="background:var(--sah-white);border:1px solid var(--sah-line);border-radius:24px;box-shadow:var(--sah-shadow);overflow:hidden">
+            <div style="padding:16px 18px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;border-bottom:1px solid var(--sah-line)">
+              <div style="display:inline-flex;gap:4px;padding:4px;border-radius:15px;background:var(--sah-ivory);border:1px solid var(--sah-line)">
+                <sc-for list="{{ rbacTabs }}" as="rt" hint-placeholder-count="3">
+                  <button sc-camel-on-click="{{ rt.go }}" style="height:34px;padding:0 14px;border:0;border-radius:11px;background:{{ rt.bg }};color:{{ rt.fg }};font-size:12.5px;font-weight:700">{{ rt.n }}</button>
+                </sc-for>
+              </div>
+              <div style="flex:1"></div>
+              <button sc-camel-on-click="{{ rbacReset }}" style="border:0;background:none;font-size:12px;font-weight:600;color:var(--sah-copper-dark);text-decoration:underline;padding:0 4px">Kembalikan ke bawaan</button>
+              <button sc-camel-on-click="{{ rbacSave }}" style="height:36px;padding:0 15px;border:0;border-radius:13px;background:var(--sah-copper);color:var(--sah-white);font-size:12.5px;font-weight:700;font-family:'Plus Jakarta Sans'">Simpan Perubahan</button>
+            </div>
+            <div style="overflow-x:auto">
+              <sc-raw-table style="width:100%;min-width:640px;font-size:13px">
+                <sc-raw-thead><sc-raw-tr>
+                  <sc-raw-th style="background:var(--sah-mist-soft);text-align:left;padding:11px 16px;font-size:10.5px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:var(--sah-blue-strong);border-bottom:1px solid var(--sah-line)">Modul</sc-raw-th>
+                  <sc-for list="{{ actLabels }}" as="al" hint-placeholder-count="5">
+                    <sc-raw-th style="background:var(--sah-mist-soft);text-align:center;padding:11px 12px;font-size:10.5px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:var(--sah-blue-strong);border-bottom:1px solid var(--sah-line);width:88px">{{ al }}</sc-raw-th>
+                  </sc-for>
+                </sc-raw-tr></sc-raw-thead>
+                <sc-raw-tbody>
+                  <sc-for list="{{ rbacRows }}" as="row" hint-placeholder-count="15">
+                    <sc-raw-tr>
+                      <sc-raw-td style="padding:10px 16px;border-bottom:1px solid var(--sah-line);font-size:12.5px;font-weight:600">{{ row.label }}</sc-raw-td>
+                      <sc-for list="{{ row.cells }}" as="c" hint-placeholder-count="5">
+                        <sc-raw-td style="padding:10px 12px;border-bottom:1px solid var(--sah-line);text-align:center">
+                          <sc-if value="{{ c.show }}" hint-placeholder-val="{{ true }}">
+                            <button sc-camel-on-click="{{ c.go }}" style="width:22px;height:22px;border-radius:6px;border:1.5px solid {{ c.bd }};background:{{ c.bg }};display:inline-flex;align-items:center;justify-content:center;color:var(--sah-white);font-size:12px;font-weight:700">
+                              <sc-if value="{{ c.checked }}" hint-placeholder-val="{{ false }}">✓</sc-if>
+                            </button>
+                            <sc-if value="{{ c.note }}" hint-placeholder-val="{{ false }}"><div style="font-size:9.5px;color:var(--sah-muted);margin-top:2px">{{ c.note }}</div></sc-if>
+                          </sc-if>
+                          <sc-if value="{{ c.hide }}" hint-placeholder-val="{{ false }}"><span style="color:var(--sah-muted)">—</span></sc-if>
+                        </sc-raw-td>
+                      </sc-for>
+                    </sc-raw-tr>
+                  </sc-for>
+                </sc-raw-tbody>
+              </sc-raw-table>
+            </div>
+            <div style="padding:14px 18px;font-size:12px;color:var(--sah-muted);border-top:1px solid var(--sah-line)">Status bawaan mengikuti matriks RBAC PRD §3.3 / SRS §4.2. Aksi: Buat, Baca, Ubah, Hapus, Setujui.</div>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ v05 }}" hint-placeholder-val="{{ false }}">
+          <div style="display:grid;grid-template-columns:minmax(0,1fr) 320px;gap:20px;align-items:start">
+            <div style="background:var(--sah-white);border:1px solid var(--sah-line);border-radius:24px;box-shadow:var(--sah-shadow);padding:22px 24px;display:flex;flex-direction:column;gap:18px">
+              <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap">
+                <div style="flex:1;min-width:200px"><div style="font-family:'Plus Jakarta Sans';font-weight:700;font-size:15.5px">Foto referensi — SKU-100241</div><div style="font-size:12.5px;color:var(--sah-muted)">Satu SKU dapat memiliki lebih dari satu foto referensi (AR-03). Status pengindeksan dicatat per foto (ENT-06).</div></div>
+                <button sc-camel-on-click="{{ save }}" style="height:38px;padding:0 16px;border:1px dashed var(--sah-copper);border-radius:14px;background:var(--sah-copper-pale);color:var(--sah-frame);font-size:12.5px;font-weight:700;font-family:'Plus Jakarta Sans'">+ Unggah banyak berkas</button>
+              </div>
+              <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(212px,1fr));gap:14px">
+                <sc-for list="{{ photos }}" as="p" hint-placeholder-count="6">
+                  <div style="border:1px solid var(--sah-line);border-radius:19px;overflow:hidden;background:var(--sah-ivory);display:flex;flex-direction:column">
+                    <div style="height:132px;background:{{ p.gr }};display:grid;place-items:center;position:relative">
+                      <span style="font-family:'Plus Jakarta Sans';font-weight:800;font-size:28px;color:rgba(255,253,248,.9);letter-spacing:-1px">{{ p.ini }}</span>
+                      <span style="position:absolute;left:10px;top:10px;padding:4px 9px;border-radius:999px;background:var(--sah-glass);font-size:10.5px;font-weight:700;color:var(--sah-navy)">{{ p.n }}</span>
+                    </div>
+                    <div style="padding:12px 13px;display:flex;flex-direction:column;gap:8px">
+                      <div style="font-size:12px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ p.f }}</div>
+                      <div style="font-size:11px;color:var(--sah-muted)">{{ p.dim }}</div>
+                      <span style="align-self:flex-start;display:inline-flex;align-items:center;gap:6px;padding:5px 11px;border-radius:999px;font-size:11.5px;font-weight:600;background:{{ p.st.bg }};border:1px solid {{ p.st.bd }};color:var(--sah-frame)"><span style="font-size:9px;color:{{ p.st.gc }}">{{ p.st.g }}</span>{{ p.st.text }}</span>
+                      <sc-if value="{{ p.warn }}" hint-placeholder-val="{{ false }}">
+                        <div style="display:flex;gap:7px;padding:9px 10px;border-radius:13px;background:rgba(168,95,79,.1);border:1px solid var(--sah-line)"><span style="color:var(--danger);font-size:9px;line-height:18px">▲</span><span style="font-size:11.5px;color:var(--sah-frame)">{{ p.warn }}</span></div>
+                      </sc-if>
+                    </div>
+                  </div>
+                </sc-for>
+              </div>
+            </div>
+            <div style="position:sticky;top:88px;display:flex;flex-direction:column;gap:16px">
+              <div style="background:var(--sah-white);border:1px solid var(--sah-line);border-radius:24px;box-shadow:var(--sah-shadow);padding:20px;display:flex;flex-direction:column;gap:12px">
+                <div style="font-family:'Plus Jakarta Sans';font-weight:700;font-size:14.5px">Editor foto</div>
+                <div style="height:156px;border-radius:17px;background:{{ G1 }};display:grid;place-items:center;position:relative;overflow:hidden">
+                  <div style="position:absolute;inset:22px;border:2px dashed rgba(255,253,248,.55);border-radius:12px"></div>
+                  <span style="font-size:11px;font-weight:700;letter-spacing:1.4px;text-transform:uppercase;color:rgba(255,253,248,.85)">Area objek utama</span>
+                </div>
+                <div style="display:flex;flex-wrap:wrap;gap:7px">
+                  <sc-for list="{{ photoTools }}" as="tool" hint-placeholder-count="6">
+                    <button style="height:32px;padding:0 12px;border:1px solid var(--sah-line);border-radius:999px;background:var(--sah-ivory);font-size:12px;font-weight:600" style-hover="border-color:var(--sah-copper)">{{ tool }}</button>
+                  </sc-for>
+                </div>
+                <button sc-camel-on-click="{{ save }}" style="height:44px;border:0;border-radius:15px;background:var(--sah-copper);color:var(--sah-white);font-family:'Plus Jakarta Sans';font-weight:700;font-size:13.5px;text-align:left;padding:0 16px;display:flex;align-items:center;justify-content:space-between"><span>Simpan &amp; indeks ulang</span><span>→</span></button>
+              </div>
+              <div style="background:var(--sah-mist-soft);border:1px solid var(--sah-line);border-radius:22px;padding:18px 20px">
+                <div style="font-size:9.5px;font-weight:700;letter-spacing:1.8px;text-transform:uppercase;color:var(--sah-copper-dark)">Peringatan mutu</div>
+                <div style="font-size:12.5px;color:var(--sah-frame);margin-top:8px">Foto dengan pantulan, latar berpola, atau objek terpotong menurunkan skor kemiripan. Ganti foto yang ditandai sebelum menutup SKU (FR-CAT-08, -09).</div>
+              </div>
+            </div>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ v06 }}" hint-placeholder-val="{{ false }}">
+          <div style="display:grid;grid-template-columns:minmax(0,1fr) 320px;gap:20px;align-items:start">
+            <div style="display:flex;flex-direction:column;gap:16px">
+              <div style="background:var(--sah-white);border:1px solid var(--sah-line);border-radius:24px;box-shadow:var(--sah-shadow);padding:24px;display:flex;flex-direction:column;gap:18px">
+                <div style="display:flex;gap:18px;flex-wrap:wrap;align-items:flex-start">
+                  <div style="width:104px;height:104px;border-radius:20px;background:{{ G1 }};display:grid;place-items:center;flex:none"><span style="font-family:'Plus Jakarta Sans';font-weight:800;font-size:30px;color:rgba(255,253,248,.9)">BG</span></div>
+                  <div style="flex:1;min-width:220px">
+                    <div style="font-size:9.5px;font-weight:700;letter-spacing:1.8px;text-transform:uppercase;color:var(--sah-copper)">{{ prod.sku }}</div>
+                    <div style="font-family:'Plus Jakarta Sans';font-weight:800;font-size:23px;letter-spacing:-.6px;margin-top:4px">{{ prod.name }}</div>
+                    <div style="font-size:13px;color:var(--sah-muted);margin-top:2px">{{ prod.maker }}</div>
+                  </div>
+                </div>
+                <div style="height:1px;background:var(--sah-line)"></div>
+                <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:14px 26px">
+                  <sc-for list="{{ prod.meta }}" as="m" hint-placeholder-count="8">
+                    <div><div style="font-size:11px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:var(--sah-muted)">{{ m.k }}</div><div style="font-size:13.5px;font-weight:600;margin-top:3px">{{ m.v }}</div></div>
+                  </sc-for>
+                </div>
+              </div>
+              <div style="background:var(--sah-white);border:1px solid var(--sah-line);border-radius:24px;box-shadow:var(--sah-shadow);padding:22px 24px;display:flex;flex-direction:column;gap:14px">
+                <div style="display:flex;align-items:baseline;justify-content:space-between;gap:12px"><div style="font-family:'Plus Jakarta Sans';font-weight:700;font-size:15px">Galeri foto referensi</div><a href="#/produk/foto">Kelola foto →</a></div>
+                <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(128px,1fr));gap:11px">
+                  <sc-for list="{{ photos }}" as="p" hint-placeholder-count="6">
+                    <div style="border:1px solid var(--sah-line);border-radius:15px;overflow:hidden">
+                      <div style="height:88px;background:{{ p.gr }};display:grid;place-items:center"><span style="font-family:'Plus Jakarta Sans';font-weight:800;font-size:19px;color:rgba(255,253,248,.9)">{{ p.ini }}</span></div>
+                      <div style="padding:8px 10px;font-size:11.5px;font-weight:600">{{ p.n }}</div>
+                    </div>
+                  </sc-for>
+                </div>
+              </div>
+            </div>
+            <div style="position:sticky;top:88px;display:flex;flex-direction:column;gap:16px">
+              <div style="background:var(--sah-white);border:1px solid var(--sah-line);border-radius:24px;box-shadow:var(--sah-shadow);padding:20px;display:flex;flex-direction:column;gap:11px">
+                <div style="font-family:'Plus Jakarta Sans';font-weight:700;font-size:14.5px">Tindakan</div>
+                <a href="#/produk/form" style="height:44px;border-radius:15px;background:var(--sah-copper);color:var(--sah-white);font-weight:700;font-size:13.5px;display:flex;align-items:center;justify-content:space-between;padding:0 16px;font-family:'Plus Jakarta Sans'"><span>Sunting SKU</span><span>→</span></a>
+                <a href="#/produk/foto" style="height:42px;border:1px solid var(--sah-line);border-radius:15px;background:var(--sah-white);color:var(--sah-navy);font-weight:600;font-size:13px;display:flex;align-items:center;padding:0 16px">Foto referensi &amp; editor</a>
+                <button sc-camel-on-click="{{ ping }}" style="height:42px;border:1px solid var(--sah-line);border-radius:15px;background:rgba(168,95,79,.08);color:var(--sah-frame);font-weight:600;font-size:13px;text-align:left;padding:0 16px">Hapus SKU — perlu konfirmasi</button>
+                <div style="font-size:11.5px;color:var(--sah-muted)">Penghapusan meminta konfirmasi dan mencabut vektor fitur terkait (FR-CAT-05, -10).</div>
+              </div>
+              <div style="background:{{ G2 }};border-radius:24px;padding:20px;color:var(--sah-white);display:flex;flex-direction:column;gap:14px">
+                <div style="font-size:9.5px;font-weight:700;letter-spacing:1.8px;text-transform:uppercase;color:rgba(255,253,248,.8)">Rujukan analitik</div>
+                <sc-for list="{{ prod.stats }}" as="k" hint-placeholder-count="3">
+                  <div><div style="font-family:'Plus Jakarta Sans';font-weight:800;font-size:26px;letter-spacing:-.8px;line-height:1.1">{{ k.v }}</div><div style="font-size:11.5px;color:rgba(255,253,248,.78)">{{ k.l }}</div></div>
+                </sc-for>
+              </div>
+            </div>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ v09 }}" hint-placeholder-val="{{ false }}">
+          <div style="display:grid;grid-template-columns:minmax(0,1fr) 356px;gap:20px;align-items:start">
+            <div style="background:var(--sah-white);border:1px solid var(--sah-line);border-radius:24px;box-shadow:var(--sah-shadow);overflow:hidden">
+              <div style="padding:12px 16px;border-bottom:1px solid var(--sah-line);display:flex;gap:6px;flex-wrap:wrap;background:var(--sah-ivory)">
+                <sc-for list="{{ editor.toolbar }}" as="b" hint-placeholder-count="10">
+                  <button style="min-width:34px;height:32px;padding:0 10px;border:1px solid var(--sah-line);border-radius:11px;background:var(--sah-white);font-size:12.5px;font-weight:700" style-hover="border-color:var(--sah-copper)">{{ b }}</button>
+                </sc-for>
+              </div>
+              <div style="padding:26px 30px;display:flex;flex-direction:column;gap:14px">
+                <div style="font-size:9.5px;font-weight:700;letter-spacing:1.8px;text-transform:uppercase;color:var(--sah-copper)">{{ editor.kicker }}</div>
+                <div style="font-family:'Plus Jakarta Sans';font-weight:800;font-size:28px;letter-spacing:-.8px;line-height:1.15">{{ editor.title }}</div>
+                <sc-for list="{{ editor.body }}" as="b" hint-placeholder-count="6">
+                  <div>
+                    <sc-if value="{{ b.isH }}" hint-placeholder-val="{{ false }}"><div style="font-family:'Plus Jakarta Sans';font-weight:700;font-size:18px;letter-spacing:-.3px;margin-top:6px">{{ b.x }}</div></sc-if>
+                    <sc-if value="{{ b.isP }}" hint-placeholder-val="{{ true }}"><div style="font-size:14px;line-height:1.65;color:var(--sah-navy);max-width:62ch">{{ b.x }}</div></sc-if>
+                    <sc-if value="{{ b.isQ }}" hint-placeholder-val="{{ false }}"><div style="font-family:'Cormorant Garamond';font-style:italic;font-weight:600;font-size:22px;line-height:1.35;color:var(--sah-copper-dark);border-left:3px solid var(--sah-copper);padding-left:16px;max-width:52ch">{{ b.x }}</div></sc-if>
+                    <sc-if value="{{ b.isI }}" hint-placeholder-val="{{ false }}">
+                      <div style="border:1px solid var(--sah-line);border-radius:18px;overflow:hidden;max-width:520px">
+                        <div style="height:186px;background:{{ G2 }};display:grid;place-items:center"><span style="font-size:11px;font-weight:700;letter-spacing:1.6px;text-transform:uppercase;color:rgba(255,253,248,.85)">Gambar disisipkan</span></div>
+                        <div style="padding:10px 14px;font-size:12px;color:var(--sah-muted);background:var(--sah-ivory)">{{ b.x }}</div>
+                      </div>
+                    </sc-if>
+                  </div>
+                </sc-for>
+              </div>
+            </div>
+            <div style="position:sticky;top:88px;display:flex;flex-direction:column;gap:16px">
+              <div style="background:var(--sah-white);border:1px solid var(--sah-line);border-radius:24px;box-shadow:var(--sah-shadow);padding:18px;display:flex;flex-direction:column;gap:12px">
+                <div style="display:flex;align-items:baseline;justify-content:space-between"><div style="font-family:'Plus Jakarta Sans';font-weight:700;font-size:14.5px">Pratinjau mobile</div><span style="font-size:10.5px;color:var(--sah-muted)">390 × 844</span></div>
+                <div style="border:9px solid var(--sah-frame);border-radius:34px;overflow:hidden;background:var(--sah-ivory)">
+                  <div style="height:26px;background:var(--sah-frame);display:grid;place-items:center"><div style="width:66px;height:5px;border-radius:999px;background:rgba(255,253,248,.35)"></div></div>
+                  <div style="padding:14px;display:flex;flex-direction:column;gap:10px;height:378px;overflow:hidden">
+                    <div style="height:104px;border-radius:15px;background:{{ G2 }}"></div>
+                    <div style="font-size:9px;font-weight:700;letter-spacing:1.6px;text-transform:uppercase;color:var(--sah-copper-dark)">Kisah · Berita</div>
+                    <div style="font-family:'Plus Jakarta Sans';font-weight:700;font-size:15px;line-height:1.25;letter-spacing:-.3px">{{ editor.title }}</div>
+                    <div style="font-size:11px;color:var(--sah-muted)">Dinar Prameswari · 18 Apr 2026</div>
+                    <div style="font-size:11.5px;line-height:1.6;color:var(--sah-navy)">Di Tokyo, penanda halal jarang berdiri sendiri. Sebagian restoran memasang sertifikat dari otoritas setempat, sebagian lain hanya menuliskan “100% Halal” di papan menu.</div>
+                    <div style="font-family:'Cormorant Garamond';font-style:italic;font-weight:600;font-size:14px;color:var(--sah-copper-dark)">Sertifikat halal resmi selalu mengalahkan jenis bukti lain.</div>
+                  </div>
+                </div>
+              </div>
+              <div style="background:var(--sah-white);border:1px solid var(--sah-line);border-radius:24px;box-shadow:var(--sah-shadow);padding:20px;display:flex;flex-direction:column;gap:12px">
+                <sc-for list="{{ editor.schedule }}" as="m" hint-placeholder-count="5">
+                  <div style="display:flex;justify-content:space-between;gap:10px;font-size:12.5px"><span style="color:var(--sah-muted)">{{ m.k }}</span><span style="font-weight:600;text-align:right">{{ m.v }}</span></div>
+                </sc-for>
+                <button sc-camel-on-click="{{ save }}" style="height:46px;border:0;border-radius:16px;background:var(--sah-copper);color:var(--sah-white);font-family:'Plus Jakarta Sans';font-weight:700;font-size:13.5px;text-align:left;padding:0 16px;display:flex;align-items:center;justify-content:space-between"><span>Terbitkan sekarang</span><span>→</span></button>
+                <div style="display:flex;gap:9px">
+                  <button sc-camel-on-click="{{ save }}" style="flex:1;height:40px;border:1px solid var(--sah-line);border-radius:14px;background:var(--sah-white);font-weight:600;font-size:12.5px">Simpan draf</button>
+                  <button sc-camel-on-click="{{ save }}" style="flex:1;height:40px;border:1px solid var(--sah-line);border-radius:14px;background:rgba(168,95,79,.08);font-weight:600;font-size:12.5px">Tarik dari terbit</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ v10 }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex;flex-direction:column;gap:16px">
+            <div style="background:var(--sah-white);border:1px solid var(--sah-line);border-radius:24px;box-shadow:var(--sah-shadow);padding:20px 24px;display:flex;gap:24px;flex-wrap:wrap;align-items:center">
+              <div style="flex:1;min-width:240px">
+                <div style="font-family:'Plus Jakarta Sans';font-weight:700;font-size:15.5px">Batas banner aktif: 7 dari 10 terpakai</div>
+                <div style="font-size:12.5px;color:var(--sah-muted);margin-top:2px">Carousel dashboard mobile hanya menayangkan maksimal 10 banner aktif (BR-18, FR-HOM-01). Banner ke-11 tidak dapat diaktifkan sebelum satu banner dinonaktifkan.</div>
+              </div>
+              <div style="display:flex;gap:5px;align-items:center">
+                <sc-for list="{{ bannerSlots }}" as="b" hint-placeholder-count="10">
+                  <span style="width:22px;height:34px;border-radius:8px;background:{{ b.bg }};border:1px solid {{ b.bd }}"></span>
+                </sc-for>
+                <span style="margin-left:10px;font-family:'Plus Jakarta Sans';font-weight:800;font-size:22px;letter-spacing:-.6px">7/10</span>
+              </div>
+              <button sc-camel-on-click="{{ save }}" style="height:40px;padding:0 16px;border:0;border-radius:14px;background:var(--sah-copper);color:var(--sah-white);font-family:'Plus Jakarta Sans';font-weight:700;font-size:13px">+ Unggah banner</button>
+            </div>
+            <div style="background:var(--sah-white);border:1px solid var(--sah-line);border-radius:24px;box-shadow:var(--sah-shadow);padding:16px;display:flex;flex-direction:column;gap:10px">
+              <sc-for list="{{ banners }}" as="b" hint-placeholder-count="9">
+                <div style="display:flex;align-items:center;gap:14px;padding:12px;border:1px solid var(--sah-line);border-radius:18px;background:var(--sah-ivory)">
+                  <div style="display:flex;flex-direction:column;align-items:center;gap:3px;color:var(--sah-muted);flex:none;width:26px">
+                    <span style="font-size:11px">⋮⋮</span>
+                    <span style="font-family:'Cormorant Garamond';font-style:italic;font-weight:600;font-size:17px;color:var(--sah-copper-dark)">{{ b.ord }}</span>
+                  </div>
+                  <div style="width:118px;height:62px;border-radius:13px;background:{{ b.gr }};display:grid;place-items:center;flex:none"><span style="font-family:'Plus Jakarta Sans';font-weight:800;font-size:17px;color:rgba(255,253,248,.9)">{{ b.ini }}</span></div>
+                  <div style="flex:1;min-width:0">
+                    <div style="font-size:13.5px;font-weight:600;font-family:'Plus Jakarta Sans'">{{ b.n }}</div>
+                    <div style="font-size:12px;color:var(--sah-muted);margin-top:2px">Tujuan: {{ b.dest }}</div>
+                  </div>
+                  <div style="font-size:12.5px;color:var(--sah-navy);width:180px;flex:none">{{ b.per }}</div>
+                  <span style="display:inline-flex;align-items:center;gap:6px;padding:5px 11px;border-radius:999px;font-size:11.5px;font-weight:600;white-space:nowrap;background:{{ b.st.bg }};border:1px solid {{ b.st.bd }};color:var(--sah-frame);flex:none"><span style="font-size:9px;color:{{ b.st.gc }}">{{ b.st.g }}</span>{{ b.st.text }}</span>
+                  <div style="display:flex;gap:6px;flex:none">
+                    <button sc-camel-on-click="{{ save }}" style="height:32px;padding:0 12px;border:1px solid var(--sah-line);border-radius:11px;background:var(--sah-white);font-size:12px;font-weight:600">Sunting</button>
+                    <button sc-camel-on-click="{{ save }}" style="height:32px;padding:0 12px;border:1px solid var(--sah-line);border-radius:11px;background:var(--sah-white);font-size:12px;font-weight:600">Nonaktifkan</button>
+                  </div>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+        </sc-if>
+
+        <div data-screens-end="1"></div>
+      </div>
+    </div>
+  </div>
+</div>
+</sc-if>
+
+<sc-if value="{{ toast }}" hint-placeholder-val="{{ false }}">
+  <div style="position:fixed;bottom:26px;left:50%;transform:translateX(-50%);z-index:80;display:flex;align-items:center;gap:12px;padding:13px 20px;border-radius:18px;background:var(--sah-navy);color:var(--sah-white);box-shadow:var(--sah-shadow);animation:rise .22s ease;max-width:min(560px,90vw)">
+    <span style="width:20px;height:20px;border-radius:999px;background:var(--sah-copper);display:grid;place-items:center;flex:none"><svg width="12" height="12" sc-camel-view-box="0 0 24 24" fill="none" stroke="var(--sah-white)" stroke-width="2.6" stroke-linecap="round"><path d="M4 12.5l5 5L20 6.5"></path></svg></span>
+    <span style="font-size:13px;font-weight:600">{{ toast }}</span>
+  </div>
+</sc-if>
+
+</x-dc>
+
+
+
+</body></html>

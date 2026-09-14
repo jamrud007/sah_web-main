@@ -1,0 +1,107 @@
+/* src/index.css - Design tokens and typography exact from SAH Web Admin (standalone).html */
+:root {
+  --sah-navy: #17243a;
+  --sah-frame: #111927;
+  --sah-ivory: #faf7f0;
+  --sah-white: #fffdf8;
+  --sah-copper: #c58a63;
+  --sah-copper-dark: #9b664b;
+  --sah-copper-pale: #f0e0d4;
+  --sah-copper-pressed: #ad7352;
+  --sah-mist: #a9c2cf;
+  --sah-mist-soft: #dce7eb;
+  --sah-sand: #e6d8c5;
+  --sah-blue: #38536b;
+  --sah-blue-strong: #315e78;
+  --sah-muted: #6b7788;
+  --sah-line: rgba(23, 36, 58, 0.11);
+  --sah-glass: rgba(255, 253, 248, 0.78);
+  --sah-shadow: 0 18px 42px rgba(23, 36, 58, 0.13);
+  --danger: #a85f4f;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--sah-ivory);
+  color: var(--sah-navy);
+  font-family: 'DM Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-size: 14px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  text-wrap: pretty;
+}
+
+#root {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  text-align: left;
+}
+
+a {
+  color: var(--sah-copper-dark);
+  text-decoration: none;
+}
+
+a:hover {
+  color: var(--sah-copper-pressed);
+}
+
+button, input, select, textarea {
+  font: inherit;
+  color: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+table {
+  border-collapse: collapse;
+}
+
+:focus-visible {
+  outline: 2px solid var(--sah-copper);
+  outline-offset: 2px;
+}
+
+::selection {
+  background: var(--sah-copper-pale);
+}
+
+@keyframes shim {
+  0% {
+    background-position: -360px 0;
+  }
+  100% {
+    background-position: 360px 0;
+  }
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(23, 36, 58, 0.16);
+  border-radius: 999px;
+}
