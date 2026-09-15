@@ -498,13 +498,16 @@ const ProductPhotosPage: React.FC = () => {
                 height: 32,
                 borderRadius: 10,
                 background: 'var(--sah-copper-pale)',
-                color: 'var(--sah-frame)',
+                color: 'var(--sah-copper-dark)',
                 display: 'grid',
                 placeItems: 'center',
-                fontSize: 15,
               }}
             >
-              📦
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" />
+                <polyline points="3.27 6.96 12 12.01 20.73 6.96" />
+                <line x1="12" y1="22.08" x2="12" y2="12" />
+              </svg>
             </span>
             <span
               style={{
@@ -528,11 +531,14 @@ const ProductPhotosPage: React.FC = () => {
                 transform: 'translateY(-50%)',
                 pointerEvents: 'none',
                 color: 'var(--sah-muted)',
-                fontSize: 14,
-                lineHeight: 1,
+                display: 'flex',
+                alignItems: 'center',
               }}
             >
-              🔍
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="11" cy="11" r="8" />
+                <line x1="21" y1="21" x2="16.65" y2="16.65" />
+              </svg>
             </span>
             <input
               type="text"
@@ -754,7 +760,9 @@ const ProductPhotosPage: React.FC = () => {
             >
               {isUploading ? (
                 <>
-                  <span style={{ display: 'inline-block', animation: 'spin 1s linear infinite' }}>⏳</span>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" style={{ animation: 'spin 1s linear infinite' }}>
+                    <circle cx="12" cy="12" r="10" strokeDasharray="32" strokeDashoffset="12" />
+                  </svg>
                   <span>Mengunggah ke server…</span>
                 </>
               ) : (
@@ -856,7 +864,10 @@ const ProductPhotosPage: React.FC = () => {
                           e.currentTarget.style.color = '#ff6b6b';
                         }}
                       >
-                        🗑️
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <polyline points="3 6 5 6 21 6" />
+                          <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                        </svg>
                       </button>
                     )}
                   </div>
@@ -1139,7 +1150,16 @@ const ProductPhotosPage: React.FC = () => {
                 }}
               >
                 <span>{isReindexing ? 'Memproses ke antrean…' : 'Indeks Ulang Foto (API-017)'}</span>
-                <span>{isReindexing ? '⏳' : '⚡'}</span>
+                {isReindexing ? (
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" style={{ animation: 'spin 1s linear infinite' }}>
+                    <circle cx="12" cy="12" r="10" strokeDasharray="32" strokeDashoffset="12" />
+                  </svg>
+                ) : (
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                    <polyline points="23 4 23 10 17 10" />
+                    <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10" />
+                  </svg>
+                )}
               </button>
 
               {/* 2. Save and Reindex Button */}
@@ -1172,7 +1192,10 @@ const ProductPhotosPage: React.FC = () => {
                 }}
               >
                 <span>{isReindexing ? 'Menyimpan & mereindeks…' : 'Simpan & indeks ulang'}</span>
-                <span>→</span>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                  <line x1="5" y1="12" x2="19" y2="12" />
+                  <polyline points="12 5 19 12 12 19" />
+                </svg>
               </button>
 
               {/* 3. Delete Photo Button */}
@@ -1207,7 +1230,10 @@ const ProductPhotosPage: React.FC = () => {
                     e.currentTarget.style.borderColor = 'rgba(224,49,49,.3)';
                   }}
                 >
-                  <span>🗑️</span>
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <polyline points="3 6 5 6 21 6" />
+                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                  </svg>
                   <span>{lang === 'id' ? 'Hapus Foto Ini (API-018)' : 'Delete This Photo'}</span>
                 </button>
               )}
@@ -1292,10 +1318,13 @@ const ProductPhotosPage: React.FC = () => {
                   color: '#c92a2a',
                   display: 'grid',
                   placeItems: 'center',
-                  fontSize: 20,
                 }}
               >
-                ⚠️
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
+                  <line x1="12" y1="9" x2="12" y2="13" />
+                  <line x1="12" y1="17" x2="12.01" y2="17" />
+                </svg>
               </span>
               <div>
                 <h3
@@ -1368,12 +1397,17 @@ const ProductPhotosPage: React.FC = () => {
               >
                 {isDeletingPhoto ? (
                   <>
-                    <span>⏳</span>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" style={{ animation: 'spin 1s linear infinite' }}>
+                      <circle cx="12" cy="12" r="10" strokeDasharray="32" strokeDashoffset="12" />
+                    </svg>
                     <span>Menghapus…</span>
                   </>
                 ) : (
                   <>
-                    <span>🗑️</span>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <polyline points="3 6 5 6 21 6" />
+                      <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                    </svg>
                     <span>{lang === 'id' ? 'Hapus Foto (API-018)' : 'Delete Photo'}</span>
                   </>
                 )}

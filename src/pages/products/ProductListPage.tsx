@@ -220,9 +220,9 @@ const ProductListPage: React.FC = () => {
             }}
           >
             <option value="all">Status Halal</option>
-            <option value="halal">✓ Halal</option>
-            <option value="pending">⏳ Menunggu</option>
-            <option value="not_halal">✕ Tidak Halal</option>
+            <option value="halal">Halal</option>
+            <option value="pending">Menunggu</option>
+            <option value="not_halal">Tidak Halal</option>
           </select>
           <span style={{ position: 'absolute', right: 10, pointerEvents: 'none', fontSize: 9, color: 'var(--sah-muted)' }}>▾</span>
         </div>
@@ -248,9 +248,9 @@ const ProductListPage: React.FC = () => {
             }}
           >
             <option value="all">Status Indeks</option>
-            <option value="indexed">● Terindeks</option>
-            <option value="pending">○ Menunggu</option>
-            <option value="failed">✕ Gagal</option>
+            <option value="indexed">Terindeks</option>
+            <option value="pending">Menunggu</option>
+            <option value="failed">Gagal</option>
           </select>
           <span style={{ position: 'absolute', right: 10, pointerEvents: 'none', fontSize: 9, color: 'var(--sah-muted)' }}>▾</span>
         </div>

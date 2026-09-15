@@ -430,7 +430,10 @@ const ProductFormPage: React.FC = () => {
             fontFamily: "'Plus Jakarta Sans', sans-serif",
           }}
         >
-          <span>←</span>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+            <line x1="19" y1="12" x2="5" y2="12" />
+            <polyline points="12 19 5 12 12 5" />
+          </svg>
           <span>
             {id
               ? (lang === 'id' ? 'Kembali ke Detail Produk' : 'Back to Product Detail')
@@ -564,12 +567,15 @@ const ProductFormPage: React.FC = () => {
                     border: `1px solid ${halalStatus === 'halal' ? 'rgba(39, 110, 144, 0.25)' : 'rgba(217, 119, 6, 0.25)'}`,
                   }}
                 >
-                  <span style={{ fontSize: 9 }}>●</span>
+                  <span style={{ width: 6, height: 6, borderRadius: '50%', background: 'currentColor' }} />
                   {halalStatus === 'halal' ? 'Halal Terverifikasi' : 'Menunggu Verifikasi'}
                 </span>
 
                 <span
                   style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: 5,
                     fontSize: 11,
                     fontWeight: 600,
                     padding: '2px 9px',
@@ -579,7 +585,11 @@ const ProductFormPage: React.FC = () => {
                     border: '1px solid var(--sah-line)',
                   }}
                 >
-                  📸 {photos.length} Foto Kemasan
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
+                    <circle cx="12" cy="13" r="4" />
+                  </svg>
+                  <span>{photos.length} Foto Kemasan</span>
                 </span>
 
                 <span
@@ -617,7 +627,11 @@ const ProductFormPage: React.FC = () => {
                 }}
               >
                 <span>Pratinjau SKU</span>
-                <span style={{ color: 'var(--sah-muted)' }}>↗</span>
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--sah-muted)" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
+                  <polyline points="15 3 21 3 21 9" />
+                  <line x1="10" y1="14" x2="21" y2="3" />
+                </svg>
               </Link>
             )}
 
@@ -641,7 +655,11 @@ const ProductFormPage: React.FC = () => {
                 }}
               >
                 <span>Kelola Foto & AI</span>
-                <span>↗</span>
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
+                  <polyline points="15 3 21 3 21 9" />
+                  <line x1="10" y1="14" x2="21" y2="3" />
+                </svg>
               </Link>
             )}
           </div>
@@ -673,11 +691,16 @@ const ProductFormPage: React.FC = () => {
                 border: '1px solid rgba(39, 110, 144, 0.2)',
                 display: 'grid',
                 placeItems: 'center',
-                fontSize: 22,
                 flexShrink: 0,
+                color: 'var(--sah-blue-strong)',
               }}
             >
-              ✨
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                <polyline points="14 2 14 8 20 8" />
+                <line x1="12" y1="18" x2="12" y2="12" />
+                <line x1="9" y1="15" x2="15" y2="15" />
+              </svg>
             </div>
             <div>
               <div
@@ -756,7 +779,10 @@ const ProductFormPage: React.FC = () => {
             whiteSpace: 'nowrap',
           }}
         >
-          <span>🏷️</span>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z" />
+            <line x1="7" y1="7" x2="7.01" y2="7" />
+          </svg>
           <span>Identitas Produk</span>
           {isEditing && (isNameChanged || isManufacturerChanged || isCategoryChanged || isBrandChanged || isDescriptionChanged) && (
             <span style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--sah-copper)' }} />
@@ -783,7 +809,10 @@ const ProductFormPage: React.FC = () => {
             whiteSpace: 'nowrap',
           }}
         >
-          <span>📜</span>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <circle cx="12" cy="8" r="7" />
+            <polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88" />
+          </svg>
           <span>Sertifikat Halal</span>
           {isEditing && (isCertNoChanged || isIssuerChanged || isIssuedDateChanged || isValidUntilChanged || isHalalStatusChanged) && (
             <span style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--sah-copper)' }} />
@@ -810,7 +839,11 @@ const ProductFormPage: React.FC = () => {
             whiteSpace: 'nowrap',
           }}
         >
-          <span>📸</span>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+            <circle cx="8.5" cy="8.5" r="1.5" />
+            <polyline points="21 15 16 10 5 21" />
+          </svg>
           <span>Foto Kemasan ({photos.length})</span>
           {isEditing && isPhotosChanged && (
             <span style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--sah-copper)' }} />
@@ -873,8 +906,12 @@ const ProductFormPage: React.FC = () => {
                     Kode SKU <span style={{ color: 'var(--sah-copper-dark)' }}>*</span>
                   </span>
                   {isEditing && (
-                    <span style={{ fontSize: 10, fontWeight: 700, color: 'var(--sah-muted)', background: 'rgba(23,36,58,0.06)', padding: '1px 6px', borderRadius: 6 }}>
-                      🔒 Kunci Entitas
+                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 10, fontWeight: 700, color: 'var(--sah-muted)', background: 'rgba(23,36,58,0.06)', padding: '2px 7px', borderRadius: 6 }}>
+                      <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                        <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                        <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                      </svg>
+                      <span>Kunci Entitas</span>
                     </span>
                   )}
                   {isSkuChanged && (
@@ -1788,8 +1825,13 @@ const ProductFormPage: React.FC = () => {
                 }}
               >
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                  <span style={{ fontSize: 12.5, fontWeight: 800, color: 'var(--sah-copper-dark)' }}>
-                    ⚡ {changedFieldsCount} Kolom Diubah
+                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 12.5, fontWeight: 800, color: 'var(--sah-copper-dark)' }}>
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                      <circle cx="12" cy="12" r="10" />
+                      <line x1="12" y1="8" x2="12" y2="12" />
+                      <line x1="12" y1="16" x2="12.01" y2="16" />
+                    </svg>
+                    <span>{changedFieldsCount} Kolom Diubah</span>
                   </span>
                   <button
                     type="button"
@@ -1825,7 +1867,9 @@ const ProductFormPage: React.FC = () => {
                   gap: 8,
                 }}
               >
-                <span style={{ color: '#1C733F', fontWeight: 800 }}>✓</span>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#1C733F" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
+                  <polyline points="20 6 9 17 4 12" />
+                </svg>
                 <span>Data formulir sesuai dengan katalog tersimpan</span>
               </div>
             )
@@ -1878,7 +1922,10 @@ const ProductFormPage: React.FC = () => {
                   ? (changedFieldsCount > 0 ? `Simpan ${changedFieldsCount} Perubahan` : 'Simpan Perubahan')
                   : 'Daftarkan SKU Baru')}
             </span>
-            <span>→</span>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="5" y1="12" x2="19" y2="12" />
+              <polyline points="12 5 19 12 12 19" />
+            </svg>
           </button>
 
           {/* Batal Button */}

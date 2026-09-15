@@ -215,13 +215,16 @@ const ProductDetailPage: React.FC = () => {
                 height: 32,
                 borderRadius: 10,
                 background: 'var(--sah-copper-pale)',
-                color: 'var(--sah-frame)',
+                color: 'var(--sah-copper-dark)',
                 display: 'grid',
                 placeItems: 'center',
-                fontSize: 15,
               }}
             >
-              📦
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" />
+                <polyline points="3.27 6.96 12 12.01 20.73 6.96" />
+                <line x1="12" y1="22.08" x2="12" y2="12" />
+              </svg>
             </span>
             <span
               style={{
@@ -245,11 +248,14 @@ const ProductDetailPage: React.FC = () => {
                 transform: 'translateY(-50%)',
                 pointerEvents: 'none',
                 color: 'var(--sah-muted)',
-                fontSize: 14,
-                lineHeight: 1,
+                display: 'flex',
+                alignItems: 'center',
               }}
             >
-              🔍
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="11" cy="11" r="8" />
+                <line x1="21" y1="21" x2="16.65" y2="16.65" />
+              </svg>
             </span>
             <input
               type="text"
@@ -613,15 +619,17 @@ const ProductDetailPage: React.FC = () => {
                           position: 'absolute',
                           top: 6,
                           right: 6,
-                          padding: '2px 6px',
+                          padding: '2px 8px',
                           borderRadius: 999,
                           background: 'var(--sah-copper)',
                           color: 'var(--sah-white)',
-                          fontSize: 9,
+                          fontSize: 9.5,
                           fontWeight: 800,
+                          letterSpacing: 0.5,
+                          textTransform: 'uppercase',
                         }}
                       >
-                        ★ Utama
+                        Utama
                       </span>
                     )}
                   </div>
