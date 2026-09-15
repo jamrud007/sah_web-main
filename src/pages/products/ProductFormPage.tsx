@@ -3,7 +3,7 @@
 // Includes Section 3: Inline Photo Upload (Gambar 2 requirement)
 
 import React, { useState, useEffect, useRef } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, Link } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '../../store';
 import { createProduct, updateProduct, fetchProductById } from '../../store/productSlice';
 import { useSahToast } from '../../context/ToastContext';
@@ -38,6 +38,7 @@ const ProductFormPage: React.FC = () => {
   const isReadOnly = checkIsReadOnly(userInfo);
 
   const products = useAppSelector((s) => s.products.items);
+  const photosByProductId = useAppSelector((s) => s.products.photosByProductId);
   const existingProduct = id
     ? products.find((p: Product) => p.id === id || p.sku_code === id)
     : null;
@@ -107,6 +108,77 @@ const ProductFormPage: React.FC = () => {
       setPhotos(existingProduct.photos || []);
     }
   }, [existingProduct]);
+
+  // Photos and Monogram helper
+  const attachedPhotos: Photo[] =
+    (existingProduct?.photos && existingProduct.photos.length > 0)
+      ? existingProduct.photos
+      : (existingProduct ? (photosByProductId[existingProduct.id] || []) : []);
+  const primaryPhoto = photos.find((p) => p.is_primary) || photos[0] || attachedPhotos.find((p) => p.is_primary) || attachedPhotos[0];
+
+  const initialLetters = (name || existingProduct?.name || 'SK')
+    .split(' ')
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((w) => w[0])
+    .join('')
+    .toUpperCase() || 'SK';
+
+  // Section anchor tab state
+  const [activeSection, setActiveSection] = useState<'identity' | 'halal' | 'photos'>('identity');
+  const scrollToSection = (sectionId: string, tab: 'identity' | 'halal' | 'photos') => {
+    setActiveSection(tab);
+    document.getElementById(sectionId)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
+
+  // Check changed fields in Edit Mode
+  const isSkuChanged = Boolean(isEditing && existingProduct && skuCode !== existingProduct.sku_code);
+  const isNameChanged = Boolean(isEditing && existingProduct && name !== existingProduct.name);
+  const isManufacturerChanged = Boolean(isEditing && existingProduct && manufacturer !== (existingProduct.manufacturer || ''));
+  const isCategoryChanged = Boolean(isEditing && existingProduct && category !== (existingProduct.category || 'Bumbu & saus'));
+  const isBrandChanged = Boolean(isEditing && existingProduct && brand !== (existingProduct.brand || ''));
+  const isDescriptionChanged = Boolean(isEditing && existingProduct && description !== (existingProduct.description || ''));
+  const isCertNoChanged = Boolean(isEditing && existingProduct && certNo !== (existingCert?.certificate_no || ''));
+  const isIssuerChanged = Boolean(isEditing && existingProduct && issuer !== (existingCert?.issuer || 'BPJPH'));
+  const isIssuedDateChanged = Boolean(isEditing && existingProduct && issuedDate !== (existingCert?.issued_date || ''));
+  const isValidUntilChanged = Boolean(isEditing && existingProduct && validUntil !== (existingCert?.valid_until || ''));
+  const isHalalStatusChanged = Boolean(isEditing && existingProduct && halalStatus !== existingProduct.halal_status);
+  const isPhotosChanged = Boolean(isEditing && existingProduct && photos.length !== (existingProduct.photos?.length || 0));
+
+  const changedFieldsCount = [
+    isSkuChanged,
+    isNameChanged,
+    isManufacturerChanged,
+    isCategoryChanged,
+    isBrandChanged,
+    isDescriptionChanged,
+    isCertNoChanged,
+    isIssuerChanged,
+    isIssuedDateChanged,
+    isValidUntilChanged,
+    isHalalStatusChanged,
+    isPhotosChanged,
+  ].filter(Boolean).length;
+
+  const handleResetForm = () => {
+    if (!existingProduct) return;
+    setSkuCode(existingProduct.sku_code);
+    setName(existingProduct.name);
+    setManufacturer(existingProduct.manufacturer || '');
+    setCategory(existingProduct.category || 'Bumbu & saus');
+    setBrand(existingProduct.brand || '');
+    setDescription(existingProduct.description || '');
+    const cert = existingProduct.halal_certificates?.[0] ?? existingProduct.halal_certificate ?? null;
+    if (cert) {
+      setCertNo(cert.certificate_no || '');
+      setIssuer(cert.issuer || 'BPJPH');
+      setIssuedDate(cert.issued_date || '');
+      setValidUntil(cert.valid_until || '');
+    }
+    setHalalStatus(existingProduct.halal_status);
+    setPhotos(existingProduct.photos || []);
+    showToast(lang === 'id' ? 'Formulir dikembalikan ke nilai semula.' : 'Form reset to original values.');
+  };
 
   // Process files from file input or drag-and-drop with PNG/JPEG & 15MB validation
   const processFiles = (files: File[]) => {
@@ -391,6 +463,361 @@ const ProductFormPage: React.FC = () => {
           )}
         </div>
       </div>
+
+      {/* ── HERO BANNER: EDIT MODE PROFILE VS NEW REGISTRATION ONBOARDING ── */}
+      {isEditing ? (
+        <div
+          style={{
+            marginBottom: 18,
+            padding: '20px 24px',
+            borderRadius: 24,
+            background: 'linear-gradient(135deg, var(--sah-white) 0%, #fbf8f5 100%)',
+            border: '1px solid rgba(197, 138, 99, 0.35)',
+            boxShadow: '0 4px 20px rgba(23, 36, 58, 0.05)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: 20,
+            flexWrap: 'wrap',
+          }}
+        >
+          {/* Left: Avatar + Title & Meta */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 18, minWidth: 280, flex: 1 }}>
+            <div
+              style={{
+                width: 76,
+                height: 76,
+                borderRadius: 20,
+                background: primaryPhoto?.url
+                  ? `url(${primaryPhoto.url}) center / cover no-repeat`
+                  : 'linear-gradient(145deg, #24384e, #182436 60%, #4a2c22)',
+                display: 'grid',
+                placeItems: 'center',
+                flexShrink: 0,
+                boxShadow: '0 4px 14px rgba(23,36,58,0.12)',
+                overflow: 'hidden',
+                border: '2px solid #fff',
+              }}
+            >
+              {!primaryPhoto?.url && (
+                <span
+                  style={{
+                    fontFamily: "'Plus Jakarta Sans', sans-serif",
+                    fontWeight: 800,
+                    fontSize: 24,
+                    color: 'rgba(255,253,248,0.95)',
+                  }}
+                >
+                  {initialLetters}
+                </span>
+              )}
+            </div>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <span
+                  style={{
+                    fontSize: 11,
+                    fontWeight: 800,
+                    letterSpacing: 1.2,
+                    textTransform: 'uppercase',
+                    color: 'var(--sah-copper-dark)',
+                    background: 'var(--sah-copper-pale)',
+                    padding: '3px 9px',
+                    borderRadius: 8,
+                    border: '1px solid rgba(197, 138, 99, 0.3)',
+                  }}
+                >
+                  {existingProduct?.sku_code || skuCode}
+                </span>
+                <span style={{ fontSize: 12, color: 'var(--sah-muted)', fontWeight: 600 }}>
+                  {manufacturer || existingProduct?.manufacturer || 'Pabrikan belum diisi'}
+                </span>
+              </div>
+
+              <h1
+                style={{
+                  margin: 0,
+                  fontFamily: "'Plus Jakarta Sans', sans-serif",
+                  fontWeight: 800,
+                  fontSize: 21,
+                  letterSpacing: -0.5,
+                  color: 'var(--sah-navy)',
+                }}
+              >
+                {name || existingProduct?.name || 'Nama Produk'}
+              </h1>
+
+              {/* Status pills row */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', marginTop: 2 }}>
+                <span
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: 5,
+                    fontSize: 11,
+                    fontWeight: 700,
+                    padding: '2px 9px',
+                    borderRadius: 999,
+                    background: halalStatus === 'halal' ? 'rgba(39, 110, 144, 0.12)' : 'rgba(217, 119, 6, 0.12)',
+                    color: halalStatus === 'halal' ? 'var(--sah-blue-strong)' : '#b45309',
+                    border: `1px solid ${halalStatus === 'halal' ? 'rgba(39, 110, 144, 0.25)' : 'rgba(217, 119, 6, 0.25)'}`,
+                  }}
+                >
+                  <span style={{ fontSize: 9 }}>●</span>
+                  {halalStatus === 'halal' ? 'Halal Terverifikasi' : 'Menunggu Verifikasi'}
+                </span>
+
+                <span
+                  style={{
+                    fontSize: 11,
+                    fontWeight: 600,
+                    padding: '2px 9px',
+                    borderRadius: 999,
+                    background: 'var(--sah-ivory)',
+                    color: 'var(--sah-navy)',
+                    border: '1px solid var(--sah-line)',
+                  }}
+                >
+                  📸 {photos.length} Foto Kemasan
+                </span>
+
+                <span
+                  style={{
+                    fontSize: 11,
+                    color: 'var(--sah-muted)',
+                  }}
+                >
+                  Kategori: <strong>{category}</strong>
+                </span>
+              </div>
+            </div>
+          </div>
+
+          {/* Right: Quick Action Buttons */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            {id && (
+              <Link
+                to={`/produk/detail/${id}`}
+                style={{
+                  height: 38,
+                  padding: '0 16px',
+                  borderRadius: 12,
+                  background: 'var(--sah-white)',
+                  border: '1px solid var(--sah-line)',
+                  color: 'var(--sah-navy)',
+                  fontSize: 12.5,
+                  fontWeight: 700,
+                  textDecoration: 'none',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 6,
+                  boxShadow: '0 1px 4px rgba(23,36,58,0.04)',
+                  transition: 'all .15s ease',
+                }}
+              >
+                <span>Pratinjau SKU</span>
+                <span style={{ color: 'var(--sah-muted)' }}>↗</span>
+              </Link>
+            )}
+
+            {id && (
+              <Link
+                to={`/produk/foto/${id}`}
+                style={{
+                  height: 38,
+                  padding: '0 16px',
+                  borderRadius: 12,
+                  background: 'var(--sah-copper-pale)',
+                  border: '1px solid var(--sah-copper)',
+                  color: 'var(--sah-copper-dark)',
+                  fontSize: 12.5,
+                  fontWeight: 700,
+                  textDecoration: 'none',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 6,
+                  transition: 'all .15s ease',
+                }}
+              >
+                <span>Kelola Foto & AI</span>
+                <span>↗</span>
+              </Link>
+            )}
+          </div>
+        </div>
+      ) : (
+        /* New Registration Welcome Banner */
+        <div
+          style={{
+            marginBottom: 18,
+            padding: '18px 22px',
+            borderRadius: 22,
+            background: 'linear-gradient(135deg, #ffffff 0%, #f8fbfd 100%)',
+            border: '1px solid rgba(39, 110, 144, 0.25)',
+            boxShadow: '0 2px 12px rgba(23, 36, 58, 0.04)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: 16,
+            flexWrap: 'wrap',
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+            <div
+              style={{
+                width: 48,
+                height: 48,
+                borderRadius: 14,
+                background: 'var(--sah-mist-soft)',
+                border: '1px solid rgba(39, 110, 144, 0.2)',
+                display: 'grid',
+                placeItems: 'center',
+                fontSize: 22,
+                flexShrink: 0,
+              }}
+            >
+              ✨
+            </div>
+            <div>
+              <div
+                style={{
+                  fontFamily: "'Plus Jakarta Sans', sans-serif",
+                  fontWeight: 800,
+                  fontSize: 17,
+                  color: 'var(--sah-navy)',
+                }}
+              >
+                Pendaftaran SKU Produk Baru
+              </div>
+              <div style={{ fontSize: 12.5, color: 'var(--sah-muted)', marginTop: 2 }}>
+                Lengkapi identitas produk, data sertifikasi halal BPJPH, dan minimal 1 foto referensi kemasan.
+              </div>
+            </div>
+          </div>
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <span
+              style={{
+                fontSize: 11,
+                fontWeight: 600,
+                padding: '4px 10px',
+                borderRadius: 8,
+                background: 'rgba(39, 110, 144, 0.08)',
+                color: 'var(--sah-blue-strong)',
+              }}
+            >
+              ID Otomatis
+            </span>
+            <span
+              style={{
+                fontSize: 11,
+                fontWeight: 600,
+                padding: '4px 10px',
+                borderRadius: 8,
+                background: 'rgba(197, 138, 99, 0.08)',
+                color: 'var(--sah-copper-dark)',
+              }}
+            >
+              Multi-Foto AR-03
+            </span>
+          </div>
+        </div>
+      )}
+
+      {/* ── ANCHOR NAVIGATION TABS ────────────────────────────────── */}
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: 10,
+          marginBottom: 18,
+          overflowX: 'auto',
+          paddingBottom: 4,
+        }}
+      >
+        <button
+          type="button"
+          onClick={() => scrollToSection('section-identity', 'identity')}
+          style={{
+            height: 36,
+            padding: '0 16px',
+            borderRadius: 12,
+            border: activeSection === 'identity' ? '1.5px solid var(--sah-copper)' : '1px solid var(--sah-line)',
+            background: activeSection === 'identity' ? 'var(--sah-copper-pale)' : 'var(--sah-white)',
+            color: activeSection === 'identity' ? 'var(--sah-copper-dark)' : 'var(--sah-navy)',
+            fontSize: 12.5,
+            fontWeight: 700,
+            cursor: 'pointer',
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: 7,
+            transition: 'all .15s ease',
+            whiteSpace: 'nowrap',
+          }}
+        >
+          <span>🏷️</span>
+          <span>Identitas Produk</span>
+          {isEditing && (isNameChanged || isManufacturerChanged || isCategoryChanged || isBrandChanged || isDescriptionChanged) && (
+            <span style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--sah-copper)' }} />
+          )}
+        </button>
+
+        <button
+          type="button"
+          onClick={() => scrollToSection('section-halal', 'halal')}
+          style={{
+            height: 36,
+            padding: '0 16px',
+            borderRadius: 12,
+            border: activeSection === 'halal' ? '1.5px solid var(--sah-copper)' : '1px solid var(--sah-line)',
+            background: activeSection === 'halal' ? 'var(--sah-copper-pale)' : 'var(--sah-white)',
+            color: activeSection === 'halal' ? 'var(--sah-copper-dark)' : 'var(--sah-navy)',
+            fontSize: 12.5,
+            fontWeight: 700,
+            cursor: 'pointer',
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: 7,
+            transition: 'all .15s ease',
+            whiteSpace: 'nowrap',
+          }}
+        >
+          <span>📜</span>
+          <span>Sertifikat Halal</span>
+          {isEditing && (isCertNoChanged || isIssuerChanged || isIssuedDateChanged || isValidUntilChanged || isHalalStatusChanged) && (
+            <span style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--sah-copper)' }} />
+          )}
+        </button>
+
+        <button
+          type="button"
+          onClick={() => scrollToSection('section-photos', 'photos')}
+          style={{
+            height: 36,
+            padding: '0 16px',
+            borderRadius: 12,
+            border: activeSection === 'photos' ? '1.5px solid var(--sah-copper)' : '1px solid var(--sah-line)',
+            background: activeSection === 'photos' ? 'var(--sah-copper-pale)' : 'var(--sah-white)',
+            color: activeSection === 'photos' ? 'var(--sah-copper-dark)' : 'var(--sah-navy)',
+            fontSize: 12.5,
+            fontWeight: 700,
+            cursor: 'pointer',
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: 7,
+            transition: 'all .15s ease',
+            whiteSpace: 'nowrap',
+          }}
+        >
+          <span>📸</span>
+          <span>Foto Kemasan ({photos.length})</span>
+          {isEditing && isPhotosChanged && (
+            <span style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--sah-copper)' }} />
+          )}
+        </button>
+      </div>
+
       <div
         style={{
           display: 'grid',
@@ -403,7 +830,9 @@ const ProductFormPage: React.FC = () => {
         <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
           {/* Section 1: Identitas produk */}
           <div
+            id="section-identity"
             style={{
+              scrollMarginTop: 90,
               background: 'var(--sah-white)',
               border: '1px solid var(--sah-line)',
               borderRadius: 24,
@@ -439,9 +868,21 @@ const ProductFormPage: React.FC = () => {
             >
               {/* Kode SKU */}
               <label style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--sah-blue)' }}>
-                  Kode SKU <span style={{ color: 'var(--sah-copper-dark)' }}>*</span>
-                </span>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--sah-blue)' }}>
+                    Kode SKU <span style={{ color: 'var(--sah-copper-dark)' }}>*</span>
+                  </span>
+                  {isEditing && (
+                    <span style={{ fontSize: 10, fontWeight: 700, color: 'var(--sah-muted)', background: 'rgba(23,36,58,0.06)', padding: '1px 6px', borderRadius: 6 }}>
+                      🔒 Kunci Entitas
+                    </span>
+                  )}
+                  {isSkuChanged && (
+                    <span style={{ fontSize: 10, fontWeight: 700, color: 'var(--sah-copper-dark)', background: 'var(--sah-copper-pale)', padding: '1px 6px', borderRadius: 6 }}>
+                      Diubah
+                    </span>
+                  )}
+                </div>
                 <input
                   value={skuCode}
                   onChange={(e) => setSkuCode(e.target.value)}
@@ -451,9 +892,9 @@ const ProductFormPage: React.FC = () => {
                   style={{
                     height: 44,
                     padding: '0 14px',
-                    border: '1px solid var(--sah-line)',
+                    border: isSkuChanged ? '1.5px solid var(--sah-copper)' : '1px solid var(--sah-line)',
                     borderRadius: 14,
-                    background: isReadOnly ? 'rgba(23,36,58,.04)' : 'var(--sah-ivory)',
+                    background: isSkuChanged ? '#fffaf6' : (isReadOnly ? 'rgba(23,36,58,.04)' : 'var(--sah-ivory)'),
                     fontSize: 13,
                     color: 'var(--sah-navy)',
                     fontFamily: "'Plus Jakarta Sans', sans-serif",
@@ -465,9 +906,16 @@ const ProductFormPage: React.FC = () => {
 
               {/* Nama produk */}
               <label style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--sah-blue)' }}>
-                  Nama produk <span style={{ color: 'var(--sah-copper-dark)' }}>*</span>
-                </span>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--sah-blue)' }}>
+                    Nama produk <span style={{ color: 'var(--sah-copper-dark)' }}>*</span>
+                  </span>
+                  {isNameChanged && (
+                    <span style={{ fontSize: 10, fontWeight: 700, color: 'var(--sah-copper-dark)', background: 'var(--sah-copper-pale)', padding: '1px 6px', borderRadius: 6 }}>
+                      Diubah
+                    </span>
+                  )}
+                </div>
                 <input
                   value={name}
                   onChange={(e) => setName(e.target.value)}
@@ -477,9 +925,9 @@ const ProductFormPage: React.FC = () => {
                   style={{
                     height: 44,
                     padding: '0 14px',
-                    border: '1px solid var(--sah-line)',
+                    border: isNameChanged ? '1.5px solid var(--sah-copper)' : '1px solid var(--sah-line)',
                     borderRadius: 14,
-                    background: isReadOnly ? 'rgba(23,36,58,.04)' : 'var(--sah-ivory)',
+                    background: isNameChanged ? '#fffaf6' : (isReadOnly ? 'rgba(23,36,58,.04)' : 'var(--sah-ivory)'),
                     fontSize: 13,
                     color: 'var(--sah-navy)',
                     cursor: isReadOnly ? 'not-allowed' : 'text',
@@ -489,9 +937,16 @@ const ProductFormPage: React.FC = () => {
 
               {/* Produsen */}
               <label style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--sah-blue)' }}>
-                  Produsen <span style={{ color: 'var(--sah-copper-dark)' }}>*</span>
-                </span>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--sah-blue)' }}>
+                    Produsen <span style={{ color: 'var(--sah-copper-dark)' }}>*</span>
+                  </span>
+                  {isManufacturerChanged && (
+                    <span style={{ fontSize: 10, fontWeight: 700, color: 'var(--sah-copper-dark)', background: 'var(--sah-copper-pale)', padding: '1px 6px', borderRadius: 6 }}>
+                      Diubah
+                    </span>
+                  )}
+                </div>
                 <input
                   value={manufacturer}
                   onChange={(e) => setManufacturer(e.target.value)}
@@ -501,9 +956,9 @@ const ProductFormPage: React.FC = () => {
                   style={{
                     height: 44,
                     padding: '0 14px',
-                    border: '1px solid var(--sah-line)',
+                    border: isManufacturerChanged ? '1.5px solid var(--sah-copper)' : '1px solid var(--sah-line)',
                     borderRadius: 14,
-                    background: isReadOnly ? 'rgba(23,36,58,.04)' : 'var(--sah-ivory)',
+                    background: isManufacturerChanged ? '#fffaf6' : (isReadOnly ? 'rgba(23,36,58,.04)' : 'var(--sah-ivory)'),
                     fontSize: 13,
                     color: 'var(--sah-navy)',
                     cursor: isReadOnly ? 'not-allowed' : 'text',
@@ -597,7 +1052,9 @@ const ProductFormPage: React.FC = () => {
 
           {/* Section 2: Sertifikat halal */}
           <div
+            id="section-halal"
             style={{
+              scrollMarginTop: 90,
               background: 'var(--sah-white)',
               border: '1px solid var(--sah-line)',
               borderRadius: 24,
@@ -823,7 +1280,9 @@ const ProductFormPage: React.FC = () => {
 
           {/* Section 3: Inline Foto Referensi (Gambar 2 requirement) */}
           <div
+            id="section-photos"
             style={{
+              scrollMarginTop: 90,
               background: 'var(--sah-white)',
               border: '1px solid var(--sah-line)',
               borderRadius: 24,
@@ -1271,28 +1730,106 @@ const ProductFormPage: React.FC = () => {
             padding: 20,
             display: 'flex',
             flexDirection: 'column',
-            gap: 12,
+            gap: 14,
           }}
         >
-          <div
-            style={{
-              fontFamily: "'Plus Jakarta Sans', sans-serif",
-              fontWeight: 700,
-              fontSize: 14.5,
-              color: 'var(--sah-navy)',
-            }}
-          >
-            Tindakan
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <div
+              style={{
+                fontFamily: "'Plus Jakarta Sans', sans-serif",
+                fontWeight: 700,
+                fontSize: 14.5,
+                color: 'var(--sah-navy)',
+              }}
+            >
+              {isEditing ? 'Kelola Perubahan SKU' : 'Pendaftaran SKU'}
+            </div>
+            {isEditing && (
+              <span
+                style={{
+                  fontSize: 10.5,
+                  fontWeight: 800,
+                  padding: '2px 8px',
+                  borderRadius: 6,
+                  background: 'var(--sah-copper-pale)',
+                  color: 'var(--sah-copper-dark)',
+                  border: '1px solid rgba(197, 138, 99, 0.3)',
+                }}
+              >
+                EDIT MODE
+              </span>
+            )}
           </div>
+
           <div
             style={{
-              fontSize: 12.5,
+              fontSize: 12,
               color: 'var(--sah-muted)',
               lineHeight: 1.45,
             }}
           >
-            Nomor sertifikat dan masa berlaku dimasukkan sebagaimana adanya (OS-03). Perubahan status halal dicatat pada jejak audit ENT-29.
+            {isEditing
+              ? `Mode sunting aktif untuk ${existingProduct?.sku_code || skuCode}. Perubahan dicatat pada jejak audit ENT-29.`
+              : 'Nomor sertifikat dan masa berlaku dimasukkan sebagaimana adanya (OS-03). Perubahan status halal dicatat pada jejak audit ENT-29.'}
           </div>
+
+          {/* Edit Mode Dirty State Counter Card */}
+          {isEditing && (
+            changedFieldsCount > 0 ? (
+              <div
+                style={{
+                  padding: '12px 14px',
+                  borderRadius: 14,
+                  background: 'rgba(197, 138, 99, 0.1)',
+                  border: '1px solid rgba(197, 138, 99, 0.35)',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: 8,
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <span style={{ fontSize: 12.5, fontWeight: 800, color: 'var(--sah-copper-dark)' }}>
+                    ⚡ {changedFieldsCount} Kolom Diubah
+                  </span>
+                  <button
+                    type="button"
+                    onClick={handleResetForm}
+                    style={{
+                      background: 'none',
+                      border: 0,
+                      color: 'var(--sah-copper-dark)',
+                      fontSize: 11.5,
+                      fontWeight: 700,
+                      cursor: 'pointer',
+                      textDecoration: 'underline',
+                    }}
+                  >
+                    Reset Semula
+                  </button>
+                </div>
+                <div style={{ fontSize: 11, color: 'var(--sah-muted)', lineHeight: 1.4 }}>
+                  Klik tombol simpan di bawah untuk memperbarui katalog SKU.
+                </div>
+              </div>
+            ) : (
+              <div
+                style={{
+                  padding: '10px 12px',
+                  borderRadius: 12,
+                  background: 'var(--sah-ivory)',
+                  border: '1px solid var(--sah-line)',
+                  fontSize: 11.5,
+                  color: 'var(--sah-muted)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 8,
+                }}
+              >
+                <span style={{ color: '#1C733F', fontWeight: 800 }}>✓</span>
+                <span>Data formulir sesuai dengan katalog tersimpan</span>
+              </div>
+            )
+          )}
 
           {/* Simpan Button */}
           <button
@@ -1302,7 +1839,12 @@ const ProductFormPage: React.FC = () => {
               height: 46,
               border: 0,
               borderRadius: 16,
-              background: isReadOnly ? 'rgba(197, 138, 99, 0.35)' : 'var(--sah-copper)',
+              background: isReadOnly
+                ? 'rgba(197, 138, 99, 0.35)'
+                : (isEditing && changedFieldsCount > 0
+                  ? 'linear-gradient(135deg, var(--sah-copper-dark) 0%, var(--sah-copper) 100%)'
+                  : 'var(--sah-copper)'),
+              boxShadow: (isEditing && changedFieldsCount > 0) ? '0 4px 14px rgba(197,138,99,0.35)' : 'none',
               color: 'var(--sah-white)',
               fontFamily: "'Plus Jakarta Sans', sans-serif",
               fontWeight: 700,
@@ -1313,7 +1855,7 @@ const ProductFormPage: React.FC = () => {
               alignItems: 'center',
               justifyContent: 'space-between',
               cursor: isReadOnly ? 'not-allowed' : 'pointer',
-              transition: 'background .15s ease',
+              transition: 'all .15s ease',
               opacity: isReadOnly ? 0.6 : 1,
             }}
             onMouseEnter={(e) => {
@@ -1323,11 +1865,19 @@ const ProductFormPage: React.FC = () => {
             }}
             onMouseLeave={(e) => {
               if (!isReadOnly && !isSubmitting) {
-                e.currentTarget.style.background = 'var(--sah-copper)';
+                e.currentTarget.style.background = (isEditing && changedFieldsCount > 0)
+                  ? 'linear-gradient(135deg, var(--sah-copper-dark) 0%, var(--sah-copper) 100%)'
+                  : 'var(--sah-copper)';
               }
             }}
           >
-            <span>{isSubmitting ? 'Menyimpan…' : 'Simpan'}</span>
+            <span>
+              {isSubmitting
+                ? 'Menyimpan…'
+                : (isEditing
+                  ? (changedFieldsCount > 0 ? `Simpan ${changedFieldsCount} Perubahan` : 'Simpan Perubahan')
+                  : 'Daftarkan SKU Baru')}
+            </span>
             <span>→</span>
           </button>
 
@@ -1358,49 +1908,44 @@ const ProductFormPage: React.FC = () => {
               (e.currentTarget.style.borderColor = 'var(--sah-line)')
             }
           >
-            Batal
+            {id ? 'Batal & Kembali ke Detail' : 'Batal'}
           </button>
 
-          <div style={{ height: 1, background: 'var(--sah-line)', margin: '4px 0' }} />
+          <div style={{ height: 1, background: 'var(--sah-line)', margin: '2px 0' }} />
 
-          {/* Metadata Specifications */}
+          {/* SKU Summary Info Card */}
           <div
             style={{
+              padding: '12px 14px',
+              borderRadius: 14,
+              background: 'var(--sah-ivory)',
+              border: '1px solid var(--sah-line)',
               display: 'flex',
-              justifyContent: 'space-between',
-              gap: 10,
-              fontSize: 12,
+              flexDirection: 'column',
+              gap: 8,
             }}
           >
-            <span style={{ color: 'var(--sah-muted)' }}>Entitas</span>
-            <span
-              style={{
-                fontWeight: 600,
-                textAlign: 'right',
-                color: 'var(--sah-navy)',
-              }}
-            >
-              ENT-05, ENT-08
-            </span>
-          </div>
-          <div
-            style={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              gap: 10,
-              fontSize: 12,
-            }}
-          >
-            <span style={{ color: 'var(--sah-muted)' }}>API</span>
-            <span
-              style={{
-                fontWeight: 600,
-                textAlign: 'right',
-                color: 'var(--sah-navy)',
-              }}
-            >
-              API-016, API-017
-            </span>
+            <div style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: 0.8, color: 'var(--sah-muted)' }}>
+              {isEditing ? 'Informasi Entitas SKU' : 'Spesifikasi Sistem'}
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12 }}>
+              <span style={{ color: 'var(--sah-muted)' }}>Kode SKU</span>
+              <span style={{ fontWeight: 700, color: 'var(--sah-navy)' }}>{skuCode}</span>
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12 }}>
+              <span style={{ color: 'var(--sah-muted)' }}>Status Halal</span>
+              <span style={{ fontWeight: 700, color: halalStatus === 'halal' ? 'var(--sah-blue-strong)' : '#b45309' }}>
+                {halalStatus === 'halal' ? 'Terverifikasi' : 'Menunggu'}
+              </span>
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12 }}>
+              <span style={{ color: 'var(--sah-muted)' }}>Foto Kemasan</span>
+              <span style={{ fontWeight: 700, color: 'var(--sah-navy)' }}>{photos.length} berkas</span>
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12 }}>
+              <span style={{ color: 'var(--sah-muted)' }}>Jejak Audit</span>
+              <span style={{ fontWeight: 600, color: 'var(--sah-copper-dark)' }}>ENT-29 (Aktif)</span>
+            </div>
           </div>
           <div
             style={{
