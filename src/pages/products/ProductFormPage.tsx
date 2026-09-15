@@ -884,7 +884,7 @@ const ProductFormPage: React.FC = () => {
                   )}
                 </div>
                 <div style={{ fontSize: 12.5, color: 'var(--sah-muted)', marginTop: 3 }}>
-                  Satu SKU dapat memiliki lebih dari satu foto referensi (AR-03). Disarankan mengunggah foto kemasan yang jelas untuk akurasi pengindeksan visual AI.
+                  Satu SKU dapat memiliki lebih dari satu foto referensi (AR-03). Disarankan mengunggah foto kemasan dari berbagai sudut (depan, belakang, samping, dan tutup) untuk akurasi pengindeksan visual AI.
                 </div>
               </div>
 
@@ -1053,7 +1053,7 @@ const ProductFormPage: React.FC = () => {
                 </div>
                 {!isReadOnly && !isDragging && (
                   <div style={{ fontSize: 12, color: 'var(--sah-muted)', lineHeight: 1.4 }}>
-                    Pastikan foto kemasan produk tajam, jelas, dan beresolusi tinggi
+                    Contoh: foto tampak depan, belakang, sisi kiri/kanan, atau tutup kemasan
                   </div>
                 )}
               </div>
