@@ -17,6 +17,7 @@ const ProductListPage   = lazy(() => import('./pages/products/ProductListPage'))
 const ProductFormPage   = lazy(() => import('./pages/products/ProductFormPage'));
 const ProductDetailPage = lazy(() => import('./pages/products/ProductDetailPage'));
 const ProductPhotosPage = lazy(() => import('./pages/products/ProductPhotosPage'));
+const LoginPage         = lazy(() => import('./pages/auth/LoginPage'));
 
 const PageLoader = () => (
   <div
@@ -24,55 +25,77 @@ const PageLoader = () => (
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
-      minHeight: '50vh',
-      color: 'var(--sah-copper)',
+      minHeight: '100vh',
+      color: '#c58a63',
       fontSize: 14,
       fontWeight: 600,
+      background: '#0d1b2a',
     }}
   >
     Memuat halaman…
   </div>
 );
 
+/** Redirect ke /login jika belum terautentikasi */
+const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
+  const isAuthenticated = store.getState().auth.isAuthenticated;
+  return isAuthenticated ? <>{children}</> : <Navigate to="/login" replace />;
+};
+
 function App() {
   return (
     <Provider store={store}>
       <ToastProvider>
         <BrowserRouter>
-          <SahLayout>
-            <Suspense fallback={<PageLoader />}>
-              <Routes>
-                {/* Default redirect to Katalog Produk */}
-                <Route path="/" element={<Navigate to="/produk" replace />} />
+          <Suspense fallback={<PageLoader />}>
+            <Routes>
+              {/* Halaman Login — tanpa layout */}
+              <Route path="/login" element={<LoginPage />} />
 
-                {/* Beranda Admin (SCR-WEB-02) */}
-                <Route path="/beranda" element={<DashboardPage />} />
+              {/* Semua halaman dalam SahLayout — dilindungi */}
+              <Route
+                path="/*"
+                element={
+                  <ProtectedRoute>
+                    <SahLayout>
+                      <Suspense fallback={<PageLoader />}>
+                        <Routes>
+                          {/* Default redirect to Katalog Produk */}
+                          <Route path="/" element={<Navigate to="/produk" replace />} />
 
-                {/* Katalog Produk (SCR-WEB-03) */}
-                <Route path="/produk" element={<ProductListPage />} />
-                <Route path="/products" element={<ProductListPage />} />
+                          {/* Beranda Admin (SCR-WEB-02) */}
+                          <Route path="/beranda" element={<DashboardPage />} />
 
-                {/* Form SKU (SCR-WEB-04) */}
-                <Route path="/produk/form" element={<ProductFormPage />} />
-                <Route path="/produk/form/:id" element={<ProductFormPage />} />
-                <Route path="/products/new" element={<ProductFormPage />} />
-                <Route path="/products/:id/edit" element={<ProductFormPage />} />
+                          {/* Katalog Produk (SCR-WEB-03) */}
+                          <Route path="/produk" element={<ProductListPage />} />
+                          <Route path="/products" element={<ProductListPage />} />
 
-                {/* Detail Produk (SCR-WEB-06) */}
-                <Route path="/produk/detail" element={<ProductDetailPage />} />
-                <Route path="/produk/detail/:id" element={<ProductDetailPage />} />
-                <Route path="/products/:id" element={<ProductDetailPage />} />
+                          {/* Form SKU (SCR-WEB-04) */}
+                          <Route path="/produk/form" element={<ProductFormPage />} />
+                          <Route path="/produk/form/:id" element={<ProductFormPage />} />
+                          <Route path="/products/new" element={<ProductFormPage />} />
+                          <Route path="/products/:id/edit" element={<ProductFormPage />} />
 
-                {/* Foto Referensi & Editor (SCR-WEB-05) */}
-                <Route path="/produk/foto" element={<ProductPhotosPage />} />
-                <Route path="/produk/foto/:id" element={<ProductPhotosPage />} />
-                <Route path="/products/:id/photos" element={<ProductPhotosPage />} />
+                          {/* Detail Produk (SCR-WEB-06) */}
+                          <Route path="/produk/detail" element={<ProductDetailPage />} />
+                          <Route path="/produk/detail/:id" element={<ProductDetailPage />} />
+                          <Route path="/products/:id" element={<ProductDetailPage />} />
 
-                {/* Catch-all fallback */}
-                <Route path="*" element={<Navigate to="/produk" replace />} />
-              </Routes>
-            </Suspense>
-          </SahLayout>
+                          {/* Foto Referensi & Editor (SCR-WEB-05) */}
+                          <Route path="/produk/foto" element={<ProductPhotosPage />} />
+                          <Route path="/produk/foto/:id" element={<ProductPhotosPage />} />
+                          <Route path="/products/:id/photos" element={<ProductPhotosPage />} />
+
+                          {/* Catch-all fallback */}
+                          <Route path="*" element={<Navigate to="/produk" replace />} />
+                        </Routes>
+                      </Suspense>
+                    </SahLayout>
+                  </ProtectedRoute>
+                }
+              />
+            </Routes>
+          </Suspense>
         </BrowserRouter>
       </ToastProvider>
     </Provider>

@@ -10,10 +10,25 @@ export default defineConfig({
     },
   },
   server: {
-    port: 8051, // Replace 3000 with your preferred port number
-    strictPort: true, // Optional: forces Vite to fail if the port is already taken
+    port: 8051,
+    strictPort: true,
     allowedHosts: true,
     proxy: {
+      // Auth service (Laravel) — login, logout, me, password, user management
+      '/auth': {
+        target: 'http://47.237.223.240:8010/api',
+        changeOrigin: true,
+        secure: false,
+        rewrite: (path) => path.replace(/^\/auth/, '/v1/auth'),
+      },
+      // Admin user management (Laravel)
+      '/admin': {
+        target: 'http://47.237.223.240:8010/api',
+        changeOrigin: true,
+        secure: false,
+        rewrite: (path) => path.replace(/^\/admin/, '/v1/admin'),
+      },
+      // Product & Photo & Scan API (FastAPI / sah-dev)
       '/api': {
         target: 'https://sah-dev.halotec.site',
         changeOrigin: true,

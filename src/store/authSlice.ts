@@ -1,5 +1,6 @@
-import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
+import { createSlice, createAsyncThunk, type PayloadAction } from "@reduxjs/toolkit";
 import { type AuthState, type UserInfo } from "../types/auth";
+import { authService, type AdminLoginPayload } from '../services/authService';
 
 export type SahRole = 'US-02' | 'US-04' | 'US-05';
 
@@ -42,13 +43,14 @@ const getStoredToken = (): string | null => {
 // Initial state hydrated from localStorage or default dev user
 const storedUserInfo = getStoredUserInfo();
 const storedRefreshToken = getStoredToken();
-const activeUser = storedUserInfo || DEFAULT_USER;
+// Only auto-authenticate if we have BOTH saved user info AND a token
+const hasSession = storedUserInfo !== null && storedRefreshToken !== null;
 
 const initialState: AuthState = {
-  userInfo: activeUser,
+  userInfo: storedUserInfo,
   accessToken: null, // Kept in-memory for security
   refreshToken: storedRefreshToken,
-  isAuthenticated: true,
+  isAuthenticated: hasSession,
   isLoading: false,
 };
 
@@ -148,5 +150,47 @@ export const {
   updateAccessToken,
   logout,
 } = authSlice.actions;
+
+// ─── Async Thunks (Real Backend) ──────────────────────────────────────────
+
+export const loginAsync = createAsyncThunk(
+  'auth/loginAsync',
+  async (payload: AdminLoginPayload, { dispatch, rejectWithValue }) => {
+    try {
+      const data = await authService.login(payload);
+      // Map backend user_info to frontend UserInfo shape
+      const userInfo: UserInfo = {
+        id: data.user_info.id,
+        email: data.user_info.email,
+        display_name: data.user_info.name,
+        role: data.user_info.roles?.[0]?.code || 'editor',
+      };
+      dispatch(setCredentials({
+        userInfo,
+        accessToken: data.token,
+        refreshToken: data.refresh_token,
+      }));
+      return data;
+    } catch (err: any) {
+      const msg = err?.response?.data?.error?.user_message ||
+                  err?.response?.data?.message ||
+                  'Login gagal. Periksa email dan kata sandi Anda.';
+      return rejectWithValue(msg);
+    }
+  },
+);
+
+export const logoutAsync = createAsyncThunk(
+  'auth/logoutAsync',
+  async (_, { dispatch }) => {
+    try {
+      await authService.logout();
+    } catch {
+      // Silently ignore — still clear local state
+    } finally {
+      dispatch(logout());
+    }
+  },
+);
 
 export default authSlice.reducer;
