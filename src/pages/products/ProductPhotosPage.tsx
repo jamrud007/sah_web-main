@@ -10,7 +10,7 @@ import { useAppSelector, useAppDispatch } from '../../store';
 import { useSahToast } from '../../context/ToastContext';
 import { CH, type StatusChipDef } from '../../constants/sahNav';
 import type { Product, Photo, BackendPhotoPackageSide } from '../../types/apiDef';
-import type { SahRole } from '../../store/authSlice';
+import { checkIsReadOnly } from '../../store/authSlice';
 import {
   fetchProducts,
   fetchProductById,
@@ -113,11 +113,7 @@ const ProductPhotosPage: React.FC = () => {
   const { showToast, lang } = useSahToast();
 
   const userInfo = useAppSelector((s) => s.auth.userInfo);
-  const currentSahRole: SahRole =
-    userInfo?.role === 'administrator'
-      ? 'US-04'
-      : (userInfo?.email?.includes('lestari') ? 'US-05' : 'US-02');
-  const isReadOnly = currentSahRole === 'US-04';
+  const isReadOnly = checkIsReadOnly(userInfo);
 
   // Ensure products list is loaded from backend on mount
   useEffect(() => {

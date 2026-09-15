@@ -14,14 +14,25 @@ export const DEFAULT_USER: UserInfo = {
   id: "usr-admin-02",
   email: ROLE_USER_MAP['US-02'].email,
   display_name: ROLE_USER_MAP['US-02'].name,
-  role: "editor", // maps to US-02 content admin (full RW on catalog)
+  role: "content_manager",
+  roles: ["content_manager"],
+  isAllRole: false,
 };
 
 // Helper functions to safely read from localStorage
 const getStoredUserInfo = (): UserInfo | null => {
   try {
     const stored = localStorage.getItem("userInfo");
-    return stored ? (JSON.parse(stored) as UserInfo) : null;
+    if (!stored) return null;
+    const parsed = JSON.parse(stored) as UserInfo;
+    // Auto-normalize su@sah.id and catalog@sah.id
+    if (parsed.email?.toLowerCase() === 'su@sah.id') {
+      parsed.isAllRole = true;
+      parsed.role = 'allrole';
+    } else if (parsed.email?.toLowerCase() === 'catalog@sah.id') {
+      parsed.role = 'content_manager';
+    }
+    return parsed;
   } catch (error) {
     console.error("Failed to parse userInfo from localStorage:", error);
     return null;
@@ -158,12 +169,40 @@ export const loginAsync = createAsyncThunk(
   async (payload: AdminLoginPayload, { dispatch, rejectWithValue }) => {
     try {
       const data = await authService.login(payload);
+      const email = (payload.email || data.user_info?.email || '').toLowerCase().trim();
+      const rolesList: string[] = Array.isArray(data.user_info?.roles)
+        ? data.user_info.roles.map((r: any) => (typeof r === 'string' ? r : r.code || r.name)).filter(Boolean)
+        : [];
+
+      const isAllRole =
+        email === 'su@sah.id' ||
+        rolesList.some((r) => ['all', 'allrole', 'all_role', 'super_admin', 'superadmin'].includes(r.toLowerCase())) ||
+        rolesList.length >= 3;
+
+      let primaryRole = 'content_manager';
+      if (isAllRole) {
+        primaryRole = 'allrole';
+      } else if (
+        email === 'catalog@sah.id' ||
+        rolesList.some((r) => ['content', 'content_manager', 'catalog', 'catalog_admin', 'editor'].includes(r.toLowerCase()))
+      ) {
+        primaryRole = 'content_manager';
+      } else if (rolesList.some((r) => ['analyst', 'analytic'].includes(r.toLowerCase()))) {
+        primaryRole = 'analyst';
+      } else if (rolesList.some((r) => ['system_admin', 'super_user', 'admin', 'administrator'].includes(r.toLowerCase()))) {
+        primaryRole = 'system_admin';
+      } else if (rolesList[0]) {
+        primaryRole = rolesList[0];
+      }
+
       // Map backend user_info to frontend UserInfo shape
       const userInfo: UserInfo = {
         id: data.user_info.id,
         email: data.user_info.email,
         display_name: data.user_info.name,
-        role: data.user_info.roles?.[0]?.code || 'editor',
+        role: primaryRole,
+        roles: rolesList,
+        isAllRole,
       };
       dispatch(setCredentials({
         userInfo,
@@ -194,3 +233,60 @@ export const logoutAsync = createAsyncThunk(
 );
 
 export default authSlice.reducer;
+
+// ─── Role & Permission Utilities ──────────────────────────────────────────
+
+export const checkIsAllRole = (userInfo?: UserInfo | null): boolean => {
+  if (!userInfo) return false;
+  if (userInfo.isAllRole) return true;
+  const email = (userInfo.email || '').toLowerCase().trim();
+  if (email === 'su@sah.id') return true;
+  const role = (userInfo.role || '').toLowerCase().trim();
+  if (['all', 'allrole', 'all_role', 'super_admin', 'superadmin'].includes(role)) return true;
+  if (userInfo.roles?.some((r) => ['all', 'allrole', 'all_role', 'super_admin', 'superadmin'].includes(r.toLowerCase()))) return true;
+  if ((userInfo.roles?.length || 0) >= 3) return true;
+  return false;
+};
+
+export const getSahRole = (userInfo?: UserInfo | null): SahRole => {
+  if (checkIsAllRole(userInfo)) return 'US-02'; // All role has full write access (like US-02)
+  const role = (userInfo?.role || '').toLowerCase().trim();
+  const email = (userInfo?.email || '').toLowerCase().trim();
+  if (['super_user', 'admin', 'administrator', 'superuser', 'system_admin'].includes(role)) {
+    return 'US-04';
+  }
+  if (['analyst', 'analytic', 'us-05'].includes(role) || email.includes('lestari')) {
+    return 'US-05';
+  }
+  return 'US-02';
+};
+
+export const checkIsReadOnly = (userInfo?: UserInfo | null): boolean => {
+  if (checkIsAllRole(userInfo)) return false; // Super admin / allrole is never read-only
+  const role = getSahRole(userInfo);
+  return role === 'US-04' || role === 'US-05';
+};
+
+export const getRoleDisplayName = (userInfo?: UserInfo | null): string => {
+  if (checkIsAllRole(userInfo)) return 'Semua Peran (Super Admin)';
+  const role = (userInfo?.role || '').toLowerCase().trim();
+  const email = (userInfo?.email || '').toLowerCase().trim();
+  if (email === 'catalog@sah.id' || ['content', 'content_manager', 'catalog_admin', 'catalog', 'editor'].includes(role)) {
+    return 'Administrator Konten';
+  }
+  const roleLabel: Record<string, string> = {
+    content: 'Administrator Konten',
+    content_manager: 'Administrator Konten',
+    catalog_admin: 'Administrator Konten',
+    catalog: 'Administrator Konten',
+    editor: 'Administrator Konten',
+    super_user: 'Administrator Sistem',
+    superuser: 'Administrator Sistem',
+    admin: 'Administrator Sistem',
+    administrator: 'Administrator Sistem',
+    system_admin: 'Administrator Sistem',
+    analyst: 'Analis',
+    analytic: 'Analis',
+  };
+  return roleLabel[role] || userInfo?.role || 'Pengguna';
+};

@@ -4,7 +4,14 @@
 import React from 'react';
 import { useLocation, Link, useNavigate } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '../../store';
-import { logoutAsync, type SahRole } from '../../store/authSlice';
+import {
+  logoutAsync,
+  type SahRole,
+  checkIsAllRole,
+  getSahRole,
+  getRoleDisplayName,
+  checkIsReadOnly,
+} from '../../store/authSlice';
 import { useSahToast } from '../../context/ToastContext';
 import {
   MODS,
@@ -31,33 +38,15 @@ const SahLayout: React.FC<SahLayoutProps> = ({ children }) => {
     navigate('/login', { replace: true });
   };
 
-  // Map backend role code → SAH internal role key
-  const mapBackendRole = (role?: string | null): SahRole => {
-    if (!role) return 'US-02';
-    const r = role.toLowerCase();
-    if (r === 'super_user' || r === 'admin' || r === 'administrator' || r === 'superuser') return 'US-04';
-    if (r === 'analyst' || r === 'analytic' || r === 'us-05') return 'US-05';
-    return 'US-02'; // content_manager, editor, dan role lainnya
-  };
-
-  const currentSahRole: SahRole = mapBackendRole(userInfo?.role);
+  const isAllRole = checkIsAllRole(userInfo);
+  const currentSahRole: SahRole = getSahRole(userInfo);
+  const roleName = getRoleDisplayName(userInfo);
+  const isReadOnly = checkIsReadOnly(userInfo);
 
   // Tampilkan nama & email asli dari backend, fallback ke role map jika null
   const meName = userInfo?.display_name || userInfo?.email?.split('@')[0] || 'Pengguna';
   const meEmail = userInfo?.email || '';
   const meInit = meName.split(' ').slice(0, 2).map((w: string) => w[0]?.toUpperCase()).join('');
-
-  // Label role yang ditampilkan berdasarkan backend role
-  const roleLabel: Record<string, string> = {
-    content_manager: 'Administrator Konten',
-    super_user: 'Administrator Sistem',
-    superuser: 'Administrator Sistem',
-    admin: 'Administrator Sistem',
-    administrator: 'Administrator Sistem',
-    analyst: 'Analis',
-    analytic: 'Analis',
-  };
-  const roleName = roleLabel[userInfo?.role?.toLowerCase() || ''] || userInfo?.role || 'Pengguna';
 
   const t = L[lang];
   const path = location.pathname;
@@ -72,10 +61,7 @@ const SahLayout: React.FC<SahLayoutProps> = ({ children }) => {
     (path === '/products' ? SCREENS[2] : SCREENS[2]);
 
   const currentMod = MODS[currentScreen.m] || MODS.katalog;
-  const isReadOnly = currentMod.rw && !currentMod.rw.includes(currentSahRole);
   const isTableScreen = currentScreen.v === 'table';
-
-  const handleRoleChange = (_e: React.ChangeEvent<HTMLSelectElement>) => { /* no-op: real auth */ };
 
   const handleNotificationClick = () => {
     showToast(
@@ -88,7 +74,7 @@ const SahLayout: React.FC<SahLayoutProps> = ({ children }) => {
   // Build navigation groups allowed for this role
   const navGroups = NAVORDER.map((k) => {
     const m = MODS[k];
-    if (!m.roles.includes(currentSahRole)) return null;
+    if (!isAllRole && !m.roles.includes(currentSahRole)) return null;
     const items = SCREENS.filter((x) => x.m === k && x.v !== 'login').map((x) => {
       const isItemActive =
         path === x.h ||

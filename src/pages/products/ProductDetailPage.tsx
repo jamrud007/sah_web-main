@@ -7,7 +7,7 @@ import { useAppDispatch, useAppSelector } from '../../store';
 import { deleteProduct, fetchProductById } from '../../store/productSlice';
 import { useSahToast } from '../../context/ToastContext';
 import type { Product, Photo } from '../../types/apiDef';
-import type { SahRole } from '../../store/authSlice';
+import { checkIsReadOnly } from '../../store/authSlice';
 
 const DEFAULT_ANGLES = [
   { angle: 'Depan', key: 'depan' },
@@ -25,11 +25,7 @@ const ProductDetailPage: React.FC = () => {
   const { showToast, lang } = useSahToast();
 
   const userInfo = useAppSelector((s) => s.auth.userInfo);
-  const currentSahRole: SahRole =
-    userInfo?.role === 'administrator'
-      ? 'US-04'
-      : (userInfo?.email?.includes('lestari') ? 'US-05' : 'US-02');
-  const isReadOnly = currentSahRole === 'US-04';
+  const isReadOnly = checkIsReadOnly(userInfo);
 
   const products = useAppSelector((s) => s.products.items);
   const photosByProductId = useAppSelector((s) => s.products.photosByProductId);

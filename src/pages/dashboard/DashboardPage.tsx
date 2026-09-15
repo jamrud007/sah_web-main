@@ -6,20 +6,17 @@ import { Link } from 'react-router-dom';
 import { useAppSelector } from '../../store';
 import { useSahToast } from '../../context/ToastContext';
 import { I } from '../../constants/sahNav';
-import { ROLE_USER_MAP, type SahRole } from '../../store/authSlice';
+import { ROLE_USER_MAP, type SahRole, getSahRole } from '../../store/authSlice';
 
 const DashboardPage: React.FC = () => {
   const userInfo = useAppSelector((s) => s.auth.userInfo);
   const products = useAppSelector((s) => s.products.items);
   const { lang } = useSahToast();
 
-  const currentSahRole: SahRole =
-    userInfo?.role === 'administrator'
-      ? 'US-04'
-      : (userInfo?.email?.includes('lestari') ? 'US-05' : 'US-02');
+  const currentSahRole: SahRole = getSahRole(userInfo);
 
   const me = ROLE_USER_MAP[currentSahRole] || ROLE_USER_MAP['US-02'];
-  const firstName = me.name.split(' ')[0];
+  const firstName = (userInfo?.display_name || me.name).split(' ')[0];
 
   const kpiRole = {
     'US-02': [

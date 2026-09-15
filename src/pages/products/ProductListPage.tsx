@@ -8,6 +8,7 @@ import { deleteProduct, fetchProducts } from '../../store/productSlice';
 import { useSahToast } from '../../context/ToastContext';
 import { CH, type StatusChipDef } from '../../constants/sahNav';
 import type { Product } from '../../types/apiDef';
+import { checkIsReadOnly } from '../../store/authSlice';
 
 const ProductListPage: React.FC = () => {
   const navigate = useNavigate();
@@ -16,7 +17,7 @@ const ProductListPage: React.FC = () => {
 
   const { items: products, loading: isLoading, error } = useAppSelector((s) => s.products);
   const userInfo = useAppSelector((s) => s.auth.userInfo);
-  const isReadOnly = userInfo?.role === 'administrator' ? true : false;
+  const isReadOnly = checkIsReadOnly(userInfo);
 
   const [searchQuery, setSearchQuery] = useState('');
   const [halalFilter, setHalalFilter] = useState<'all' | 'halal' | 'pending' | 'non_halal' | 'not_halal'>('all');
