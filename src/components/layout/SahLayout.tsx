@@ -4,10 +4,9 @@
 import React from 'react';
 import { useLocation, Link, useNavigate } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '../../store';
-import { switchRole, logoutAsync, type SahRole, ROLE_USER_MAP } from '../../store/authSlice';
+import { logoutAsync, type SahRole } from '../../store/authSlice';
 import { useSahToast } from '../../context/ToastContext';
 import {
-  ROLES,
   MODS,
   NAVORDER,
   SCREENS,
@@ -32,18 +31,35 @@ const SahLayout: React.FC<SahLayoutProps> = ({ children }) => {
     navigate('/login', { replace: true });
   };
 
-  // Map user role to SAH role key (default US-02 Administrator Konten for full RW)
-  const currentSahRole: SahRole =
-    userInfo?.role === 'administrator'
-      ? 'US-04'
-      : (userInfo?.email?.includes('lestari') ? 'US-05' : 'US-02');
+  // Map backend role code → SAH internal role key
+  const mapBackendRole = (role?: string | null): SahRole => {
+    if (!role) return 'US-02';
+    const r = role.toLowerCase();
+    if (r === 'super_user' || r === 'admin' || r === 'administrator' || r === 'superuser') return 'US-04';
+    if (r === 'analyst' || r === 'analytic' || r === 'us-05') return 'US-05';
+    return 'US-02'; // content_manager, editor, dan role lainnya
+  };
+
+  const currentSahRole: SahRole = mapBackendRole(userInfo?.role);
+
+  // Tampilkan nama & email asli dari backend, fallback ke role map jika null
+  const meName = userInfo?.display_name || userInfo?.email?.split('@')[0] || 'Pengguna';
+  const meEmail = userInfo?.email || '';
+  const meInit = meName.split(' ').slice(0, 2).map((w: string) => w[0]?.toUpperCase()).join('');
+
+  // Label role yang ditampilkan berdasarkan backend role
+  const roleLabel: Record<string, string> = {
+    content_manager: 'Administrator Konten',
+    super_user: 'Administrator Sistem',
+    superuser: 'Administrator Sistem',
+    admin: 'Administrator Sistem',
+    administrator: 'Administrator Sistem',
+    analyst: 'Analis',
+    analytic: 'Analis',
+  };
+  const roleName = roleLabel[userInfo?.role?.toLowerCase() || ''] || userInfo?.role || 'Pengguna';
 
   const t = L[lang];
-  const meName = ROLE_USER_MAP[currentSahRole]?.name || 'Rizky Ananda';
-  const roleName = ROLE_USER_MAP[currentSahRole]?.roleName || 'US-02 Administrator Konten';
-  const meInit = meName.split(' ').map((w) => w[0]).join('');
-
-  // Find active screen definition
   const path = location.pathname;
   const currentScreen: ScreenDef =
     SCREENS.find((s) => s.h === path || (path === '/' && s.h === '/produk')) ||
@@ -59,11 +75,7 @@ const SahLayout: React.FC<SahLayoutProps> = ({ children }) => {
   const isReadOnly = currentMod.rw && !currentMod.rw.includes(currentSahRole);
   const isTableScreen = currentScreen.v === 'table';
 
-  const handleRoleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const nextRole = e.target.value as SahRole;
-    dispatch(switchRole(nextRole));
-    showToast(lang === 'id' ? `Beralih ke peran ${nextRole}` : `Switched to ${nextRole} role`);
-  };
+  const handleRoleChange = (_e: React.ChangeEvent<HTMLSelectElement>) => { /* no-op: real auth */ };
 
   const handleNotificationClick = () => {
     showToast(
@@ -293,7 +305,7 @@ const SahLayout: React.FC<SahLayoutProps> = ({ children }) => {
                 whiteSpace: 'nowrap',
               }}
             >
-              {roleName}
+              {meEmail || roleName}
             </div>
           </div>
           <button
@@ -444,8 +456,8 @@ const SahLayout: React.FC<SahLayoutProps> = ({ children }) => {
             />
           </button>
 
-          {/* Role Switcher */}
-          <label
+          {/* Role Badge (real role dari backend) */}
+          <div
             style={{
               display: 'flex',
               alignItems: 'center',
@@ -455,7 +467,6 @@ const SahLayout: React.FC<SahLayoutProps> = ({ children }) => {
               border: '1px solid var(--sah-line)',
               borderRadius: 14,
               background: 'var(--sah-white)',
-              cursor: 'pointer',
             }}
           >
             <span
@@ -469,26 +480,16 @@ const SahLayout: React.FC<SahLayoutProps> = ({ children }) => {
             >
               {t.roleLbl}
             </span>
-            <select
-              value={currentSahRole}
-              onChange={handleRoleChange}
+            <span
               style={{
-                border: 0,
-                background: 'none',
-                outline: 'none',
                 fontSize: 12.5,
                 fontWeight: 600,
                 color: 'var(--sah-navy)',
-                cursor: 'pointer',
               }}
             >
-              {ROLES.map((r) => (
-                <option key={r.v} value={r.v}>
-                  {r.n}
-                </option>
-              ))}
-            </select>
-          </label>
+              {roleName}
+            </span>
+          </div>
 
           {/* Language Toggle */}
           <div
