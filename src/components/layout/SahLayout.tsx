@@ -2,9 +2,9 @@
 // Exact 1:1 markup, styling, and navigation from SAH Web Admin (standalone).html
 
 import React from 'react';
-import { useLocation, Link } from 'react-router-dom';
+import { useLocation, Link, useNavigate } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '../../store';
-import { switchRole, type SahRole, ROLE_USER_MAP } from '../../store/authSlice';
+import { switchRole, logoutAsync, type SahRole, ROLE_USER_MAP } from '../../store/authSlice';
 import { useSahToast } from '../../context/ToastContext';
 import {
   ROLES,
@@ -23,8 +23,14 @@ interface SahLayoutProps {
 const SahLayout: React.FC<SahLayoutProps> = ({ children }) => {
   const location = useLocation();
   const dispatch = useAppDispatch();
+  const navigate = useNavigate();
   const userInfo = useAppSelector((s) => s.auth.userInfo);
   const { showToast, stateDemo, setStateDemo, lang, setLang } = useSahToast();
+
+  const handleLogout = async () => {
+    await dispatch(logoutAsync());
+    navigate('/login', { replace: true });
+  };
 
   // Map user role to SAH role key (default US-02 Administrator Konten for full RW)
   const currentSahRole: SahRole =
@@ -292,7 +298,7 @@ const SahLayout: React.FC<SahLayoutProps> = ({ children }) => {
           </div>
           <button
             title="Keluar"
-            onClick={() => showToast(lang === 'id' ? 'Sesi keluar (mock)' : 'Signed out (mock)')}
+            onClick={handleLogout}
             style={{
               background: 'none',
               border: 0,
