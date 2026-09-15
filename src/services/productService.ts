@@ -21,11 +21,15 @@ export interface ProductListParams {
 export const productService = {
   /** GET /api/v1/products — cursor-based list */
   list: async (params?: ProductListParams): Promise<CursorPage<Product>> => {
+    const { reset: _reset, ...queryParams } = (params || {}) as any;
     const res = await api.get<any>('/api/v1/products', {
-      params,
+      params: queryParams,
     });
     if (res.data?.data && Array.isArray(res.data.data.items)) {
       return res.data.data;
+    }
+    if (Array.isArray(res.data?.items)) {
+      return res.data;
     }
     return res.data;
   },

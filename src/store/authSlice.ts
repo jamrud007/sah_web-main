@@ -51,15 +51,24 @@ const getStoredToken = (): string | null => {
   }
 };
 
+const getStoredAccessToken = (): string | null => {
+  try {
+    return localStorage.getItem("accessToken") || null;
+  } catch {
+    return null;
+  }
+};
+
 // Initial state hydrated from localStorage or default dev user
 const storedUserInfo = getStoredUserInfo();
 const storedRefreshToken = getStoredToken();
-// Only auto-authenticate if we have BOTH saved user info AND a token
-const hasSession = storedUserInfo !== null && storedRefreshToken !== null;
+const storedAccessToken = getStoredAccessToken();
+// Only auto-authenticate if we have saved user info AND a token
+const hasSession = storedUserInfo !== null && (storedRefreshToken !== null || storedAccessToken !== null);
 
 const initialState: AuthState = {
   userInfo: storedUserInfo,
-  accessToken: null, // Kept in-memory for security
+  accessToken: storedAccessToken,
   refreshToken: storedRefreshToken,
   isAuthenticated: hasSession,
   isLoading: false,
@@ -82,11 +91,15 @@ export const authSlice = createSlice({
 
       state.userInfo = userInfo;
       state.accessToken = accessToken;
+      if (accessToken) {
+        localStorage.setItem("accessToken", accessToken);
+      }
       if (refreshToken) {
         const randomStr = Math.random().toString(36).slice(2, 8);
         const storagetoken = `${refreshToken}${randomStr}`;
         state.refreshToken = refreshToken;
         localStorage.setItem("token", storagetoken);
+        localStorage.setItem("refreshToken", refreshToken);
       }
       state.isAuthenticated = true;
 
@@ -137,6 +150,9 @@ export const authSlice = createSlice({
     updateAccessToken: (state, action: PayloadAction<string>) => {
       const newAccessToken = action.payload;
       state.accessToken = newAccessToken;
+      if (newAccessToken) {
+        localStorage.setItem("accessToken", newAccessToken);
+      }
     },
 
     // Clear state on logout
@@ -149,6 +165,8 @@ export const authSlice = createSlice({
       // Clean up localStorage items
       localStorage.removeItem("userInfo");
       localStorage.removeItem("token");
+      localStorage.removeItem("accessToken");
+      localStorage.removeItem("refreshToken");
     },
   },
 });

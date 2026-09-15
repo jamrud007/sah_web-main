@@ -26,7 +26,7 @@ const ProductListPage: React.FC = () => {
   const [currentPage] = useState(1);
 
   useEffect(() => {
-    dispatch(fetchProducts({ reset: true }));
+    dispatch(fetchProducts({ reset: true, limit: 100 }));
   }, [dispatch]);
 
   // Delete modal state
@@ -286,32 +286,74 @@ const ProductListPage: React.FC = () => {
 
         <div style={{ flex: 1 }} />
 
-        {/* Action button + Tambah SKU */}
-        {!isReadOnly && (
+        {/* Refresh & Action buttons */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           <button
-            onClick={() => navigate('/produk/form')}
+            type="button"
+            onClick={() => dispatch(fetchProducts({ reset: true, limit: 100 }))}
+            disabled={isLoading}
+            title="Segarkan data dari server"
             style={{
               height: 36,
-              padding: '0 15px',
-              border: '1px solid var(--sah-copper)',
+              padding: '0 13px',
+              border: '1px solid var(--sah-line)',
               borderRadius: 13,
-              background: 'var(--sah-copper)',
-              color: 'var(--sah-white)',
+              background: 'var(--sah-white)',
+              color: 'var(--sah-navy)',
               fontSize: 12.5,
-              fontWeight: 700,
+              fontWeight: 600,
               fontFamily: "'Plus Jakarta Sans', sans-serif",
-              cursor: 'pointer',
+              cursor: isLoading ? 'not-allowed' : 'pointer',
               display: 'inline-flex',
               alignItems: 'center',
               gap: 6,
-              transition: 'background .15s ease',
+              transition: 'all .15s ease',
+              opacity: isLoading ? 0.6 : 1,
             }}
-            onMouseEnter={(e) => (e.currentTarget.style.background = 'var(--sah-copper-pressed)')}
-            onMouseLeave={(e) => (e.currentTarget.style.background = 'var(--sah-copper)')}
           >
-            + Tambah SKU
+            <svg
+              width="13"
+              height="13"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2.2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              style={{ animation: isLoading ? 'spin 1s linear infinite' : 'none' }}
+            >
+              <polyline points="23 4 23 10 17 10" />
+              <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10" />
+            </svg>
+            <span>{isLoading ? 'Memuat…' : 'Segarkan'}</span>
           </button>
-        )}
+
+          {!isReadOnly && (
+            <button
+              onClick={() => navigate('/produk/form')}
+              style={{
+                height: 36,
+                padding: '0 15px',
+                border: '1px solid var(--sah-copper)',
+                borderRadius: 13,
+                background: 'var(--sah-copper)',
+                color: 'var(--sah-white)',
+                fontSize: 12.5,
+                fontWeight: 700,
+                fontFamily: "'Plus Jakarta Sans', sans-serif",
+                cursor: 'pointer',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 6,
+                transition: 'background .15s ease',
+              }}
+              onMouseEnter={(e) => (e.currentTarget.style.background = 'var(--sah-copper-pressed)')}
+              onMouseLeave={(e) => (e.currentTarget.style.background = 'var(--sah-copper)')}
+            >
+              + Tambah SKU
+            </button>
+          )}
+        </div>
       </div>
 
       {/* ── STATE: DATA TABLE ───────────────────────────────── */}

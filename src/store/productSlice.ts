@@ -301,13 +301,15 @@ const initialState: ProductState = {
 
 export const fetchProducts = createAsyncThunk(
   'products/fetchProducts',
-  async (params: ProductListParams & { reset?: boolean }) => {
+  async (params: ProductListParams & { reset?: boolean }, { getState }) => {
     try {
       const result = await productService.list(params);
-      return { result, reset: params.reset ?? false };
-    } catch {
-      // Fallback: filter initial mock products locally
-      let filtered = [...INITIAL_MOCK_PRODUCTS];
+      return { result, reset: params.reset ?? false, isFallback: false };
+    } catch (err: any) {
+      console.warn('API fetchProducts failed, using state fallback:', err?.message || err);
+      const state = getState() as { products: ProductState };
+      const baseItems = state.products.items.length > 0 ? state.products.items : INITIAL_MOCK_PRODUCTS;
+      let filtered = [...baseItems];
       if (params.q) {
         const query = params.q.toLowerCase();
         filtered = filtered.filter(
@@ -334,6 +336,7 @@ export const fetchProducts = createAsyncThunk(
           total: filtered.length,
         },
         reset: params.reset ?? false,
+        isFallback: true,
       };
     }
   },
@@ -586,14 +589,18 @@ const productSlice = createSlice({
       })
       .addCase(fetchProducts.fulfilled, (state, action) => {
         state.loading = false;
-        const { result, reset } = action.payload;
+        const { result, reset, isFallback } = action.payload as any;
         const newItems = result.items ?? [];
         if (reset) {
-          const existingIds = new Set(newItems.map((p) => p.id || p.sku_code));
-          const remainingMocks = INITIAL_MOCK_PRODUCTS.filter(
-            (m) => !existingIds.has(m.id) && !existingIds.has(m.sku_code)
-          );
-          state.items = [...newItems, ...remainingMocks];
+          if (!isFallback) {
+            // Live data from backend database
+            state.items = newItems;
+          } else {
+            // Fallback mode: only set if items was empty, otherwise preserve modified local state
+            if (state.items.length === 0) {
+              state.items = newItems;
+            }
+          }
         } else {
           state.items = [...state.items, ...newItems];
         }
