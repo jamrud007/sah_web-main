@@ -9,15 +9,6 @@ import { useSahToast } from '../../context/ToastContext';
 import type { Product, Photo } from '../../types/apiDef';
 import { checkIsReadOnly } from '../../store/authSlice';
 
-const DEFAULT_ANGLES = [
-  { angle: 'Depan', key: 'depan' },
-  { angle: 'Belakang', key: 'belakang' },
-  { angle: 'Sisi kiri', key: 'sisi_kiri' },
-  { angle: 'Sisi kanan', key: 'sisi_kanan' },
-  { angle: 'Tutup', key: 'tutup' },
-  { angle: 'Kemasan isi ulang', key: 'kemasan_isi_ulang' },
-];
-
 const ProductDetailPage: React.FC = () => {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
@@ -119,22 +110,16 @@ const ProductDetailPage: React.FC = () => {
 
   const primaryPhoto = attachedPhotos.find((p) => p.is_primary) || attachedPhotos[0];
 
-  // Gallery items for the 6 standard angles
-  const galleryItems = DEFAULT_ANGLES.map((std) => {
-    const matchedPhoto = attachedPhotos.find(
-      (p) =>
-        (p.angle && p.angle.toLowerCase() === std.angle.toLowerCase()) ||
-        (p.package_side && p.package_side.toLowerCase() === std.key)
-    );
-    return {
-      angle: std.angle,
-      key: std.key,
-      photo: matchedPhoto,
-    };
-  });
-
-  const indexedCount = attachedPhotos.length > 0 ? attachedPhotos.length : 4;
-  const totalAngles = 6;
+  // Gallery items: use attached photos directly, or fallback to clean placeholders
+  const galleryItems = attachedPhotos.length > 0
+    ? attachedPhotos.map((p, idx) => ({
+        label: p.file_name || `Foto ${idx + 1}`,
+        photo: p,
+      }))
+    : Array.from({ length: 4 }).map((_, idx) => ({
+        label: `Foto ${idx + 1}`,
+        photo: undefined as Photo | undefined,
+      }));
 
   // Metadata grid items
   const metadataItems = [
@@ -178,7 +163,7 @@ const ProductDetailPage: React.FC = () => {
     },
     {
       k: 'Status indeks visual',
-      v: `${indexedCount} dari ${totalAngles} foto terindeks`,
+      v: attachedPhotos.length > 0 ? `${attachedPhotos.length} foto terdaftar` : '4 foto terdaftar',
     },
     {
       k: 'Terakhir diubah',
@@ -566,11 +551,11 @@ const ProductDetailPage: React.FC = () => {
             </Link>
           </div>
 
-          {/* Grid of 5/6 angle cards */}
+          {/* Grid of photo cards */}
           <div
             style={{
               display: 'grid',
-              gridTemplateColumns: 'repeat(5, minmax(0, 1fr))',
+              gridTemplateColumns: 'repeat(auto-fill, minmax(130px, 1fr))',
               gap: 12,
             }}
           >
@@ -649,9 +634,13 @@ const ProductDetailPage: React.FC = () => {
                       background: 'var(--sah-white)',
                       borderTop: '1px solid var(--sah-line)',
                       textAlign: 'left',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      whiteSpace: 'nowrap',
                     }}
+                    title={item.label}
                   >
-                    {item.angle}
+                    {item.label}
                   </div>
                 </div>
               );

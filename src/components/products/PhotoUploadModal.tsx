@@ -10,10 +10,6 @@ import {
   Button,
   Box,
   Typography,
-  Select,
-  MenuItem,
-  FormControl,
-  InputLabel,
   IconButton,
   LinearProgress,
   Chip,
@@ -24,18 +20,8 @@ import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import ErrorIcon from '@mui/icons-material/Error';
 import { SAH_COLORS } from '../../theme';
 
-const PACKAGE_SIDES = [
-  { value: 'depan', label: 'Depan' },
-  { value: 'belakang', label: 'Belakang' },
-  { value: 'sisi_kiri', label: 'Sisi kiri' },
-  { value: 'sisi_kanan', label: 'Sisi kanan' },
-  { value: 'tutup', label: 'Tutup' },
-  { value: 'kemasan_isi_ulang', label: 'Kemasan isi ulang' },
-];
-
 interface FileEntry {
   file: File;
-  packageSide: string;
   status: 'pending' | 'uploading' | 'done' | 'error';
   error?: string;
 }
@@ -71,7 +57,6 @@ const PhotoUploadModal: React.FC<PhotoUploadModalProps> = ({
       .filter((f) => f.type.startsWith('image/'))
       .map((file) => ({
         file,
-        packageSide: '',
         status: 'pending',
       }));
     setEntries((prev) => [...prev, ...newEntries]);
@@ -90,14 +75,6 @@ const PhotoUploadModal: React.FC<PhotoUploadModalProps> = ({
 
   const handleDragLeave = () => setIsDragging(false);
 
-  const updateSide = (idx: number, side: string) => {
-    setEntries((prev) => {
-      const next = [...prev];
-      next[idx] = { ...next[idx], packageSide: side };
-      return next;
-    });
-  };
-
   const removeEntry = (idx: number) => {
     setEntries((prev) => prev.filter((_, i) => i !== idx));
   };
@@ -112,10 +89,7 @@ const PhotoUploadModal: React.FC<PhotoUploadModalProps> = ({
         return next;
       });
       try {
-        await onUpload(
-          entries[i].file,
-          entries[i].packageSide || undefined,
-        );
+        await onUpload(entries[i].file);
         setEntries((prev) => {
           const next = [...prev];
           next[i] = { ...next[i], status: 'done' };
@@ -223,7 +197,7 @@ const PhotoUploadModal: React.FC<PhotoUploadModalProps> = ({
             </Box>
           </Typography>
           <Typography sx={{ color: SAH_COLORS.textMuted, fontSize: '0.75rem', mt: 0.5 }}>
-            JPG, PNG, WEBP — bisa pilih banyak sekaligus (Depan, Belakang, Sisi, Tutup)
+            JPG, PNG, WEBP — bisa pilih banyak berkas sekaligus
           </Typography>
           <input
             ref={fileInputRef}
@@ -291,29 +265,6 @@ const PhotoUploadModal: React.FC<PhotoUploadModalProps> = ({
                     </Typography>
                   )}
                 </Box>
-
-                {/* Package side selector */}
-                {entry.status !== 'done' && (
-                  <FormControl size="small" sx={{ width: 140, flexShrink: 0 }}>
-                    <InputLabel sx={{ fontSize: '0.75rem' }}>Sisi Kemasan</InputLabel>
-                    <Select
-                      value={entry.packageSide}
-                      label="Sisi Kemasan"
-                      onChange={(e) => updateSide(idx, e.target.value)}
-                      disabled={isUploading}
-                      sx={{ fontSize: '0.8rem', borderRadius: '10px' }}
-                    >
-                      <MenuItem value="">
-                        <em>Tidak ditentukan</em>
-                      </MenuItem>
-                      {PACKAGE_SIDES.map((s) => (
-                        <MenuItem key={s.value} value={s.value}>
-                          {s.label}
-                        </MenuItem>
-                      ))}
-                    </Select>
-                  </FormControl>
-                )}
 
                 {/* Status icon */}
                 {entry.status === 'done' && (

@@ -21,7 +21,6 @@ import {
 } from '../../store/productSlice';
 import {
   normalizePackageSide,
-  packageSideDisplayLabel,
 } from '../../services/photoService';
 
 export interface StandalonePhoto {
@@ -41,21 +40,11 @@ const G1 = 'linear-gradient(145deg,#477fa2,#25384a 58%,#6f3f32)';
 const G2 = 'linear-gradient(130deg,#f0944d,#a84e3d 58%,#6f3f32)';
 const G3 = 'linear-gradient(145deg,#24384e,#182436 60%,#4a2c22)';
 
-const PACKAGE_SIDES: { value: BackendPhotoPackageSide; labelId: string; labelEn: string }[] = [
-  { value: 'front', labelId: 'Depan (front)', labelEn: 'Front' },
-  { value: 'back', labelId: 'Belakang (back)', labelEn: 'Back' },
-  { value: 'left', labelId: 'Sisi Kiri (left)', labelEn: 'Left Side' },
-  { value: 'right', labelId: 'Sisi Kanan (right)', labelEn: 'Right Side' },
-  { value: 'top', labelId: 'Tutup / Atas (top)', labelEn: 'Top / Cap' },
-  { value: 'bottom', labelId: 'Bawah (bottom)', labelEn: 'Bottom' },
-  { value: 'other', labelId: 'Kemasan Isi Ulang / Lainnya (other)', labelEn: 'Other / Refill' },
-];
-
 const DEFAULT_STANDALONE_PHOTOS: StandalonePhoto[] = [
-  { n: 'Depan', packageSide: 'front', f: 'bango-275-front.jpg', gr: G1, ini: 'BG', st: CH.ok, warn: null, dim: '2048 × 2048 · 1,8 MB' },
-  { n: 'Belakang', packageSide: 'back', f: 'bango-275-back.jpg', gr: G1, ini: 'BG', st: CH.ok, warn: null, dim: '2048 × 2048 · 1,9 MB' },
+  { n: 'Foto 1', packageSide: 'front', f: 'bango-275-front.jpg', gr: G1, ini: 'BG', st: CH.ok, warn: null, dim: '2048 × 2048 · 1,8 MB' },
+  { n: 'Foto 2', packageSide: 'back', f: 'bango-275-back.jpg', gr: G1, ini: 'BG', st: CH.ok, warn: null, dim: '2048 × 2048 · 1,9 MB' },
   {
-    n: 'Sisi kiri',
+    n: 'Foto 3',
     packageSide: 'left',
     f: 'bango-275-left.jpg',
     gr: G2,
@@ -65,7 +54,7 @@ const DEFAULT_STANDALONE_PHOTOS: StandalonePhoto[] = [
     dim: '1536 × 1536 · 1,1 MB',
   },
   {
-    n: 'Sisi kanan',
+    n: 'Foto 4',
     packageSide: 'right',
     f: 'bango-275-right.jpg',
     gr: G2,
@@ -74,9 +63,9 @@ const DEFAULT_STANDALONE_PHOTOS: StandalonePhoto[] = [
     warn: 'Objek terpotong di tepi kanan; ekstraksi fitur ditolak.',
     dim: '1280 × 1280 · 0,9 MB',
   },
-  { n: 'Tutup', packageSide: 'top', f: 'bango-275-cap.jpg', gr: G1, ini: 'BG', st: CH.ok, warn: null, dim: '1536 × 1536 · 1,0 MB' },
+  { n: 'Foto 5', packageSide: 'top', f: 'bango-275-cap.jpg', gr: G1, ini: 'BG', st: CH.ok, warn: null, dim: '1536 × 1536 · 1,0 MB' },
   {
-    n: 'Kemasan isi ulang',
+    n: 'Foto 6',
     packageSide: 'other',
     f: 'bango-refill.jpg',
     gr: G2,
@@ -182,14 +171,13 @@ const ProductPhotosPage: React.FC = () => {
       .slice(0, 22) || 'sku';
 
     if (attached.length > 0) {
-      const mapped: StandalonePhoto[] = attached.map((p: Photo) => {
+      const mapped: StandalonePhoto[] = attached.map((p: Photo, idx: number) => {
         const side = normalizePackageSide(p.package_side || p.angle);
-        const displayName = packageSideDisplayLabel(side, lang);
         return {
           id: p.id,
           packageSide: side,
-          n: displayName,
-          f: p.file_name || `${cleanSlug}-${side}.jpg`,
+          n: p.file_name || `Foto ${idx + 1}`,
+          f: p.file_name || `${cleanSlug}-${idx + 1}.jpg`,
           gr: G3,
           url: p.url,
           ini: prodInitials,
@@ -203,16 +191,16 @@ const ProductPhotosPage: React.FC = () => {
     } else {
       // Dynamic standard default photos
       setPhotoList([
-        { n: 'Depan', packageSide: 'front', f: `${cleanSlug}-depan.jpg`, gr: G1, ini: prodInitials, st: CH.ok, warn: null, dim: '2048 × 2048 · 1.8 MB' },
-        { n: 'Belakang', packageSide: 'back', f: `${cleanSlug}-belakang.jpg`, gr: G1, ini: prodInitials, st: CH.ok, warn: null, dim: '2048 × 2048 · 1.9 MB' },
-        { n: 'Sisi kiri', packageSide: 'left', f: `${cleanSlug}-sisi-kiri.jpg`, gr: G2, ini: prodInitials, st: CH.wait, warn: 'Pantulan cahaya pada label — kontras teks rendah.', dim: '1536 × 1536 · 1.1 MB' },
-        { n: 'Sisi kanan', packageSide: 'right', f: `${cleanSlug}-sisi-kanan.jpg`, gr: G2, ini: prodInitials, st: CH.ok, warn: null, dim: '1536 × 1536 · 1.2 MB' },
-        { n: 'Tutup', packageSide: 'top', f: `${cleanSlug}-tutup.jpg`, gr: G1, ini: prodInitials, st: CH.ok, warn: null, dim: '1024 × 1024 · 0.9 MB' },
-        { n: 'Kemasan isi ulang', packageSide: 'other', f: `${cleanSlug}-refill.jpg`, gr: G2, ini: prodInitials, st: CH.wait, warn: 'Latar belakang berpola — disarankan latar polos.', dim: '2048 × 1536 · 1.6 MB' },
+        { n: 'Foto 1', packageSide: 'front', f: `${cleanSlug}-1.jpg`, gr: G1, ini: prodInitials, st: CH.ok, warn: null, dim: '2048 × 2048 · 1.8 MB' },
+        { n: 'Foto 2', packageSide: 'back', f: `${cleanSlug}-2.jpg`, gr: G1, ini: prodInitials, st: CH.ok, warn: null, dim: '2048 × 2048 · 1.9 MB' },
+        { n: 'Foto 3', packageSide: 'left', f: `${cleanSlug}-3.jpg`, gr: G2, ini: prodInitials, st: CH.wait, warn: 'Pantulan cahaya pada label — kontras teks rendah.', dim: '1536 × 1536 · 1.1 MB' },
+        { n: 'Foto 4', packageSide: 'right', f: `${cleanSlug}-4.jpg`, gr: G2, ini: prodInitials, st: CH.ok, warn: null, dim: '1536 × 1536 · 1.2 MB' },
+        { n: 'Foto 5', packageSide: 'top', f: `${cleanSlug}-5.jpg`, gr: G1, ini: prodInitials, st: CH.ok, warn: null, dim: '1024 × 1024 · 0.9 MB' },
+        { n: 'Foto 6', packageSide: 'other', f: `${cleanSlug}-6.jpg`, gr: G2, ini: prodInitials, st: CH.wait, warn: 'Latar belakang berpola — disarankan latar polos.', dim: '2048 × 1536 · 1.6 MB' },
       ]);
       setSelectedPhotoIndex(0);
     }
-  }, [product, photosByProductId, prodInitials, lang]);
+  }, [product, photosByProductId, prodInitials]);
 
   // ─── 1. UPLOAD PHOTO (POST /api/v1/products/{product_id}/photos) ─────────────
   const handleUploadMany = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -246,7 +234,7 @@ const ProductPhotosPage: React.FC = () => {
         const newPhotoItem: StandalonePhoto = {
           id: uploadedPhoto.id,
           packageSide: assignedSide,
-          n: packageSideDisplayLabel(assignedSide, lang),
+          n: file.name,
           f: file.name,
           gr: G1,
           url: uploadedPhoto.url,
@@ -363,7 +351,7 @@ const ProductPhotosPage: React.FC = () => {
       showToast(
         lang === 'id'
           ? `Foto sudut "${deleteTargetPhoto.n}" (${deleteTargetPhoto.f}) berhasil dihapus (API-018). Vektor fitur dicabut.`
-          : `Photo "${deleteTargetPhoto.n}" deleted (API-018).`
+          : `Foto "${deleteTargetPhoto.f || deleteTargetPhoto.n}" berhasil dihapus (API-018). Vektor fitur dicabut.`
       );
     } catch (err: any) {
       showToast(
@@ -396,17 +384,17 @@ const ProductPhotosPage: React.FC = () => {
 
     // Sync product photos locally / with redux update
     if (product) {
-      const updatedPhotos: Photo[] = photoList.map((p) => ({
+      const updatedPhotos: Photo[] = photoList.map((p, idx) => ({
         id: p.id || `photo-${Math.random().toString(36).substr(2, 6)}`,
         product_id: product.id,
         url: p.url || '',
         file_name: p.f,
-        package_side: p.packageSide || normalizePackageSide(p.n),
+        package_side: p.packageSide || 'other',
         angle: p.n,
         dimensions: p.dim,
         status: 'pending',
         index_status: 'pending',
-        is_primary: p.n.toLowerCase().includes('depan'),
+        is_primary: idx === 0,
       }));
       dispatch(
         updateProduct({
@@ -415,27 +403,6 @@ const ProductPhotosPage: React.FC = () => {
         })
       );
     }
-  };
-
-  // ─── 5. CHANGE PACKAGE SIDE IN EDITOR ─────────────────────────────────────────
-  const handleChangePackageSide = (newSide: BackendPhotoPackageSide) => {
-    if (isReadOnly) return;
-    const updated = [...photoList];
-    const current = updated[selectedPhotoIndex];
-    if (!current) return;
-
-    const newLabel = packageSideDisplayLabel(newSide, lang);
-    updated[selectedPhotoIndex] = {
-      ...current,
-      packageSide: newSide,
-      n: newLabel,
-    };
-    setPhotoList(updated);
-    showToast(
-      lang === 'id'
-        ? `Sisi kemasan diubah ke "${newLabel}".`
-        : `Package side changed to "${newLabel}".`
-    );
   };
 
   const handleApplyTool = (tool: string) => {
@@ -448,7 +415,7 @@ const ProductPhotosPage: React.FC = () => {
       return;
     }
 
-    const currentPhotoName = photoList[selectedPhotoIndex]?.n || 'Depan';
+    const currentPhotoName = photoList[selectedPhotoIndex]?.f || `Foto ${selectedPhotoIndex + 1}`;
 
     switch (tool) {
       case 'Putar 90°':
@@ -854,24 +821,6 @@ const ProductPhotosPage: React.FC = () => {
                       </span>
                     )}
 
-                    {/* Angle / Side badge */}
-                    <span
-                      style={{
-                        position: 'absolute',
-                        left: 10,
-                        top: 10,
-                        padding: '4px 9px',
-                        borderRadius: 999,
-                        background: 'var(--sah-glass)',
-                        backdropFilter: 'blur(4px)',
-                        fontSize: 10.5,
-                        fontWeight: 700,
-                        color: 'var(--sah-navy)',
-                      }}
-                    >
-                      {p.n}
-                    </span>
-
                     {/* Card Quick Delete Button */}
                     {!isReadOnly && (
                       <button
@@ -1018,7 +967,7 @@ const ProductPhotosPage: React.FC = () => {
                   color: 'var(--sah-navy)',
                 }}
               >
-                Editor foto — {activePhoto?.n || 'Depan'}
+                Editor foto — {activePhoto?.f ? activePhoto.f : `Foto ${selectedPhotoIndex + 1}`}
               </div>
               <span
                 style={{
@@ -1030,7 +979,7 @@ const ProductPhotosPage: React.FC = () => {
                   border: '1px solid var(--sah-line)',
                 }}
               >
-                {activePhoto?.f}
+                {activePhoto?.dim || activePhoto?.f}
               </span>
             </div>
 
@@ -1110,41 +1059,6 @@ const ProductPhotosPage: React.FC = () => {
                   Area objek utama
                 </span>
               </div>
-            </div>
-
-            {/* Package Side Selector */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span style={{ fontSize: 11.5, fontWeight: 700, color: 'var(--sah-navy)' }}>
-                  {lang === 'id' ? 'Sisi Kemasan (API Enum):' : 'Package Side (API):'}
-                </span>
-                <span style={{ fontSize: 10, color: 'var(--sah-muted)' }}>
-                  POST /photos
-                </span>
-              </div>
-              <select
-                disabled={isReadOnly}
-                value={activePhoto?.packageSide || normalizePackageSide(activePhoto?.n)}
-                onChange={(e) => handleChangePackageSide(e.target.value as BackendPhotoPackageSide)}
-                style={{
-                  height: 36,
-                  borderRadius: 11,
-                  border: '1px solid var(--sah-line)',
-                  background: 'var(--sah-ivory)',
-                  color: 'var(--sah-navy)',
-                  fontSize: 12,
-                  fontWeight: 600,
-                  padding: '0 10px',
-                  outline: 'none',
-                  cursor: isReadOnly ? 'not-allowed' : 'pointer',
-                }}
-              >
-                {PACKAGE_SIDES.map((side) => (
-                  <option key={side.value} value={side.value}>
-                    {side.labelId}
-                  </option>
-                ))}
-              </select>
             </div>
 
             {/* Tool Buttons */}
@@ -1404,11 +1318,11 @@ const ProductPhotosPage: React.FC = () => {
             <p style={{ margin: 0, fontSize: 13, color: 'var(--sah-frame)', lineHeight: 1.5 }}>
               {lang === 'id' ? (
                 <>
-                  Apakah Anda yakin ingin menghapus foto sudut <strong>"{deleteTargetPhoto.n}"</strong> ({deleteTargetPhoto.f}) untuk produk <strong>{prodName}</strong>? Tindakan ini akan mencabut vektor fitur visual dari basis data.
+                  Apakah Anda yakin ingin menghapus foto <strong>"{deleteTargetPhoto.f || deleteTargetPhoto.n}"</strong> untuk produk <strong>{prodName}</strong>? Tindakan ini akan mencabut vektor fitur visual dari basis data.
                 </>
               ) : (
                 <>
-                  Are you sure you want to delete photo <strong>"{deleteTargetPhoto.n}"</strong> ({deleteTargetPhoto.f})?
+                  Are you sure you want to delete photo <strong>"{deleteTargetPhoto.f || deleteTargetPhoto.n}"</strong>?
                 </>
               )}
             </p>

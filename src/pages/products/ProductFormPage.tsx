@@ -5,7 +5,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '../../store';
-import { createProduct, updateProduct } from '../../store/productSlice';
+import { createProduct, updateProduct, fetchProductById } from '../../store/productSlice';
 import { useSahToast } from '../../context/ToastContext';
 import type { Product, Photo, HalalStatus } from '../../types/apiDef';
 import { checkIsReadOnly } from '../../store/authSlice';
@@ -41,7 +41,14 @@ const ProductFormPage: React.FC = () => {
   const existingProduct = id
     ? products.find((p: Product) => p.id === id || p.sku_code === id)
     : null;
-  const isEditing = Boolean(existingProduct);
+  const isEditing = Boolean(id);
+
+  // Fetch product if editing and not in store yet
+  useEffect(() => {
+    if (id && (!existingProduct || (existingProduct.id !== id && existingProduct.sku_code !== id))) {
+      dispatch(fetchProductById(id));
+    }
+  }, [id, existingProduct, dispatch]);
 
   // Form states
   const [skuCode, setSkuCode] = useState(
@@ -284,25 +291,31 @@ const ProductFormPage: React.FC = () => {
         photos: photos,
       };
 
-      if (isEditing && existingProduct) {
+      if (isEditing) {
+        const targetId = existingProduct?.id || id!;
         await dispatch(
-          updateProduct({ id: existingProduct.id, payload: productPayload as any })
+          updateProduct({ id: targetId, payload: productPayload as any })
         ).unwrap();
         showToast(
           lang === 'id'
             ? 'Perubahan disimpan. Jejak audit dicatat (ENT-29).'
             : 'Changes saved. Audit trail recorded (ENT-29).'
         );
+        navigate(`/produk/detail/${targetId}`);
       } else {
-        await dispatch(createProduct(productPayload as any)).unwrap();
+        const res: any = await dispatch(createProduct(productPayload as any)).unwrap();
         showToast(
           lang === 'id'
             ? 'SKU berhasil didaftarkan. Jejak audit dicatat (ENT-29).'
             : 'SKU successfully registered. Audit trail recorded (ENT-29).'
         );
+        const newId = res?.data?.id || res?.id;
+        if (newId) {
+          navigate(`/produk/detail/${newId}`);
+        } else {
+          navigate('/produk');
+        }
       }
-
-      navigate('/produk');
     } catch {
       showToast(
         lang === 'id' ? 'Gagal menyimpan produk.' : 'Failed to save product.'
@@ -314,6 +327,70 @@ const ProductFormPage: React.FC = () => {
 
   return (
     <form onSubmit={handleSubmit}>
+      {/* Top Context Navigation Bar */}
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          marginBottom: 18,
+          padding: '12px 18px',
+          background: 'var(--sah-white)',
+          border: '1px solid var(--sah-line)',
+          borderRadius: 18,
+          boxShadow: 'var(--sah-shadow)',
+        }}
+      >
+        <button
+          type="button"
+          onClick={() => (id ? navigate(`/produk/detail/${id}`) : navigate('/produk'))}
+          style={{
+            background: 'none',
+            border: 0,
+            color: 'var(--sah-copper-dark)',
+            fontSize: 13,
+            fontWeight: 700,
+            cursor: 'pointer',
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: 8,
+            padding: 0,
+            fontFamily: "'Plus Jakarta Sans', sans-serif",
+          }}
+        >
+          <span>←</span>
+          <span>
+            {id
+              ? (lang === 'id' ? 'Kembali ke Detail Produk' : 'Back to Product Detail')
+              : (lang === 'id' ? 'Kembali ke Daftar Produk' : 'Back to Product List')}
+          </span>
+        </button>
+
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <span
+            style={{
+              fontSize: 11,
+              fontWeight: 700,
+              letterSpacing: 1.2,
+              textTransform: 'uppercase',
+              color: isEditing ? 'var(--sah-copper)' : 'var(--sah-blue-strong)',
+              background: isEditing ? 'var(--sah-copper-pale)' : 'var(--sah-mist-soft)',
+              padding: '4px 10px',
+              borderRadius: 999,
+              border: '1px solid var(--sah-line)',
+            }}
+          >
+            {isEditing
+              ? (lang === 'id' ? 'Mode Sunting' : 'Edit Mode')
+              : (lang === 'id' ? 'Pendaftaran Baru' : 'New Registration')}
+          </span>
+          {isEditing && (
+            <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--sah-navy)' }}>
+              {name || skuCode}
+            </span>
+          )}
+        </div>
+      </div>
       <div
         style={{
           display: 'grid',
@@ -807,7 +884,7 @@ const ProductFormPage: React.FC = () => {
                   )}
                 </div>
                 <div style={{ fontSize: 12.5, color: 'var(--sah-muted)', marginTop: 3 }}>
-                  Satu SKU dapat memiliki lebih dari satu foto referensi (AR-03). Disarankan mengunggah foto kemasan dari berbagai sudut (depan, belakang, samping, dan tutup) untuk akurasi pengindeksan visual AI.
+                  Satu SKU dapat memiliki lebih dari satu foto referensi (AR-03). Disarankan mengunggah foto kemasan yang jelas untuk akurasi pengindeksan visual AI.
                 </div>
               </div>
 
@@ -976,7 +1053,7 @@ const ProductFormPage: React.FC = () => {
                 </div>
                 {!isReadOnly && !isDragging && (
                   <div style={{ fontSize: 12, color: 'var(--sah-muted)', lineHeight: 1.4 }}>
-                    Contoh: foto tampak depan, belakang, sisi kiri/kanan, atau tutup kemasan
+                    Pastikan foto kemasan produk tajam, jelas, dan beresolusi tinggi
                   </div>
                 )}
               </div>
@@ -1257,7 +1334,7 @@ const ProductFormPage: React.FC = () => {
           {/* Batal Button */}
           <button
             type="button"
-            onClick={() => navigate('/produk')}
+            onClick={() => (id ? navigate(`/produk/detail/${id}`) : navigate('/produk'))}
             style={{
               height: 42,
               border: '1px solid var(--sah-line)',
