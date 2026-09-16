@@ -82,6 +82,15 @@ export const createProduct = createAsyncThunk(
       return rejectWithValue(message);
     }
   },
+  {
+    condition: (_, { getState }) => {
+      const state = getState() as any;
+      if (state.products?.saving) {
+        // Prevent concurrent duplicate creation requests
+        return false;
+      }
+    },
+  }
 );
 
 export const updateProduct = createAsyncThunk(
@@ -99,6 +108,14 @@ export const updateProduct = createAsyncThunk(
       return rejectWithValue(message);
     }
   },
+  {
+    condition: (_, { getState }) => {
+      const state = getState() as any;
+      if (state.products?.saving) {
+        return false;
+      }
+    },
+  }
 );
 
 export const deleteProduct = createAsyncThunk(

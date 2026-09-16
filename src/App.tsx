@@ -70,10 +70,10 @@ function App() {
                           <Route path="/products" element={<ProductListPage />} />
 
                           {/* Form SKU (SCR-WEB-04) */}
-                          <Route path="/produk/form" element={<ProductFormPage />} />
-                          <Route path="/produk/form/:id" element={<ProductFormPage />} />
-                          <Route path="/products/new" element={<ProductFormPage />} />
-                          <Route path="/products/:id/edit" element={<ProductFormPage />} />
+                          <Route path="/produk/form" element={<ProductFormPage key="new-sku" />} />
+                          <Route path="/produk/form/:id" element={<ProductFormPage key="edit-sku" />} />
+                          <Route path="/products/new" element={<ProductFormPage key="new-sku-alt" />} />
+                          <Route path="/products/:id/edit" element={<ProductFormPage key="edit-sku-alt" />} />
 
                           {/* Detail Produk (SCR-WEB-06) */}
                           <Route path="/produk/detail" element={<ProductDetailPage />} />

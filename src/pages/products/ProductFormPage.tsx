@@ -101,9 +101,11 @@ const ProductFormPage: React.FC = () => {
   const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const isSubmittingRef = useRef(false);
 
+  // Sync form state on route param / product change, and cleanly RESET when adding new SKU
   useEffect(() => {
-    if (existingProduct) {
+    if (id && existingProduct) {
       setSkuCode(existingProduct.sku_code);
       setName(existingProduct.name);
       setManufacturer(existingProduct.manufacturer || '');
@@ -119,8 +121,24 @@ const ProductFormPage: React.FC = () => {
       }
       setHalalStatus(existingProduct.halal_status);
       setPhotos(existingProduct.photos || []);
+      setPendingFiles([]);
+    } else if (!id) {
+      // Clean reset for new SKU so old values are never "cached" across route changes
+      setSkuCode(`SKU-${Math.floor(100000 + Math.random() * 900000)}`);
+      setName('');
+      setManufacturer('');
+      setCategory('Bumbu & saus');
+      setBrand('');
+      setDescription('Kemasan botol plastik, terdaftar pada sistem Sahabat Halal.');
+      setCertNo('ID00410000123456790125');
+      setIssuer('BPJPH');
+      setIssuedDate('2026-01-12');
+      setValidUntil('2030-01-11');
+      setHalalStatus('halal');
+      setPhotos([]);
+      setPendingFiles([]);
     }
-  }, [existingProduct]);
+  }, [id, existingProduct]);
 
   // Photos and Monogram helper
   const attachedPhotos: Photo[] =
@@ -353,6 +371,12 @@ const ProductFormPage: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    // 1. Synchronous lock to prevent any double-click or rapid multi-submit race conditions
+    if (isSubmittingRef.current || isSubmitting) {
+      return;
+    }
+
     if (isReadOnly) {
       showToast(
         lang === 'id'
@@ -371,6 +395,7 @@ const ProductFormPage: React.FC = () => {
       return;
     }
 
+    isSubmittingRef.current = true;
     setIsSubmitting(true);
     try {
       const normalizedHalalStatus: HalalStatus = halalStatus === 'halal' ? 'halal' : 'not_halal';
@@ -437,11 +462,15 @@ const ProductFormPage: React.FC = () => {
       }
     } catch (err: any) {
       const errMsg =
+        (typeof err === 'string' && err) ||
         err?.response?.data?.error?.user_message ||
+        err?.response?.data?.error?.message ||
         err?.response?.data?.message ||
+        err?.message ||
         (lang === 'id' ? 'Gagal menyimpan produk.' : 'Failed to save product.');
       showToast(errMsg);
     } finally {
+      isSubmittingRef.current = false;
       setIsSubmitting(false);
     }
   };
