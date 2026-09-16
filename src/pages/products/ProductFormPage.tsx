@@ -74,7 +74,7 @@ const ProductFormPage: React.FC = () => {
   const existingCert = existingProduct?.halal_certificates?.[0] ?? existingProduct?.halal_certificate ?? null;
 
   const [certNo, setCertNo] = useState(
-    existingCert?.certificate_no || (isEditing ? '' : 'ID00410000123456790125')
+    existingCert?.certificate_no || (isEditing ? '' : `ID00410000${Math.floor(100000000 + Math.random() * 900000000)}`)
   );
   const [issuer, setIssuer] = useState(
     existingCert?.issuer || 'BPJPH'
@@ -130,7 +130,7 @@ const ProductFormPage: React.FC = () => {
       setCategory('Bumbu & saus');
       setBrand('');
       setDescription('Kemasan botol plastik, terdaftar pada sistem Sahabat Halal.');
-      setCertNo('ID00410000123456790125');
+      setCertNo(`ID00410000${Math.floor(100000000 + Math.random() * 900000000)}`);
       setIssuer('BPJPH');
       setIssuedDate('2026-01-12');
       setValidUntil('2030-01-11');
@@ -461,13 +461,20 @@ const ProductFormPage: React.FC = () => {
         navigate('/produk');
       }
     } catch (err: any) {
-      const errMsg =
-        (typeof err === 'string' && err) ||
-        err?.response?.data?.error?.user_message ||
+      const serverErrCode = err?.response?.data?.error?.code;
+      const rawUserMsg = err?.response?.data?.error?.user_message || (typeof err === 'string' && err);
+      let errMsg =
+        rawUserMsg ||
         err?.response?.data?.error?.message ||
         err?.response?.data?.message ||
         err?.message ||
         (lang === 'id' ? 'Gagal menyimpan produk.' : 'Failed to save product.');
+
+      if (serverErrCode === 'ERR-4002' || errMsg.includes('already exists') || errMsg.includes('Data sudah ada')) {
+        errMsg = lang === 'id'
+          ? 'Data sudah ada (ERR-4002): Kode SKU atau Nomor Sertifikat Halal sudah terdaftar pada database. Harap ubah Kode SKU / Nomor Sertifikat.'
+          : 'Duplicate (ERR-4002): The SKU Code or Halal Certificate Number already exists in the database. Please use a unique Code / Certificate Number.';
+      }
       showToast(errMsg);
     } finally {
       isSubmittingRef.current = false;
@@ -996,6 +1003,24 @@ const ProductFormPage: React.FC = () => {
                   <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--sah-blue)' }}>
                     Kode SKU <span style={{ color: 'var(--sah-copper-dark)' }}>*</span>
                   </span>
+                  {!isEditing && !isReadOnly && (
+                    <button
+                      type="button"
+                      onClick={() => setSkuCode(`SKU-${Math.floor(100000 + Math.random() * 900000)}`)}
+                      style={{
+                        background: 'none',
+                        border: 0,
+                        color: 'var(--sah-copper-dark)',
+                        fontSize: 11,
+                        fontWeight: 700,
+                        cursor: 'pointer',
+                        padding: 0,
+                        textDecoration: 'underline',
+                      }}
+                    >
+                      Acak Kode SKU
+                    </button>
+                  )}
                   {isEditing && (
                     <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 10, fontWeight: 700, color: 'var(--sah-muted)', background: 'rgba(23,36,58,0.06)', padding: '2px 7px', borderRadius: 6 }}>
                       <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
@@ -1218,9 +1243,29 @@ const ProductFormPage: React.FC = () => {
             >
               {/* Nomor sertifikat */}
               <label style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--sah-blue)' }}>
-                  Nomor sertifikat <span style={{ color: 'var(--sah-copper-dark)' }}>*</span>
-                </span>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--sah-blue)' }}>
+                    Nomor sertifikat <span style={{ color: 'var(--sah-copper-dark)' }}>*</span>
+                  </span>
+                  {!isReadOnly && (
+                    <button
+                      type="button"
+                      onClick={() => setCertNo(`ID00410000${Math.floor(100000000 + Math.random() * 900000000)}`)}
+                      style={{
+                        background: 'none',
+                        border: 0,
+                        color: 'var(--sah-copper-dark)',
+                        fontSize: 11,
+                        fontWeight: 700,
+                        cursor: 'pointer',
+                        padding: 0,
+                        textDecoration: 'underline',
+                      }}
+                    >
+                      Acak Nomor Baru
+                    </button>
+                  )}
+                </div>
                 <input
                   value={certNo}
                   onChange={(e) => setCertNo(e.target.value)}
