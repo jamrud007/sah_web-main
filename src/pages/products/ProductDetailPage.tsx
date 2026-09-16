@@ -423,23 +423,36 @@ const ProductDetailPage: React.FC = () => {
                 height: 96,
                 borderRadius: 22,
                 background: primaryPhoto?.url
-                  ? `url(${primaryPhoto.url}) center / cover no-repeat`
+                  ? '#ffffff'
                   : 'linear-gradient(145deg,#24384e,#182436 60%,#4a2c22)',
                 display: 'grid',
                 placeItems: 'center',
                 flex: 'none',
                 boxShadow: '0 4px 14px rgba(23,36,58,.1)',
                 overflow: 'hidden',
+                border: '1.5px solid var(--sah-line)',
+                padding: primaryPhoto?.url ? 6 : 0,
+                boxSizing: 'border-box',
               }}
             >
-              {!primaryPhoto?.url && (
+              {primaryPhoto?.url ? (
+                <img
+                  src={primaryPhoto.url}
+                  alt={product.name}
+                  style={{
+                    width: '100%',
+                    height: '100%',
+                    objectFit: 'contain',
+                    filter: 'drop-shadow(0 2px 5px rgba(23,36,58,.08))',
+                  }}
+                />
+              ) : (
                 <span
                   style={{
                     fontFamily: "'Plus Jakarta Sans', sans-serif",
                     fontWeight: 800,
                     fontSize: 28,
                     color: 'rgba(255,253,248,.95)',
-                    letterSpacing: -0.5,
                   }}
                 >
                   {initialLetters}
@@ -594,7 +607,7 @@ const ProductDetailPage: React.FC = () => {
               {galleryItems.map((item, idx) => {
               const hasCustomPhoto = Boolean(item.photo?.url);
               const photoBg = hasCustomPhoto
-                ? `url(${item.photo?.url}) center / cover no-repeat`
+                ? 'radial-gradient(circle at 50% 50%, #ffffff 0%, #f4f5f8 100%)'
                 : (idx % 3 === 0
                   ? 'linear-gradient(145deg,#22374d,#182536 60%,#462b20)'
                   : (idx % 3 === 1
@@ -620,14 +633,28 @@ const ProductDetailPage: React.FC = () => {
                 >
                   <div
                     style={{
-                      height: 92,
+                      height: 120,
                       background: photoBg,
                       display: 'grid',
                       placeItems: 'center',
                       position: 'relative',
+                      overflow: 'hidden',
+                      padding: hasCustomPhoto ? '6px 8px' : 0,
+                      boxSizing: 'border-box',
                     }}
                   >
-                    {!hasCustomPhoto && (
+                    {hasCustomPhoto ? (
+                      <img
+                        src={item.photo?.url}
+                        alt="gallery photo"
+                        style={{
+                          width: '100%',
+                          height: '100%',
+                          objectFit: 'contain',
+                          filter: 'drop-shadow(0 2px 5px rgba(23,36,58,.08))',
+                        }}
+                      />
+                    ) : (
                       <span
                         style={{
                           fontFamily: "'Plus Jakarta Sans', sans-serif",

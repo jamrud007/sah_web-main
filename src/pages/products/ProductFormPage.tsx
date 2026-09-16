@@ -541,7 +541,7 @@ const ProductFormPage: React.FC = () => {
                 height: 76,
                 borderRadius: 20,
                 background: primaryPhoto?.url
-                  ? `url(${primaryPhoto.url}) center / cover no-repeat`
+                  ? '#ffffff'
                   : 'linear-gradient(145deg, #24384e, #182436 60%, #4a2c22)',
                 display: 'grid',
                 placeItems: 'center',
@@ -549,9 +549,22 @@ const ProductFormPage: React.FC = () => {
                 boxShadow: '0 4px 14px rgba(23,36,58,0.12)',
                 overflow: 'hidden',
                 border: '2px solid #fff',
+                padding: primaryPhoto?.url ? 6 : 0,
+                boxSizing: 'border-box',
               }}
             >
-              {!primaryPhoto?.url && (
+              {primaryPhoto?.url ? (
+                <img
+                  src={primaryPhoto.url}
+                  alt={name || existingProduct?.name || 'Product'}
+                  style={{
+                    width: '100%',
+                    height: '100%',
+                    objectFit: 'contain',
+                    filter: 'drop-shadow(0 2px 4px rgba(23,36,58,.08))',
+                  }}
+                />
+              ) : (
                 <span
                   style={{
                     fontFamily: "'Plus Jakarta Sans', sans-serif",
@@ -1699,16 +1712,30 @@ const ProductFormPage: React.FC = () => {
                   >
                     <div
                       style={{
-                        height: 120,
+                        height: 140,
                         background: p.url
-                          ? `url(${p.url}) center / cover no-repeat`
+                          ? 'radial-gradient(circle at 50% 50%, #ffffff 0%, #f4f5f8 100%)'
                           : 'linear-gradient(145deg,#477fa2,#25384a 58%,#6f3f32)',
                         display: 'grid',
                         placeItems: 'center',
                         position: 'relative',
+                        overflow: 'hidden',
+                        padding: p.url ? '8px 10px' : 0,
+                        boxSizing: 'border-box',
                       }}
                     >
-                      {!p.url && (
+                      {p.url ? (
+                        <img
+                          src={p.url}
+                          alt="preview"
+                          style={{
+                            width: '100%',
+                            height: '100%',
+                            objectFit: 'contain',
+                            filter: 'drop-shadow(0 2px 6px rgba(23,36,58,.08))',
+                          }}
+                        />
+                      ) : (
                         <span
                           style={{
                             fontFamily: "'Plus Jakarta Sans', sans-serif",

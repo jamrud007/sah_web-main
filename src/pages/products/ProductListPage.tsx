@@ -559,11 +559,11 @@ const ProductListPage: React.FC = () => {
                       <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                         <div
                           style={{
-                            width: 34,
-                            height: 34,
+                            width: 36,
+                            height: 36,
                             borderRadius: 10,
                             background: p.photos?.[0]?.url
-                              ? `url(${p.photos[0].url}) center / cover no-repeat`
+                              ? '#ffffff'
                               : 'linear-gradient(135deg,var(--sah-copper-pale),var(--sah-mist))',
                             border: '1px solid var(--sah-line)',
                             display: 'grid',
@@ -572,9 +572,23 @@ const ProductListPage: React.FC = () => {
                             fontWeight: 700,
                             color: 'var(--sah-copper-dark)',
                             flex: 'none',
+                            overflow: 'hidden',
+                            padding: p.photos?.[0]?.url ? 2 : 0,
                           }}
                         >
-                          {!p.photos?.[0]?.url && p.name.slice(0, 2).toUpperCase()}
+                          {p.photos?.[0]?.url ? (
+                            <img
+                              src={p.photos[0].url}
+                              alt={p.name}
+                              style={{
+                                width: '100%',
+                                height: '100%',
+                                objectFit: 'contain',
+                              }}
+                            />
+                          ) : (
+                            p.name.slice(0, 2).toUpperCase()
+                          )}
                         </div>
                         <div style={{ minWidth: 0 }}>
                           <div

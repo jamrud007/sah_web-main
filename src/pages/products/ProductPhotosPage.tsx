@@ -833,14 +833,32 @@ const ProductPhotosPage: React.FC = () => {
                   {/* Photo Preview Thumbnail */}
                   <div
                     style={{
-                      height: 132,
-                      background: hasUrl ? `url(${p.url}) center / cover no-repeat` : p.gr,
+                      height: 160,
+                      background: hasUrl
+                        ? 'radial-gradient(circle at 50% 50%, #ffffff 0%, #f4f5f8 100%)'
+                        : p.gr,
                       display: 'grid',
                       placeItems: 'center',
                       position: 'relative',
+                      overflow: 'hidden',
+                      padding: hasUrl ? '10px 12px' : 0,
+                      boxSizing: 'border-box',
                     }}
                   >
-                    {!hasUrl && (
+                    {hasUrl ? (
+                      <img
+                        src={p.url}
+                        alt={p.f}
+                        loading="lazy"
+                        style={{
+                          width: '100%',
+                          height: '100%',
+                          objectFit: 'contain',
+                          filter: 'drop-shadow(0 3px 8px rgba(23,36,58,.10))',
+                          pointerEvents: 'none',
+                        }}
+                      />
+                    ) : (
                       <span
                         style={{
                           fontFamily: "'Plus Jakarta Sans', sans-serif",
@@ -919,7 +937,6 @@ const ProductPhotosPage: React.FC = () => {
                     >
                       {p.f}
                     </div>
-                    <div style={{ fontSize: 11, color: 'var(--sah-muted)' }}>{p.dim}</div>
                     <span
                       style={{
                         alignSelf: 'flex-start',
@@ -1046,12 +1063,12 @@ const ProductPhotosPage: React.FC = () => {
             {/* Interactive Workspace / Canvas */}
             <div
               style={{
-                height: 168,
+                height: 220,
                 borderRadius: 17,
                 position: 'relative',
                 overflow: 'hidden',
-                boxShadow: 'inset 0 0 20px rgba(0,0,0,.25)',
-                background: '#17243a',
+                boxShadow: 'inset 0 0 20px rgba(0,0,0,.35)',
+                background: 'radial-gradient(circle at 50% 50%, #1e2e48 0%, #111a29 100%)',
                 display: photoList.length === 0 ? 'grid' : 'block',
                 placeItems: photoList.length === 0 ? 'center' : undefined,
               }}
@@ -1068,18 +1085,21 @@ const ProductPhotosPage: React.FC = () => {
                   <div
                     style={{
                       position: 'absolute',
-                      inset: -60,
+                      inset: 8,
                       background: removedBg
-                        ? '#ffffff'
+                        ? (activePhoto?.url
+                          ? `#ffffff url(${activePhoto.url}) center / contain no-repeat`
+                          : '#ffffff')
                         : (activePhoto?.url
-                          ? `url(${activePhoto.url}) center / cover no-repeat`
+                          ? `url(${activePhoto.url}) center / contain no-repeat`
                           : activePhoto?.gr || G1),
                       display: 'grid',
                       placeItems: 'center',
                       filter: highContrast ? 'contrast(135%) brightness(1.05)' : 'none',
-                      transform: `rotate(${rotation}deg) scale(${isCropped ? 1.2 : 1}) rotate(${isLeveled ? -2 : 0}deg)`,
+                      transform: `rotate(${rotation}deg) scale(${isCropped ? 1.25 : 1}) rotate(${isLeveled ? -2 : 0}deg)`,
                       transformOrigin: 'center center',
                       transition: 'transform .25s ease, filter .2s ease, background .2s ease',
+                      borderRadius: 12,
                     }}
                   >
                     {!activePhoto?.url && !removedBg && (

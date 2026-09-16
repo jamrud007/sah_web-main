@@ -143,11 +143,14 @@ const PhotoCard: React.FC<PhotoCardProps> = ({
         sx={{
           position: 'relative',
           height: 160,
-          background: previewBg,
+          background: photo.url
+            ? 'radial-gradient(circle at 50% 50%, #ffffff 0%, #f4f5f8 100%)'
+            : previewBg,
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
           overflow: 'hidden',
+          p: photo.url ? 1.5 : 0,
         }}
       >
         {photo.url ? (
@@ -155,7 +158,12 @@ const PhotoCard: React.FC<PhotoCardProps> = ({
             component="img"
             src={photo.url}
             alt={photo.file_name ?? sideLabel}
-            sx={{ width: '100%', height: '100%', objectFit: 'cover' }}
+            sx={{
+              width: '100%',
+              height: '100%',
+              objectFit: 'contain',
+              filter: 'drop-shadow(0 2px 6px rgba(23,36,58,.08))',
+            }}
           />
         ) : (
           <Typography

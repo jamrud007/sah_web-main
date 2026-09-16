@@ -240,7 +240,10 @@ const PhotoUploadModal: React.FC<PhotoUploadModalProps> = ({
                     width: 44,
                     height: 44,
                     borderRadius: '8px',
-                    objectFit: 'cover',
+                    objectFit: 'contain',
+                    backgroundColor: '#ffffff',
+                    border: '1px solid rgba(23,36,58,.08)',
+                    p: 0.5,
                     flexShrink: 0,
                   }}
                 />
