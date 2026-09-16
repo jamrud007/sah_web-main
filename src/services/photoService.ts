@@ -63,7 +63,10 @@ export const normalizePhoto = (raw: any, productId: string, token?: string): Pho
     index_status: status,
     extraction_status: raw.extraction_status || (status === 'indexed' ? 'extracted' : status),
     uploaded_at: uploadedAt,
-    file_name: raw.file_name || `${packageSideDisplayLabel(side, 'en').toLowerCase().replace(/\s+/g, '-')}.jpg`,
+    file_name:
+      raw.file_name && !raw.file_name.includes('refill') && !raw.file_name.startsWith('image ')
+        ? raw.file_name
+        : `${side}.jpg`,
     file_size: raw.file_size,
     width: raw.width || 2048,
     height: raw.height || 2048,
@@ -142,6 +145,27 @@ export const getExtractionStatusConfig = (
 };
 
 /**
+ * Formats a photo filename as ("brand"-"side").jpg
+ * Example: ("Sari Roti", "front") -> "sari-roti-front.jpg"
+ * Example: ("Sari Roti", "other", 1) -> "sari-roti-other-2.jpg"
+ */
+export const formatPhotoFileName = (
+  brandOrProduct?: string,
+  side?: string,
+  occurrenceIndex: number = 0,
+): string => {
+  const normSide = normalizePackageSide(side);
+  const rawBrand = (brandOrProduct || 'produk')
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+  const brandSlug = rawBrand || 'produk';
+  const suffix = occurrenceIndex > 0 ? `-${occurrenceIndex + 1}` : '';
+  return `${brandSlug}-${normSide}${suffix}.jpg`;
+};
+
+/**
  * Normalizes input angle / package side into one of the backend allowed enum values:
  * 'front' | 'back' | 'left' | 'right' | 'top' | 'bottom' | 'other'
  */
@@ -172,12 +196,12 @@ export const packageSideDisplayLabel = (side?: string, lang: 'id' | 'en' = 'id')
     case 'right':
       return lang === 'id' ? 'Sisi Kanan' : 'Right Side';
     case 'top':
-      return lang === 'id' ? 'Tutup / Atas' : 'Top / Cap';
+      return lang === 'id' ? 'Atas' : 'Top';
     case 'bottom':
       return lang === 'id' ? 'Bawah' : 'Bottom';
     case 'other':
     default:
-      return lang === 'id' ? 'Lainnya / Isi Ulang' : 'Other / Refill';
+      return lang === 'id' ? 'Lainnya' : 'Other';
   }
 };
 

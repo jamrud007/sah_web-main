@@ -24,12 +24,20 @@ interface PhotoCardProps {
 }
 
 const SIDE_LABELS: Record<string, string> = {
+  front: 'Depan',
   depan: 'Depan',
+  back: 'Belakang',
   belakang: 'Belakang',
+  left: 'Sisi kiri',
   sisi_kiri: 'Sisi kiri',
+  right: 'Sisi kanan',
   sisi_kanan: 'Sisi kanan',
-  tutup: 'Tutup',
-  kemasan_isi_ulang: 'Kemasan isi ulang',
+  top: 'Atas',
+  tutup: 'Atas',
+  bottom: 'Bawah',
+  dasar: 'Bawah',
+  other: 'Lainnya',
+  kemasan_isi_ulang: 'Lainnya',
 };
 
 const formatBytes = (bytes?: number) => {

@@ -23,6 +23,7 @@ import {
   normalizePackageSide,
   packageSideDisplayLabel,
   formatPhotoTimestamp,
+  formatPhotoFileName,
 } from '../../services/photoService';
 
 export interface StandalonePhoto {
@@ -136,11 +137,13 @@ const ProductPhotosPage: React.FC = () => {
         : (photosByProductId[product.id] || []);
 
     if (attached.length > 0) {
+      const sideCounts: Record<string, number> = {};
+      const brandName = product.brand || product.name || product.sku_code || 'produk';
       const mapped: StandalonePhoto[] = attached.map((p: Photo) => {
         const side = normalizePackageSide(p.package_side || p.angle);
-        const imageName = p.file_name && !p.file_name.startsWith('image ')
-          ? p.file_name
-          : `${(product.sku_code || 'sku').toLowerCase()}-${side}.jpg`;
+        const sideIndex = sideCounts[side] || 0;
+        sideCounts[side] = sideIndex + 1;
+        const imageName = formatPhotoFileName(brandName, side, sideIndex);
         return {
           id: p.id,
           packageSide: side,
