@@ -13,6 +13,7 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import RefreshIcon from '@mui/icons-material/Refresh';
 import type { Photo } from '../../types/apiDef';
 import { SAH_COLORS } from '../../theme';
+import { formatPhotoTimestamp } from '../../services/photoService';
 
 interface PhotoCardProps {
   photo: Photo;
@@ -262,6 +263,12 @@ const PhotoCard: React.FC<PhotoCardProps> = ({
         <Typography sx={{ fontSize: '11.5px', color: SAH_COLORS.textSecondary }}>
           {photo.width ? `${photo.width} × ${photo.height}` : '2048 × 2048'} · {formatBytes(photo.file_size)}
         </Typography>
+
+        {photo.uploaded_at && (
+          <Typography sx={{ fontSize: '10.5px', color: '#64748b' }}>
+            {formatPhotoTimestamp(photo.uploaded_at)}
+          </Typography>
+        )}
 
         <Box sx={{ pt: 0.5 }}>{renderStatusChip(photo.status)}</Box>
 

@@ -21,6 +21,8 @@ import {
 } from '../../store/productSlice';
 import {
   normalizePackageSide,
+  packageSideDisplayLabel,
+  formatPhotoTimestamp,
 } from '../../services/photoService';
 
 export interface StandalonePhoto {
@@ -34,6 +36,8 @@ export interface StandalonePhoto {
   st: StatusChipDef;
   warn: string | null;
   dim: string;
+  extractionStatus?: string;
+  uploadedAt?: string;
 }
 
 const G1 = 'linear-gradient(145deg,#477fa2,#25384a 58%,#6f3f32)';
@@ -132,10 +136,11 @@ const ProductPhotosPage: React.FC = () => {
         : (photosByProductId[product.id] || []);
 
     if (attached.length > 0) {
-      const mapped: StandalonePhoto[] = attached.map((p: Photo, idx: number) => {
+      const mapped: StandalonePhoto[] = attached.map((p: Photo) => {
         const side = normalizePackageSide(p.package_side || p.angle);
-        const indexStr = String(idx + 1).padStart(2, '0');
-        const imageName = `image ${indexStr}`;
+        const imageName = p.file_name && !p.file_name.startsWith('image ')
+          ? p.file_name
+          : `${(product.sku_code || 'sku').toLowerCase()}-${side}.jpg`;
         return {
           id: p.id,
           packageSide: side,
@@ -147,6 +152,8 @@ const ProductPhotosPage: React.FC = () => {
           st: mapPhotoStatusChip(p.status, p.index_status),
           warn: p.qa_message || (p.status === 'failed' ? 'Ekstraksi fitur ditolak; resolusi kurang optimal.' : null),
           dim: p.dimensions || '2048 × 2048 · 1.8 MB',
+          extractionStatus: p.extraction_status,
+          uploadedAt: p.uploaded_at || p.created_at,
         };
       });
       setPhotoList(mapped);
@@ -194,6 +201,8 @@ const ProductPhotosPage: React.FC = () => {
           st: CH.wait, // 202 Accepted returns PENDING
           warn: null,
           dim: `${(file.size / (1024 * 1024)).toFixed(1)} MB · unggahan baru`,
+          extractionStatus: 'pending',
+          uploadedAt: new Date().toISOString(),
         };
 
         setPhotoList((prev) => [...prev, newPhotoItem]);
@@ -872,6 +881,25 @@ const ProductPhotosPage: React.FC = () => {
                       </span>
                     )}
 
+                    {/* Package side badge top-left */}
+                    <span
+                      style={{
+                        position: 'absolute',
+                        top: 10,
+                        left: 10,
+                        padding: '2px 8px',
+                        borderRadius: 999,
+                        background: 'rgba(255, 255, 255, 0.92)',
+                        color: 'var(--sah-navy)',
+                        fontSize: 10,
+                        fontWeight: 700,
+                        boxShadow: '0 2px 4px rgba(0,0,0,0.12)',
+                        backdropFilter: 'blur(4px)',
+                      }}
+                    >
+                      {packageSideDisplayLabel(p.packageSide, lang)}
+                    </span>
+
                     {/* Card Quick Delete Button */}
                     {!isReadOnly && (
                       <button
@@ -921,13 +949,13 @@ const ProductPhotosPage: React.FC = () => {
                       padding: '12px 13px',
                       display: 'flex',
                       flexDirection: 'column',
-                      gap: 8,
+                      gap: 6,
                     }}
                   >
                     <div
                       style={{
-                        fontSize: 12,
-                        fontWeight: 600,
+                        fontSize: 12.5,
+                        fontWeight: 700,
                         overflow: 'hidden',
                         textOverflow: 'ellipsis',
                         whiteSpace: 'nowrap',
@@ -937,24 +965,35 @@ const ProductPhotosPage: React.FC = () => {
                     >
                       {p.f}
                     </div>
-                    <span
-                      style={{
-                        alignSelf: 'flex-start',
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        gap: 6,
-                        padding: '5px 11px',
-                        borderRadius: 999,
-                        fontSize: 11.5,
-                        fontWeight: 600,
-                        background: p.st.bg,
-                        border: `1px solid ${p.st.bd}`,
-                        color: 'var(--sah-frame)',
-                      }}
-                    >
-                      <span style={{ fontSize: 9, color: p.st.gc }}>{p.st.g}</span>
-                      {lang === 'id' ? p.st.id : p.st.en}
-                    </span>
+
+                    <div style={{ fontSize: 10.5, color: 'var(--sah-muted)', lineHeight: 1.35 }}>
+                      <div>{p.dim}</div>
+                      {p.uploadedAt && (
+                        <div style={{ color: '#64748b', marginTop: 2, fontSize: 10 }}>
+                          {formatPhotoTimestamp(p.uploadedAt, lang)}
+                        </div>
+                      )}
+                    </div>
+
+                    <div style={{ marginTop: 2 }}>
+                      <span
+                        style={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: 6,
+                          padding: '4px 10px',
+                          borderRadius: 999,
+                          fontSize: 11,
+                          fontWeight: 600,
+                          background: p.st.bg,
+                          border: `1px solid ${p.st.bd}`,
+                          color: 'var(--sah-frame)',
+                        }}
+                      >
+                        <span style={{ fontSize: 9, color: p.st.gc }}>{p.st.g}</span>
+                        {lang === 'id' ? p.st.id : p.st.en}
+                      </span>
+                    </div>
 
                     {p.warn && (
                       <div
@@ -1058,6 +1097,68 @@ const ProductPhotosPage: React.FC = () => {
                   {lang === 'id' ? 'Pratinjau inspeksi pra-indeks' : 'Pre-index inspection preview'}
                 </span>
               </div>
+
+              {/* Photo Status & Metadata Strip */}
+              {activePhoto && (
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 12,
+                    flexWrap: 'wrap',
+                    padding: '8px 12px',
+                    borderRadius: 12,
+                    background: 'var(--sah-ivory)',
+                    border: '1px solid var(--sah-line)',
+                    fontSize: 11,
+                    color: 'var(--sah-navy)',
+                    marginBottom: 10,
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+                    <span style={{ color: 'var(--sah-muted)', fontWeight: 500 }}>
+                      {lang === 'id' ? 'Sisi Kemasan:' : 'Package Side:'}
+                    </span>
+                    <span style={{ fontWeight: 700 }}>
+                      {packageSideDisplayLabel(activePhoto.packageSide, lang)}
+                    </span>
+                  </div>
+
+                  <div style={{ width: 1, height: 12, background: 'var(--sah-line)' }} />
+
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+                    <span style={{ color: 'var(--sah-muted)', fontWeight: 500 }}>
+                      {lang === 'id' ? 'Status:' : 'Status:'}
+                    </span>
+                    <span
+                      style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: 4,
+                        fontWeight: 700,
+                        color: activePhoto.st.gc || 'inherit',
+                      }}
+                    >
+                      <span style={{ fontSize: 8 }}>{activePhoto.st.g}</span>
+                      {lang === 'id' ? activePhoto.st.id : activePhoto.st.en}
+                    </span>
+                  </div>
+
+                  {activePhoto.uploadedAt && (
+                    <>
+                      <div style={{ width: 1, height: 12, background: 'var(--sah-line)' }} />
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+                        <span style={{ color: 'var(--sah-muted)', fontWeight: 500 }}>
+                          {lang === 'id' ? 'Diunggah:' : 'Uploaded:'}
+                        </span>
+                        <span style={{ fontWeight: 600, color: '#475569' }}>
+                          {formatPhotoTimestamp(activePhoto.uploadedAt, lang)}
+                        </span>
+                      </div>
+                    </>
+                  )}
+                </div>
+              )}
             </div>
 
             {/* Interactive Workspace / Canvas */}

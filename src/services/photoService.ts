@@ -41,13 +41,15 @@ export const normalizePhoto = (raw: any, productId: string, token?: string): Pho
     (photoId && productId ? `/api/v1/products/${productId}/photos/${photoId}/image` : '');
   const url = buildPhotoUrl(rawPath, token);
   const side = normalizePackageSide(raw.package_side || raw.angle);
-  const extractionStatus = raw.extraction_status || raw.status || raw.index_status || 'pending';
+  const rawExtractionStatus = raw.extraction_status || raw.status || raw.index_status || 'pending';
   const status: PhotoStatus =
-    extractionStatus === 'extracted' || extractionStatus === 'indexed'
+    rawExtractionStatus === 'extracted' || rawExtractionStatus === 'indexed'
       ? 'indexed'
-      : extractionStatus === 'failed'
+      : rawExtractionStatus === 'failed'
       ? 'failed'
       : 'pending';
+
+  const uploadedAt = raw.uploaded_at || raw.created_at;
 
   return {
     id: photoId || `ph-${Math.random().toString(36).slice(2)}`,
@@ -55,18 +57,87 @@ export const normalizePhoto = (raw: any, productId: string, token?: string): Pho
     url,
     image_path: raw.image_path || raw.url,
     content_type: raw.content_type || 'image/jpeg',
-    package_side: side,
+    package_side: raw.package_side || side,
     angle: packageSideDisplayLabel(side),
     status,
     index_status: status,
-    file_name: raw.file_name || `${packageSideDisplayLabel(side)}.jpg`,
+    extraction_status: raw.extraction_status || (status === 'indexed' ? 'extracted' : status),
+    uploaded_at: uploadedAt,
+    file_name: raw.file_name || `${packageSideDisplayLabel(side, 'en').toLowerCase().replace(/\s+/g, '-')}.jpg`,
     file_size: raw.file_size,
     width: raw.width || 2048,
     height: raw.height || 2048,
-    dimensions: raw.dimensions || `${packageSideDisplayLabel(side)} · Foto SKU`,
+    dimensions: raw.dimensions || `${raw.width || 2048} × ${raw.height || 2048}`,
     qa_message: raw.qa_message || null,
-    created_at: raw.created_at || raw.uploaded_at || new Date().toISOString(),
+    created_at: raw.created_at || uploadedAt || new Date().toISOString(),
     is_primary: Boolean(raw.is_primary || side === 'front'),
+  };
+};
+
+/**
+ * Format ISO timestamp into clean local Indonesian/English format
+ * e.g. "16 Sep 2026, 14:57 WIB"
+ */
+export const formatPhotoTimestamp = (isoDate?: string, lang: 'id' | 'en' = 'id'): string => {
+  if (!isoDate) return '—';
+  try {
+    const d = new Date(isoDate);
+    if (isNaN(d.getTime())) return isoDate;
+
+    const dateStr = d.toLocaleDateString(lang === 'id' ? 'id-ID' : 'en-US', {
+      day: 'numeric',
+      month: 'short',
+      year: 'numeric',
+    });
+    const timeStr = d.toLocaleTimeString(lang === 'id' ? 'id-ID' : 'en-US', {
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false,
+    });
+    return `${dateStr}, ${timeStr} WIB`;
+  } catch {
+    return isoDate;
+  }
+};
+
+export interface ExtractionStatusConfig {
+  label: string;
+  icon: string;
+  bg: string;
+  border: string;
+  color: string;
+}
+
+export const getExtractionStatusConfig = (
+  extractionStatus?: string,
+  status?: PhotoStatus,
+  lang: 'id' | 'en' = 'id'
+): ExtractionStatusConfig => {
+  const norm = (extractionStatus || status || 'pending').toLowerCase();
+  if (norm === 'extracted' || norm === 'indexed') {
+    return {
+      label: lang === 'id' ? 'Terindeks' : 'Indexed',
+      icon: '●',
+      bg: 'rgba(39, 110, 144, 0.12)',
+      border: 'rgba(39, 110, 144, 0.28)',
+      color: '#276e90',
+    };
+  }
+  if (norm === 'failed' || norm === 'error') {
+    return {
+      label: lang === 'id' ? 'Gagal indeks' : 'Failed index',
+      icon: '▲',
+      bg: 'rgba(239, 68, 68, 0.12)',
+      border: 'rgba(239, 68, 68, 0.28)',
+      color: '#dc2626',
+    };
+  }
+  return {
+    label: lang === 'id' ? 'Menunggu indeks' : 'Pending index',
+    icon: '○',
+    bg: 'rgba(217, 119, 6, 0.12)',
+    border: 'rgba(217, 119, 6, 0.28)',
+    color: '#d97706',
   };
 };
 

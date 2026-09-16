@@ -8,6 +8,11 @@ import { deleteProduct, fetchProductById, fetchProducts } from '../../store/prod
 import { useSahToast } from '../../context/ToastContext';
 import type { Product, Photo } from '../../types/apiDef';
 import { checkIsReadOnly } from '../../store/authSlice';
+import {
+  packageSideDisplayLabel,
+  formatPhotoTimestamp,
+  getExtractionStatusConfig,
+} from '../../services/photoService';
 
 const ProductDetailPage: React.FC = () => {
   const navigate = useNavigate();
@@ -600,111 +605,193 @@ const ProductDetailPage: React.FC = () => {
             <div
               style={{
                 display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fill, minmax(130px, 1fr))',
-                gap: 12,
+                gridTemplateColumns: 'repeat(auto-fill, minmax(170px, 1fr))',
+                gap: 14,
               }}
             >
               {galleryItems.map((item, idx) => {
-              const hasCustomPhoto = Boolean(item.photo?.url);
-              const photoBg = hasCustomPhoto
-                ? 'radial-gradient(circle at 50% 50%, #ffffff 0%, #f4f5f8 100%)'
-                : (idx % 3 === 0
-                  ? 'linear-gradient(145deg,#22374d,#182536 60%,#462b20)'
-                  : (idx % 3 === 1
-                    ? 'linear-gradient(130deg,#9e5b38,#693922 60%,#182536)'
-                    : 'linear-gradient(145deg,#2e455b,#1f2f42 60%,#874b2f)'));
+                const p = item.photo;
+                const hasCustomPhoto = Boolean(p?.url);
+                const photoBg = hasCustomPhoto
+                  ? 'radial-gradient(circle at 50% 50%, #ffffff 0%, #f4f5f8 100%)'
+                  : (idx % 3 === 0
+                    ? 'linear-gradient(145deg,#22374d,#182536 60%,#462b20)'
+                    : (idx % 3 === 1
+                      ? 'linear-gradient(130deg,#9e5b38,#693922 60%,#182536)'
+                      : 'linear-gradient(145deg,#2e455b,#1f2f42 60%,#874b2f)'));
 
-              return (
-                <div
-                  key={idx}
-                  style={{
-                    border: item.photo?.is_primary
-                      ? '1.5px solid var(--sah-copper)'
-                      : '1px solid var(--sah-line)',
-                    borderRadius: 16,
-                    overflow: 'hidden',
-                    background: 'var(--sah-white)',
-                    boxShadow: item.photo?.is_primary
-                      ? '0 2px 8px rgba(197,138,99,.2)'
-                      : 'none',
-                    display: 'flex',
-                    flexDirection: 'column',
-                  }}
-                >
+                const sideLabel = packageSideDisplayLabel(p?.package_side || p?.angle, lang);
+                const statusCfg = getExtractionStatusConfig(p?.extraction_status, p?.status, lang);
+                const uploadedDateText = formatPhotoTimestamp(p?.uploaded_at || p?.created_at, lang);
+                const displayFileName =
+                  p?.file_name && !p.file_name.startsWith('image ')
+                    ? p.file_name
+                    : `${(product.sku_code || 'sku').toLowerCase()}-${p?.package_side || 'front'}.jpg`;
+
+                const dimensionText = p?.width && p?.height
+                  ? `${p.width} × ${p.height}${p.file_size ? ` · ${(p.file_size / (1024 * 1024)).toFixed(1)} MB` : ''}`
+                  : (p?.dimensions || '2048 × 2048 · 1.8 MB');
+
+                return (
                   <div
+                    key={p?.id || idx}
                     style={{
-                      height: 120,
-                      background: photoBg,
-                      display: 'grid',
-                      placeItems: 'center',
-                      position: 'relative',
+                      border: p?.is_primary
+                        ? '1.5px solid var(--sah-copper)'
+                        : '1px solid var(--sah-line)',
+                      borderRadius: 18,
                       overflow: 'hidden',
-                      padding: hasCustomPhoto ? '6px 8px' : 0,
-                      boxSizing: 'border-box',
+                      background: 'var(--sah-white)',
+                      boxShadow: p?.is_primary
+                        ? '0 4px 12px rgba(197,138,99,.2)'
+                        : '0 1px 3px rgba(0,0,0,0.05)',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      transition: 'all .2s ease',
                     }}
                   >
-                    {hasCustomPhoto ? (
-                      <img
-                        src={item.photo?.url}
-                        alt="gallery photo"
-                        style={{
-                          width: '100%',
-                          height: '100%',
-                          objectFit: 'contain',
-                          filter: 'drop-shadow(0 2px 5px rgba(23,36,58,.08))',
-                        }}
-                      />
-                    ) : (
-                      <span
-                        style={{
-                          fontFamily: "'Plus Jakarta Sans', sans-serif",
-                          fontWeight: 800,
-                          fontSize: 22,
-                          color: 'rgba(255,253,248,.92)',
-                        }}
-                      >
-                        {initialLetters}
-                      </span>
-                    )}
-                    {item.photo?.is_primary && (
+                    {/* Photo Visual / Graphic Area */}
+                    <div
+                      style={{
+                        height: 135,
+                        background: photoBg,
+                        display: 'grid',
+                        placeItems: 'center',
+                        position: 'relative',
+                        overflow: 'hidden',
+                        padding: hasCustomPhoto ? '8px 10px' : 0,
+                        boxSizing: 'border-box',
+                      }}
+                    >
+                      {hasCustomPhoto ? (
+                        <img
+                          src={p?.url}
+                          alt={displayFileName}
+                          style={{
+                            width: '100%',
+                            height: '100%',
+                            objectFit: 'contain',
+                            filter: 'drop-shadow(0 2px 6px rgba(23,36,58,.08))',
+                          }}
+                        />
+                      ) : (
+                        <span
+                          style={{
+                            fontFamily: "'Plus Jakarta Sans', sans-serif",
+                            fontWeight: 800,
+                            fontSize: 22,
+                            color: 'rgba(255,253,248,.92)',
+                          }}
+                        >
+                          {initialLetters}
+                        </span>
+                      )}
+
+                      {/* Package side badge top-left */}
                       <span
                         style={{
                           position: 'absolute',
-                          top: 6,
-                          right: 6,
+                          top: 7,
+                          left: 7,
                           padding: '2px 8px',
                           borderRadius: 999,
-                          background: 'var(--sah-copper)',
-                          color: 'var(--sah-white)',
-                          fontSize: 9.5,
-                          fontWeight: 800,
-                          letterSpacing: 0.5,
-                          textTransform: 'uppercase',
+                          background: 'rgba(255, 255, 255, 0.92)',
+                          color: 'var(--sah-navy)',
+                          fontSize: 10,
+                          fontWeight: 700,
+                          boxShadow: '0 2px 4px rgba(0,0,0,0.12)',
+                          backdropFilter: 'blur(4px)',
                         }}
                       >
-                        Utama
+                        {sideLabel}
                       </span>
-                    )}
+
+                      {/* Primary / Utama badge top-right */}
+                      {p?.is_primary && (
+                        <span
+                          style={{
+                            position: 'absolute',
+                            top: 7,
+                            right: 7,
+                            padding: '2px 8px',
+                            borderRadius: 999,
+                            background: 'var(--sah-copper)',
+                            color: 'var(--sah-white)',
+                            fontSize: 9.5,
+                            fontWeight: 800,
+                            letterSpacing: 0.5,
+                            textTransform: 'uppercase',
+                            boxShadow: '0 2px 4px rgba(0,0,0,0.15)',
+                          }}
+                        >
+                          Utama
+                        </span>
+                      )}
+                    </div>
+
+                    {/* Card Metadata Details */}
+                    <div
+                      style={{
+                        padding: '10px 12px',
+                        background: 'var(--sah-white)',
+                        borderTop: '1px solid var(--sah-line)',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: 6,
+                      }}
+                    >
+                      <div
+                        style={{
+                          fontSize: 12,
+                          fontWeight: 700,
+                          color: 'var(--sah-navy)',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          whiteSpace: 'nowrap',
+                        }}
+                        title={displayFileName}
+                      >
+                        {displayFileName}
+                      </div>
+
+                      <div
+                        style={{
+                          fontSize: 10.5,
+                          color: 'var(--sah-muted)',
+                          lineHeight: 1.35,
+                        }}
+                      >
+                        <div>{dimensionText}</div>
+                        {uploadedDateText && uploadedDateText !== '—' && (
+                          <div style={{ color: '#64748b', marginTop: 2, fontSize: 10 }}>
+                            {uploadedDateText}
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Status Pill matching mockup Image 2 */}
+                      <div style={{ marginTop: 2 }}>
+                        <span
+                          style={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: 5,
+                            padding: '3px 9px',
+                            borderRadius: 999,
+                            fontSize: 10.5,
+                            fontWeight: 600,
+                            background: statusCfg.bg,
+                            border: `1px solid ${statusCfg.border}`,
+                            color: statusCfg.color,
+                          }}
+                        >
+                          <span style={{ fontSize: 8 }}>{statusCfg.icon}</span>
+                          {statusCfg.label}
+                        </span>
+                      </div>
+                    </div>
                   </div>
-                  <div
-                    style={{
-                      padding: '8px 10px',
-                      fontSize: 11.5,
-                      fontWeight: 600,
-                      color: 'var(--sah-navy)',
-                      background: 'var(--sah-white)',
-                      borderTop: '1px solid var(--sah-line)',
-                      textAlign: 'left',
-                      overflow: 'hidden',
-                      textOverflow: 'ellipsis',
-                      whiteSpace: 'nowrap',
-                    }}
-                    title={item.label}
-                  >
-                    {item.label}
-                  </div>
-                </div>
-              );
+                );
               })}
             </div>
           )}

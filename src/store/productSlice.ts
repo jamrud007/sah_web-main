@@ -165,6 +165,8 @@ export const uploadPhoto = createAsyncThunk(
         width: 1920,
         height: 1920,
         dimensions: `${file.name.slice(0, 16)} · ${(file.size / (1024 * 1024)).toFixed(1)} MB`,
+        extraction_status: 'pending',
+        uploaded_at: new Date().toISOString(),
         created_at: new Date().toISOString(),
       };
       return { productId, photo, raw: res };
