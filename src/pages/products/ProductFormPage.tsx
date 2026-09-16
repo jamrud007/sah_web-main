@@ -74,16 +74,16 @@ const ProductFormPage: React.FC = () => {
   const existingCert = existingProduct?.halal_certificates?.[0] ?? existingProduct?.halal_certificate ?? null;
 
   const [certNo, setCertNo] = useState(
-    existingCert?.certificate_no || (isEditing ? '' : `ID00410000${Math.floor(100000000 + Math.random() * 900000000)}`)
+    existingCert?.certificate_no || ''
   );
   const [issuer, setIssuer] = useState(
     existingCert?.issuer || 'BPJPH'
   );
   const [issuedDate, setIssuedDate] = useState(
-    existingCert?.issued_date || (isEditing ? '' : '2026-01-12')
+    existingCert?.issued_date || ''
   );
   const [validUntil, setValidUntil] = useState(
-    existingCert?.valid_until || (isEditing ? '' : '2030-01-11')
+    existingCert?.valid_until || ''
   );
   const [halalStatus, setHalalStatus] = useState<HalalStatus>(
     existingProduct?.halal_status || 'halal'
@@ -113,14 +113,12 @@ const ProductFormPage: React.FC = () => {
 
   const handleAutoResolveDuplicate = () => {
     const newSku = `SKU-${Math.floor(100000 + Math.random() * 900000)}`;
-    const newCert = `ID00410000${Math.floor(100000000 + Math.random() * 900000000)}`;
     setSkuCode(newSku);
-    setCertNo(newCert);
     setDuplicateModalOpen(false);
     showToast(
       lang === 'id'
-        ? 'Kode SKU & Nomor Sertifikat diperbarui dengan nomor unik baru. Silakan klik Simpan kembali.'
-        : 'SKU Code & Certificate Number updated with unique values. Please click Save again.'
+        ? 'Kode SKU diperbarui dengan nomor unik baru. Silakan klik Simpan kembali.'
+        : 'SKU Code updated with unique value. Please click Save again.'
     );
   };
 
@@ -151,10 +149,10 @@ const ProductFormPage: React.FC = () => {
       setCategory('Bumbu & saus');
       setBrand('');
       setDescription('Kemasan botol plastik, terdaftar pada sistem Sahabat Halal.');
-      setCertNo(`ID00410000${Math.floor(100000000 + Math.random() * 900000000)}`);
+      setCertNo('');
       setIssuer('BPJPH');
-      setIssuedDate('2026-01-12');
-      setValidUntil('2030-01-11');
+      setIssuedDate('');
+      setValidUntil('');
       setHalalStatus('halal');
       setPhotos([]);
       setPendingFiles([]);
@@ -1271,34 +1269,13 @@ const ProductFormPage: React.FC = () => {
             >
               {/* Nomor sertifikat */}
               <label style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                  <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--sah-blue)' }}>
-                    Nomor sertifikat <span style={{ color: 'var(--sah-copper-dark)' }}>*</span>
-                  </span>
-                  {!isReadOnly && (
-                    <button
-                      type="button"
-                      onClick={() => setCertNo(`ID00410000${Math.floor(100000000 + Math.random() * 900000000)}`)}
-                      style={{
-                        background: 'none',
-                        border: 0,
-                        color: 'var(--sah-copper-dark)',
-                        fontSize: 11,
-                        fontWeight: 700,
-                        cursor: 'pointer',
-                        padding: 0,
-                        textDecoration: 'underline',
-                      }}
-                    >
-                      Acak Nomor Baru
-                    </button>
-                  )}
-                </div>
+                <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--sah-blue)' }}>
+                  Nomor sertifikat <span style={{ fontSize: 11, fontWeight: 400, color: 'var(--sah-muted)' }}>(Opsional)</span>
+                </span>
                 <input
                   value={certNo}
                   onChange={(e) => setCertNo(e.target.value)}
-                  placeholder="ID00410000123456790125"
-                  required
+                  placeholder="Contoh: ID00410000123456790125"
                   disabled={isReadOnly}
                   style={{
                     height: 44,
@@ -1311,6 +1288,9 @@ const ProductFormPage: React.FC = () => {
                     cursor: isReadOnly ? 'not-allowed' : 'text',
                   }}
                 />
+                <span style={{ fontSize: 11, color: 'var(--sah-muted)', lineHeight: 1.3 }}>
+                  Contoh format: ID00410000123456790125 (Kosongkan bila belum memiliki sertifikat halal resmi)
+                </span>
               </label>
 
               {/* Penerbit */}
@@ -2331,7 +2311,7 @@ const ProductFormPage: React.FC = () => {
               lineHeight: 1.45,
             }}
           >
-            💡 <strong>Solusi Cepat:</strong> Klik tombol <strong>"Acak Ulang Otomatis"</strong> di bawah agar sistem membuatkan Kode SKU dan Nomor Sertifikat baru yang terjamin unik, tanpa menghapus nama produk yang sudah Anda ketik.
+            💡 <strong>Solusi Cepat:</strong> Klik tombol <strong>"Acak Ulang SKU"</strong> di bawah agar sistem membuatkan Kode SKU baru yang terjamin unik, tanpa menghapus nama produk yang sudah Anda ketik.
           </div>
 
           {/* Action Buttons */}
@@ -2359,7 +2339,7 @@ const ProductFormPage: React.FC = () => {
               onMouseEnter={(e) => (e.currentTarget.style.background = 'var(--sah-copper-pressed)')}
               onMouseLeave={(e) => (e.currentTarget.style.background = 'var(--sah-copper)')}
             >
-              <span>⚡ Acak Ulang Otomatis</span>
+              <span>⚡ Acak Ulang SKU</span>
             </button>
 
             <button
