@@ -13,9 +13,9 @@ const instance = axios.create({
 instance.interceptors.request.use(
   (config) => {
     let token = store.getState().auth.accessToken || localStorage.getItem("accessToken");
-    // Fallback to documented dev test token if not set, so calls to sah-dev.halotec.site succeed
-    if (!token && (import.meta.env.DEV || !import.meta.env.VITE_BE_BASEURL)) {
-      token = "test-token-catalog_admin-1";
+    // Ignore legacy mock test token
+    if (token && token.startsWith("test-token-")) {
+      token = null;
     }
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;

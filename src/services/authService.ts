@@ -1,6 +1,6 @@
 // src/services/authService.ts
-// Routes to: http://47.237.223.240:8010/api/v1/auth/admin/*
-// via Vite proxy: /auth/** -> /v1/auth/**
+// Routes to: http://47.237.223.240:8010/be/api/v1/auth/admin/*
+// via Vite proxy: /auth/** -> /v1/auth/** (target: http://47.237.223.240:8010/be/api)
 
 import axios from 'axios';
 import { store } from '@/store/index';

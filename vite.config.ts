@@ -16,14 +16,14 @@ export default defineConfig({
     proxy: {
       // Auth service (Laravel) — login, logout, me, password, user management
       '/auth': {
-        target: 'http://47.237.223.240:8010/api',
+        target: 'http://47.237.223.240:8010/be/api',
         changeOrigin: true,
         secure: false,
         rewrite: (path) => path.replace(/^\/auth/, '/v1/auth'),
       },
       // Admin user management (Laravel)
       '/admin': {
-        target: 'http://47.237.223.240:8010/api',
+        target: 'http://47.237.223.240:8010/be/api',
         changeOrigin: true,
         secure: false,
         rewrite: (path) => path.replace(/^\/admin/, '/v1/admin'),

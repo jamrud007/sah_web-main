@@ -16,10 +16,11 @@ export const buildPhotoUrl = (imagePath?: string, customToken?: string): string 
   if (!imagePath) return '';
   if (imagePath.startsWith('blob:') || imagePath.startsWith('data:')) return imagePath;
 
-  const token =
+  const rawToken =
     customToken ||
-    localStorage.getItem('accessToken') ||
-    'test-token-catalog_admin-1';
+    localStorage.getItem('accessToken');
+
+  const token = rawToken && !rawToken.startsWith('test-token-') ? rawToken : '';
 
   if (token) {
     if (imagePath.includes('token=')) return imagePath;

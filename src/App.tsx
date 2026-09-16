@@ -7,7 +7,7 @@ import {
   Navigate,
 } from 'react-router-dom';
 import { Provider } from 'react-redux';
-import { store } from './store';
+import { store, useAppSelector } from './store';
 import { ToastProvider } from './context/ToastContext';
 import SahLayout from './components/layout/SahLayout';
 
@@ -36,8 +36,15 @@ const PageLoader = () => (
   </div>
 );
 
-/** Bypass login untuk pengujian API langsung (Login dimasukkan ke future update) */
+/** ProtectedRoute: Memastikan pengguna memiliki sesi token JWT riil dari backend */
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
+  const token = useAppSelector((s) => s.auth.accessToken);
+  const isAuthenticated = useAppSelector((s) => s.auth.isAuthenticated);
+  const hasRealToken = Boolean(token && !token.startsWith('test-token-'));
+
+  if (!isAuthenticated || !hasRealToken) {
+    return <Navigate to="/login" replace />;
+  }
   return <>{children}</>;
 };
 

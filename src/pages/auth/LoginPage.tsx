@@ -1,30 +1,48 @@
 // src/pages/auth/LoginPage.tsx
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '../../store';
 import { loginAsync } from '../../store/authSlice';
+
+const PRESET_ACCOUNTS = [
+  { email: 'catalog@sah.id', pass: 'halotec123', label: 'Admin Katalog', badge: 'content_manager' },
+  { email: 'su@sah.id', pass: 'halotec123', label: 'Super User', badge: 'allrole' },
+  { email: 'admin@sah.id', pass: 'halotec123', label: 'Admin Sistem', badge: 'system_admin' },
+];
 
 const LoginPage: React.FC = () => {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
   const isLoading = useAppSelector((s) => s.auth.isLoading);
+  const accessToken = useAppSelector((s) => s.auth.accessToken);
+  const isAuthenticated = useAppSelector((s) => s.auth.isAuthenticated);
 
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [email, setEmail] = useState('catalog@sah.id');
+  const [password, setPassword] = useState('halotec123');
   const [error, setError] = useState('');
   const [showPass, setShowPass] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!email.trim() || !password.trim()) {
+  // If already authenticated with real token, auto-navigate
+  useEffect(() => {
+    if (isAuthenticated && accessToken && !accessToken.startsWith('test-token-')) {
+      navigate('/produk', { replace: true });
+    }
+  }, [isAuthenticated, accessToken, navigate]);
+
+  const handleSubmit = async (e?: React.FormEvent, customEmail?: string, customPass?: string) => {
+    if (e) e.preventDefault();
+    const targetEmail = (customEmail || email).trim();
+    const targetPass = customPass || password;
+
+    if (!targetEmail || !targetPass) {
       setError('Email dan kata sandi wajib diisi.');
       return;
     }
     setError('');
     setIsSubmitting(true);
     try {
-      const result = await dispatch(loginAsync({ email: email.trim(), password }));
+      const result = await dispatch(loginAsync({ email: targetEmail, password: targetPass }));
       if (loginAsync.fulfilled.match(result)) {
         navigate('/produk', { replace: true });
       } else {
@@ -33,6 +51,12 @@ const LoginPage: React.FC = () => {
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  const handleSelectPreset = (pEmail: string, pPass: string) => {
+    setEmail(pEmail);
+    setPassword(pPass);
+    handleSubmit(undefined, pEmail, pPass);
   };
 
   return (
@@ -58,9 +82,9 @@ const LoginPage: React.FC = () => {
         }}
       />
 
-      <div style={{ width: '100%', maxWidth: 420, position: 'relative', zIndex: 1 }}>
+      <div style={{ width: '100%', maxWidth: 440, position: 'relative', zIndex: 1 }}>
         {/* Logo */}
-        <div style={{ textAlign: 'center', marginBottom: 32 }}>
+        <div style={{ textAlign: 'center', marginBottom: 28 }}>
           <div
             style={{
               display: 'inline-flex',
@@ -71,15 +95,16 @@ const LoginPage: React.FC = () => {
           >
             <div
               style={{
-                width: 40,
-                height: 40,
-                borderRadius: 12,
+                width: 44,
+                height: 44,
+                borderRadius: 14,
                 background: 'linear-gradient(135deg, #c58a63, #a06a44)',
                 display: 'grid',
                 placeItems: 'center',
+                boxShadow: '0 8px 20px rgba(197,138,99,0.35)',
               }}
             >
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
                 <path
                   d="M12 2L3 7v5c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V7l-9-5z"
                   fill="rgba(255,255,255,0.15)"
@@ -91,10 +116,10 @@ const LoginPage: React.FC = () => {
               </svg>
             </div>
             <div>
-              <div style={{ fontSize: 20, fontWeight: 800, color: '#fffdf8', letterSpacing: -0.3 }}>
+              <div style={{ fontSize: 22, fontWeight: 800, color: '#fffdf8', letterSpacing: -0.3 }}>
                 Sahabat Halal
               </div>
-              <div style={{ fontSize: 11, fontWeight: 600, color: '#c58a63', letterSpacing: 1.4, textTransform: 'uppercase' }}>
+              <div style={{ fontSize: 11, fontWeight: 700, color: '#c58a63', letterSpacing: 1.4, textTransform: 'uppercase' }}>
                 Web Administratif
               </div>
             </div>
@@ -108,31 +133,88 @@ const LoginPage: React.FC = () => {
             backdropFilter: 'blur(20px)',
             border: '1px solid rgba(255,253,248,0.1)',
             borderRadius: 24,
-            padding: '36px 32px 32px',
-            boxShadow: '0 24px 64px rgba(0,0,0,0.4)',
+            padding: '34px 30px 30px',
+            boxShadow: '0 24px 64px rgba(0,0,0,0.45)',
           }}
         >
-          <h1
-            style={{
-              fontSize: 22,
-              fontWeight: 700,
-              color: '#fffdf8',
-              margin: '0 0 6px',
-              letterSpacing: -0.3,
-            }}
-          >
-            Masuk ke Dashboard
-          </h1>
-          <p style={{ fontSize: 13.5, color: 'rgba(255,253,248,0.5)', margin: '0 0 28px' }}>
-            Gunakan akun internal Sahabat Halal Anda.
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
+            <h1
+              style={{
+                fontSize: 21,
+                fontWeight: 800,
+                color: '#fffdf8',
+                margin: 0,
+                letterSpacing: -0.3,
+              }}
+            >
+              Masuk ke Dashboard
+            </h1>
+            <span
+              style={{
+                fontSize: 11,
+                fontWeight: 700,
+                background: 'rgba(39, 110, 144, 0.25)',
+                color: '#7bc1e0',
+                padding: '3px 8px',
+                borderRadius: 8,
+                border: '1px solid rgba(39, 110, 144, 0.4)',
+              }}
+            >
+              API-013 Real JWT
+            </span>
+          </div>
+
+          <p style={{ fontSize: 13, color: 'rgba(255,253,248,0.55)', margin: '0 0 20px', lineHeight: 1.45 }}>
+            Masuk dengan akun internal untuk mendapatkan <strong>Akses Token Riil</strong> dari service backend.
           </p>
 
-          <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+          {/* Quick Account Preset Chips */}
+          <div style={{ marginBottom: 20 }}>
+            <div style={{ fontSize: 11.5, fontWeight: 600, color: 'rgba(255,253,248,0.45)', marginBottom: 8 }}>
+              Pilih Akun Cepat:
+            </div>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+              {PRESET_ACCOUNTS.map((p) => {
+                const isActive = email === p.email;
+                return (
+                  <button
+                    key={p.email}
+                    type="button"
+                    disabled={isSubmitting}
+                    onClick={() => handleSelectPreset(p.email, p.pass)}
+                    style={{
+                      padding: '6px 10px',
+                      borderRadius: 10,
+                      border: isActive
+                        ? '1px solid #c58a63'
+                        : '1px solid rgba(255,253,248,0.12)',
+                      background: isActive
+                        ? 'rgba(197,138,99,0.2)'
+                        : 'rgba(255,253,248,0.05)',
+                      color: isActive ? '#fffdf8' : 'rgba(255,253,248,0.75)',
+                      fontSize: 12,
+                      fontWeight: 600,
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 6,
+                      transition: 'all .15s ease',
+                    }}
+                  >
+                    <span>{p.label}</span>
+                    <span style={{ fontSize: 10, opacity: 0.65, fontFamily: 'monospace' }}>({p.email.split('@')[0]})</span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          <form onSubmit={(e) => handleSubmit(e)} style={{ display: 'flex', flexDirection: 'column', gap: 15 }}>
             {/* Email */}
             <div>
               <label
                 htmlFor="login-email"
-                style={{ display: 'block', fontSize: 12, fontWeight: 600, color: 'rgba(255,253,248,0.6)', marginBottom: 7, letterSpacing: 0.3 }}
+                style={{ display: 'block', fontSize: 12, fontWeight: 600, color: 'rgba(255,253,248,0.7)', marginBottom: 6, letterSpacing: 0.3 }}
               >
                 Alamat Email
               </label>
@@ -141,14 +223,14 @@ const LoginPage: React.FC = () => {
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="email@sahabathalal.id"
+                placeholder="catalog@sah.id"
                 autoComplete="email"
                 style={{
                   width: '100%',
                   height: 46,
                   padding: '0 14px',
                   background: 'rgba(255,253,248,0.06)',
-                  border: '1px solid rgba(255,253,248,0.12)',
+                  border: '1px solid rgba(255,253,248,0.15)',
                   borderRadius: 12,
                   color: '#fffdf8',
                   fontSize: 14,
@@ -156,8 +238,8 @@ const LoginPage: React.FC = () => {
                   boxSizing: 'border-box',
                   transition: 'border-color .15s',
                 }}
-                onFocus={(e) => (e.currentTarget.style.borderColor = 'rgba(197,138,99,0.6)')}
-                onBlur={(e) => (e.currentTarget.style.borderColor = 'rgba(255,253,248,0.12)')}
+                onFocus={(e) => (e.currentTarget.style.borderColor = 'rgba(197,138,99,0.7)')}
+                onBlur={(e) => (e.currentTarget.style.borderColor = 'rgba(255,253,248,0.15)')}
               />
             </div>
 
@@ -165,7 +247,7 @@ const LoginPage: React.FC = () => {
             <div>
               <label
                 htmlFor="login-password"
-                style={{ display: 'block', fontSize: 12, fontWeight: 600, color: 'rgba(255,253,248,0.6)', marginBottom: 7, letterSpacing: 0.3 }}
+                style={{ display: 'block', fontSize: 12, fontWeight: 600, color: 'rgba(255,253,248,0.7)', marginBottom: 6, letterSpacing: 0.3 }}
               >
                 Kata Sandi
               </label>
@@ -182,7 +264,7 @@ const LoginPage: React.FC = () => {
                     height: 46,
                     padding: '0 42px 0 14px',
                     background: 'rgba(255,253,248,0.06)',
-                    border: '1px solid rgba(255,253,248,0.12)',
+                    border: '1px solid rgba(255,253,248,0.15)',
                     borderRadius: 12,
                     color: '#fffdf8',
                     fontSize: 14,
@@ -190,8 +272,8 @@ const LoginPage: React.FC = () => {
                     boxSizing: 'border-box',
                     transition: 'border-color .15s',
                   }}
-                  onFocus={(e) => (e.currentTarget.style.borderColor = 'rgba(197,138,99,0.6)')}
-                  onBlur={(e) => (e.currentTarget.style.borderColor = 'rgba(255,253,248,0.12)')}
+                  onFocus={(e) => (e.currentTarget.style.borderColor = 'rgba(197,138,99,0.7)')}
+                  onBlur={(e) => (e.currentTarget.style.borderColor = 'rgba(255,253,248,0.15)')}
                 />
                 <button
                   type="button"
@@ -204,7 +286,7 @@ const LoginPage: React.FC = () => {
                     background: 'none',
                     border: 'none',
                     cursor: 'pointer',
-                    color: 'rgba(255,253,248,0.4)',
+                    color: 'rgba(255,253,248,0.5)',
                     padding: 0,
                     display: 'flex',
                     alignItems: 'center',
@@ -229,12 +311,13 @@ const LoginPage: React.FC = () => {
             {error && (
               <div
                 style={{
-                  background: 'rgba(168,95,79,0.15)',
-                  border: '1px solid rgba(168,95,79,0.3)',
-                  borderRadius: 10,
+                  background: 'rgba(168,95,79,0.2)',
+                  border: '1px solid rgba(168,95,79,0.4)',
+                  borderRadius: 12,
                   padding: '10px 14px',
                   fontSize: 13,
-                  color: '#e8a898',
+                  color: '#fca5a5',
+                  lineHeight: 1.4,
                 }}
               >
                 {error}
@@ -258,33 +341,42 @@ const LoginPage: React.FC = () => {
                 fontWeight: 700,
                 cursor: isSubmitting ? 'not-allowed' : 'pointer',
                 transition: 'opacity .15s, transform .1s',
-                marginTop: 4,
+                marginTop: 6,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: 8,
               }}
-              onMouseEnter={(e) => { if (!isSubmitting) e.currentTarget.style.opacity = '0.88'; }}
+              onMouseEnter={(e) => { if (!isSubmitting) e.currentTarget.style.opacity = '0.9'; }}
               onMouseLeave={(e) => { e.currentTarget.style.opacity = '1'; }}
             >
-              {isSubmitting ? 'Memverifikasi…' : 'Masuk'}
+              {isSubmitting ? (
+                <>
+                  <span style={{ animation: 'spin 1s linear infinite' }}>⏳</span>
+                  <span>Mengautentikasi Token Riil…</span>
+                </>
+              ) : (
+                <>
+                  <span>Masuk (Dapatkan Token Riil) →</span>
+                </>
+              )}
             </button>
 
-            {/* Direct Bypass Button for API Testing */}
-            <button
-              type="button"
-              onClick={() => navigate('/produk', { replace: true })}
+            {/* Backend Info Note */}
+            <div
               style={{
-                height: 44,
-                borderRadius: 14,
-                border: '1px solid rgba(197,138,99,0.35)',
-                background: 'rgba(255,253,248,0.06)',
-                color: '#c58a63',
-                fontFamily: 'inherit',
-                fontSize: 13.5,
-                fontWeight: 700,
-                cursor: 'pointer',
-                transition: 'all .15s',
+                background: 'rgba(255,253,248,0.03)',
+                border: '1px solid rgba(255,253,248,0.08)',
+                borderRadius: 12,
+                padding: '10px 12px',
+                fontSize: 11.5,
+                color: 'rgba(255,253,248,0.5)',
+                lineHeight: 1.4,
+                textAlign: 'center',
               }}
             >
-              Masuk Langsung (Mode Pengujian API) →
-            </button>
+              Backend Service: <code style={{ color: '#c58a63' }}>http://47.237.223.240:8010/be/api/v1</code>
+            </div>
           </form>
         </div>
 

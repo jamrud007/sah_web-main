@@ -53,22 +53,26 @@ const getStoredToken = (): string | null => {
 
 const getStoredAccessToken = (): string | null => {
   try {
-    return localStorage.getItem("accessToken") || "test-token-catalog_admin-1";
+    const token = localStorage.getItem("accessToken");
+    if (token && !token.startsWith("test-token-")) {
+      return token;
+    }
+    return null;
   } catch {
-    return "test-token-catalog_admin-1";
+    return null;
   }
 };
 
-// Initial state hydrated from localStorage or default dev user
-const storedUserInfo = getStoredUserInfo() || DEFAULT_USER;
-const storedRefreshToken = getStoredToken();
+// Initial state hydrated from localStorage
 const storedAccessToken = getStoredAccessToken();
+const storedUserInfo = storedAccessToken ? getStoredUserInfo() : null;
+const storedRefreshToken = storedAccessToken ? getStoredToken() : null;
 
 const initialState: AuthState = {
   userInfo: storedUserInfo,
   accessToken: storedAccessToken,
   refreshToken: storedRefreshToken,
-  isAuthenticated: true, // Login dibypass untuk pengujian langsung API (Future Update)
+  isAuthenticated: Boolean(storedAccessToken),
   isLoading: false,
 };
 
@@ -155,10 +159,10 @@ export const authSlice = createSlice({
 
     // Clear state on logout
     logout: (state) => {
-      state.userInfo = DEFAULT_USER;
-      state.accessToken = "test-token-catalog_admin-1";
+      state.userInfo = null;
+      state.accessToken = null;
       state.refreshToken = null;
-      state.isAuthenticated = true; // Tetap aktif dalam mode pengujian API
+      state.isAuthenticated = false;
 
       // Clean up localStorage items
       localStorage.removeItem("userInfo");
