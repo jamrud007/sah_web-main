@@ -14,6 +14,12 @@ import {
 import { useSahToast } from '../../context/ToastContext';
 import type { Product, Photo, HalalStatus, BackendPhotoPackageSide } from '../../types/apiDef';
 import { checkIsReadOnly } from '../../store/authSlice';
+import {
+  packageSideDisplayLabel,
+  formatPhotoTimestamp,
+  getExtractionStatusConfig,
+  formatPhotoFileName,
+} from '../../services/photoService';
 
 const CATEGORIES = [
   'Bumbu & saus',
@@ -284,6 +290,8 @@ const ProductFormPage: React.FC = () => {
         dimensions: `${(file.size / (1024 * 1024)).toFixed(1)} MB`,
         status: 'pending',
         index_status: 'pending',
+        extraction_status: 'pending',
+        uploaded_at: new Date().toISOString(),
         is_primary: isPrimary,
         created_at: new Date().toISOString(),
       });
@@ -370,6 +378,8 @@ const ProductFormPage: React.FC = () => {
       dimensions: '2048 × 2048 · 1.8 MB',
       status: 'indexed',
       index_status: 'indexed',
+      extraction_status: 'extracted',
+      uploaded_at: new Date().toISOString(),
       is_primary: photos.length === 0,
       created_at: new Date().toISOString(),
     };
@@ -1766,148 +1776,239 @@ const ProductFormPage: React.FC = () => {
                   marginTop: 6,
                 }}
               >
-                {photos.map((p, idx) => (
-                  <div
-                    key={p.id}
-                    style={{
-                      border: '1px solid var(--sah-line)',
-                      borderRadius: 18,
-                      overflow: 'hidden',
-                      background: 'var(--sah-white)',
-                      display: 'flex',
-                      flexDirection: 'column',
-                      boxShadow: '0 2px 8px rgba(23,36,58,.04)',
-                      transition: 'all .2s cubic-bezier(0.4, 0, 0.2, 1)',
-                    }}
-                    onMouseEnter={(e) => {
-                      if (!isReadOnly) {
-                        e.currentTarget.style.transform = 'translateY(-3px)';
-                        e.currentTarget.style.boxShadow = '0 8px 20px rgba(23,36,58,.1)';
-                      }
-                    }}
-                    onMouseLeave={(e) => {
-                      if (!isReadOnly) {
-                        e.currentTarget.style.transform = 'translateY(0)';
-                        e.currentTarget.style.boxShadow = '0 2px 8px rgba(23,36,58,.04)';
-                      }
-                    }}
-                  >
-                    <div
-                      style={{
-                        height: 140,
-                        background: p.url
-                          ? 'radial-gradient(circle at 50% 50%, #ffffff 0%, #f4f5f8 100%)'
-                          : 'linear-gradient(145deg,#477fa2,#25384a 58%,#6f3f32)',
-                        display: 'grid',
-                        placeItems: 'center',
-                        position: 'relative',
-                        overflow: 'hidden',
-                        padding: p.url ? '8px 10px' : 0,
-                        boxSizing: 'border-box',
-                      }}
-                    >
-                      {p.url ? (
-                        <img
-                          src={p.url}
-                          alt="preview"
-                          style={{
-                            width: '100%',
-                            height: '100%',
-                            objectFit: 'contain',
-                            filter: 'drop-shadow(0 2px 6px rgba(23,36,58,.08))',
-                          }}
-                        />
-                      ) : (
-                        <span
-                          style={{
-                            fontFamily: "'Plus Jakarta Sans', sans-serif",
-                            fontWeight: 800,
-                            fontSize: 18,
-                            color: 'rgba(255,253,248,.8)',
-                          }}
-                        >
-                          IMG
-                        </span>
-                      )}
-                    </div>
+                {(() => {
+                  const sideCounts: Record<string, number> = {};
+                  const currentBrand =
+                    brand || existingProduct?.brand || name || existingProduct?.name || skuCode || 'produk';
 
-                    <div
-                      style={{
-                        padding: '12px 14px',
-                        display: 'flex',
-                        flexDirection: 'column',
-                        gap: 8,
-                      }}
-                    >
-                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 6 }}>
+                  return photos.map((p, idx) => {
+                    const sideKey = p.package_side || 'front';
+                    const sideIndex = sideCounts[sideKey] || 0;
+                    sideCounts[sideKey] = sideIndex + 1;
+
+                    const sideLabel = packageSideDisplayLabel(sideKey, lang);
+                    const statusCfg = getExtractionStatusConfig(p.extraction_status, p.status, lang);
+                    const uploadedDateText = formatPhotoTimestamp(p.uploaded_at || p.created_at, lang);
+                    const displayFileName = formatPhotoFileName(currentBrand, sideKey, sideIndex);
+
+                    const dimensionText = p.width && p.height
+                      ? `${p.width} × ${p.height}${p.file_size ? ` · ${(p.file_size / (1024 * 1024)).toFixed(1)} MB` : ''}`
+                      : (p.dimensions || '2048 × 2048');
+
+                    return (
+                      <div
+                        key={p.id || idx}
+                        style={{
+                          border: p.is_primary ? '1.5px solid var(--sah-copper)' : '1px solid var(--sah-line)',
+                          borderRadius: 18,
+                          overflow: 'hidden',
+                          background: 'var(--sah-white)',
+                          display: 'flex',
+                          flexDirection: 'column',
+                          boxShadow: p.is_primary
+                            ? '0 4px 12px rgba(197,138,99,.2)'
+                            : '0 2px 8px rgba(23,36,58,.04)',
+                          transition: 'all .2s cubic-bezier(0.4, 0, 0.2, 1)',
+                        }}
+                        onMouseEnter={(e) => {
+                          if (!isReadOnly) {
+                            e.currentTarget.style.transform = 'translateY(-3px)';
+                            e.currentTarget.style.boxShadow = '0 8px 20px rgba(23,36,58,.1)';
+                          }
+                        }}
+                        onMouseLeave={(e) => {
+                          if (!isReadOnly) {
+                            e.currentTarget.style.transform = 'translateY(0)';
+                            e.currentTarget.style.boxShadow = '0 2px 8px rgba(23,36,58,.04)';
+                          }
+                        }}
+                      >
                         <div
                           style={{
-                            fontSize: 12,
-                            fontWeight: 700,
+                            height: 140,
+                            background: p.url
+                              ? 'radial-gradient(circle at 50% 50%, #ffffff 0%, #f4f5f8 100%)'
+                              : 'linear-gradient(145deg,#477fa2,#25384a 58%,#6f3f32)',
+                            display: 'grid',
+                            placeItems: 'center',
+                            position: 'relative',
                             overflow: 'hidden',
-                            textOverflow: 'ellipsis',
-                            whiteSpace: 'nowrap',
-                            color: 'var(--sah-navy)',
+                            padding: p.url ? '8px 10px' : 0,
+                            boxSizing: 'border-box',
                           }}
-                          title={p.file_name}
                         >
-                          {p.file_name?.startsWith('image ') ? p.file_name : `image ${String(idx + 1).padStart(2, '0')}`}
-                        </div>
-                        {p.dimensions && (
+                          {p.url ? (
+                            <img
+                              src={p.url}
+                              alt={displayFileName}
+                              style={{
+                                width: '100%',
+                                height: '100%',
+                                objectFit: 'contain',
+                                filter: 'drop-shadow(0 2px 6px rgba(23,36,58,.08))',
+                              }}
+                            />
+                          ) : (
+                            <span
+                              style={{
+                                fontFamily: "'Plus Jakarta Sans', sans-serif",
+                                fontWeight: 800,
+                                fontSize: 18,
+                                color: 'rgba(255,253,248,.8)',
+                              }}
+                            >
+                              IMG
+                            </span>
+                          )}
+
+                          {/* Package side badge top-left */}
                           <span
                             style={{
+                              position: 'absolute',
+                              top: 7,
+                              left: 7,
+                              padding: '2px 8px',
+                              borderRadius: 999,
+                              background: 'rgba(255, 255, 255, 0.92)',
+                              color: 'var(--sah-navy)',
                               fontSize: 10,
-                              fontWeight: 600,
-                              color: 'var(--sah-muted)',
-                              flexShrink: 0,
+                              fontWeight: 700,
+                              boxShadow: '0 2px 4px rgba(0,0,0,0.12)',
+                              backdropFilter: 'blur(4px)',
                             }}
                           >
-                            {p.dimensions.split('·')[1]?.trim() || p.dimensions}
+                            {sideLabel}
                           </span>
-                        )}
-                      </div>
 
-                      {!isReadOnly && (
-                        <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 4 }}>
-                          <button
-                            type="button"
-                            onClick={() => handleRemovePhoto(p.id)}
+                          {/* Primary / Utama badge top-right */}
+                          {p.is_primary && (
+                            <span
+                              style={{
+                                position: 'absolute',
+                                top: 7,
+                                right: 7,
+                                padding: '2px 8px',
+                                borderRadius: 999,
+                                background: 'var(--sah-copper)',
+                                color: 'var(--sah-white)',
+                                fontSize: 9.5,
+                                fontWeight: 800,
+                                letterSpacing: 0.5,
+                                textTransform: 'uppercase',
+                                boxShadow: '0 2px 4px rgba(0,0,0,0.15)',
+                              }}
+                            >
+                              Utama
+                            </span>
+                          )}
+                        </div>
+
+                        <div
+                          style={{
+                            padding: '12px 14px',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            gap: 6,
+                          }}
+                        >
+                          <div
                             style={{
-                              height: 28,
-                              padding: '0 12px',
-                              borderRadius: 9,
-                              border: '1px solid rgba(197,75,60,.2)',
-                              background: 'rgba(197,75,60,.06)',
-                              color: '#c54b3c',
-                              fontSize: 11,
+                              fontSize: 12.5,
                               fontWeight: 700,
-                              cursor: 'pointer',
-                              transition: 'all .15s ease',
+                              overflow: 'hidden',
+                              textOverflow: 'ellipsis',
+                              whiteSpace: 'nowrap',
+                              color: 'var(--sah-navy)',
+                            }}
+                            title={displayFileName}
+                          >
+                            {displayFileName}
+                          </div>
+
+                          <div
+                            style={{
+                              fontSize: 10.5,
+                              color: 'var(--sah-muted)',
+                              lineHeight: 1.35,
+                            }}
+                          >
+                            <div>{dimensionText}</div>
+                            {uploadedDateText && uploadedDateText !== '—' && (
+                              <div style={{ color: '#64748b', marginTop: 2, fontSize: 10 }}>
+                                {uploadedDateText}
+                              </div>
+                            )}
+                          </div>
+
+                          <div
+                            style={{
                               display: 'flex',
                               alignItems: 'center',
-                              justifyContent: 'center',
-                              gap: 5,
-                            }}
-                            onMouseEnter={(e) => {
-                              e.currentTarget.style.background = 'rgba(197,75,60,.14)';
-                              e.currentTarget.style.borderColor = '#c54b3c';
-                            }}
-                            onMouseLeave={(e) => {
-                              e.currentTarget.style.background = 'rgba(197,75,60,.06)';
-                              e.currentTarget.style.borderColor = 'rgba(197,75,60,.2)';
+                              justifyContent: 'space-between',
+                              gap: 8,
+                              marginTop: 4,
                             }}
                           >
-                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                              <polyline points="3 6 5 6 21 6" />
-                              <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
-                            </svg>
-                            <span>Hapus</span>
-                          </button>
+                            <span
+                              style={{
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: 5,
+                                padding: '3px 9px',
+                                borderRadius: 999,
+                                fontSize: 10.5,
+                                fontWeight: 600,
+                                background: statusCfg.bg,
+                                border: `1px solid ${statusCfg.border}`,
+                                color: statusCfg.color,
+                              }}
+                            >
+                              <span style={{ fontSize: 8 }}>{statusCfg.icon}</span>
+                              {statusCfg.label}
+                            </span>
+
+                            {!isReadOnly && (
+                              <button
+                                type="button"
+                                onClick={() => handleRemovePhoto(p.id)}
+                                style={{
+                                  height: 28,
+                                  padding: '0 12px',
+                                  borderRadius: 9,
+                                  border: '1px solid rgba(197,75,60,.2)',
+                                  background: 'rgba(197,75,60,.06)',
+                                  color: '#c54b3c',
+                                  fontSize: 11,
+                                  fontWeight: 700,
+                                  cursor: 'pointer',
+                                  transition: 'all .15s ease',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                  gap: 5,
+                                }}
+                                onMouseEnter={(e) => {
+                                  e.currentTarget.style.background = 'rgba(197,75,60,.14)';
+                                  e.currentTarget.style.borderColor = '#c54b3c';
+                                }}
+                                onMouseLeave={(e) => {
+                                  e.currentTarget.style.background = 'rgba(197,75,60,.06)';
+                                  e.currentTarget.style.borderColor = 'rgba(197,75,60,.2)';
+                                }}
+                              >
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                  <polyline points="3 6 5 6 21 6" />
+                                  <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                                </svg>
+                                <span>Hapus</span>
+                              </button>
+                            )}
+                          </div>
                         </div>
-                      )}
-                    </div>
-                  </div>
-                ))}
+                      </div>
+                    );
+                  });
+                })()}
               </div>
             )}
           </div>
