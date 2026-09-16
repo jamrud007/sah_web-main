@@ -36,12 +36,27 @@ const PageLoader = () => (
   </div>
 );
 
-/** ProtectedRoute: Memastikan pengguna memiliki sesi token JWT riil dari backend */
+/**
+ * ProtectedRoute:
+ * - Mode Dev (default saat `npm run dev`): Bebas akses langsung tanpa wajib login gate (Bypass).
+ * - Mode Produksi (`npm run dev:prod` atau `localStorage.auth_mode === 'production'`): Wajib login JWT riil.
+ */
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const token = useAppSelector((s) => s.auth.accessToken);
   const isAuthenticated = useAppSelector((s) => s.auth.isAuthenticated);
-  const hasRealToken = Boolean(token && !token.startsWith('test-token-'));
 
+  const isProductionMode =
+    import.meta.env.MODE === 'production' ||
+    import.meta.env.VITE_AUTH_MODE === 'production' ||
+    localStorage.getItem('auth_mode') === 'production';
+
+  // Mode Dev: Bebas akses langsung
+  if (!isProductionMode) {
+    return <>{children}</>;
+  }
+
+  // Mode Produksi: Validasi token JWT riil
+  const hasRealToken = Boolean(token && !token.startsWith('test-token-'));
   if (!isAuthenticated || !hasRealToken) {
     return <Navigate to="/login" replace />;
   }

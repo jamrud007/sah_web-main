@@ -13,9 +13,9 @@ const instance = axios.create({
 instance.interceptors.request.use(
   (config) => {
     let token = store.getState().auth.accessToken || localStorage.getItem("accessToken");
-    // Ignore legacy mock test token
-    if (token && token.startsWith("test-token-")) {
-      token = null;
+    // Fallback to dev test token in dev mode if no real token set
+    if (!token && (import.meta.env.DEV || !import.meta.env.VITE_BE_BASEURL)) {
+      token = "test-token-catalog_admin-1";
     }
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;

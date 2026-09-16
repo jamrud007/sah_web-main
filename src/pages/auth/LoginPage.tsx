@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '../../store';
-import { loginAsync } from '../../store/authSlice';
+import { loginAsync, setDevBypassSession } from '../../store/authSlice';
 
 const PRESET_ACCOUNTS = [
   { email: 'catalog@sah.id', pass: 'halotec123', label: 'Admin Katalog', badge: 'content_manager' },
@@ -23,8 +23,21 @@ const LoginPage: React.FC = () => {
   const [showPass, setShowPass] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // If already authenticated with real token, auto-navigate
+  // In dev mode (unless user explicitly opens /login?switch=1), auto-navigate
   useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const forceLoginView = params.get('switch') === '1' || params.get('mode') === 'login';
+
+    const isStrict =
+      import.meta.env.MODE === 'production' ||
+      import.meta.env.VITE_AUTH_MODE === 'production' ||
+      localStorage.getItem('auth_mode') === 'production';
+
+    if (!isStrict && !forceLoginView) {
+      navigate('/produk', { replace: true });
+      return;
+    }
+
     if (isAuthenticated && accessToken && !accessToken.startsWith('test-token-')) {
       navigate('/produk', { replace: true });
     }
@@ -44,6 +57,7 @@ const LoginPage: React.FC = () => {
     try {
       const result = await dispatch(loginAsync({ email: targetEmail, password: targetPass }));
       if (loginAsync.fulfilled.match(result)) {
+        localStorage.setItem('auth_mode', 'production');
         navigate('/produk', { replace: true });
       } else {
         setError((result.payload as string) || 'Login gagal.');
@@ -51,6 +65,12 @@ const LoginPage: React.FC = () => {
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  const handleDevBypass = () => {
+    localStorage.setItem('auth_mode', 'dev');
+    dispatch(setDevBypassSession());
+    navigate('/produk', { replace: true });
   };
 
   const handleSelectPreset = (pEmail: string, pPass: string) => {
@@ -360,6 +380,32 @@ const LoginPage: React.FC = () => {
                   <span>Masuk (Dapatkan Token Riil) →</span>
                 </>
               )}
+            </button>
+
+            {/* Dev Mode Direct Bypass Button */}
+            <button
+              type="button"
+              onClick={handleDevBypass}
+              style={{
+                height: 44,
+                borderRadius: 14,
+                border: '1px solid rgba(197,138,99,0.35)',
+                background: 'rgba(255,253,248,0.06)',
+                color: '#c58a63',
+                fontFamily: 'inherit',
+                fontSize: 13.5,
+                fontWeight: 700,
+                cursor: 'pointer',
+                transition: 'all .15s',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: 8,
+              }}
+              onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(197,138,99,0.15)'; }}
+              onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(255,253,248,0.06)'; }}
+            >
+              <span>⚡ Masuk Mode Dev (Bypass Login Langsung) →</span>
             </button>
 
             {/* Backend Info Note */}

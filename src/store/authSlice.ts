@@ -51,28 +51,32 @@ const getStoredToken = (): string | null => {
   }
 };
 
+const isProductionMode =
+  import.meta.env.MODE === 'production' ||
+  import.meta.env.VITE_AUTH_MODE === 'production' ||
+  localStorage.getItem('auth_mode') === 'production';
+
 const getStoredAccessToken = (): string | null => {
   try {
     const token = localStorage.getItem("accessToken");
-    if (token && !token.startsWith("test-token-")) {
-      return token;
-    }
-    return null;
+    if (token) return token;
+    // In dev mode, provide fallback dev token if not set
+    return isProductionMode ? null : "test-token-catalog_admin-1";
   } catch {
-    return null;
+    return isProductionMode ? null : "test-token-catalog_admin-1";
   }
 };
 
-// Initial state hydrated from localStorage
+// Initial state hydrated from localStorage or default dev user
 const storedAccessToken = getStoredAccessToken();
-const storedUserInfo = storedAccessToken ? getStoredUserInfo() : null;
-const storedRefreshToken = storedAccessToken ? getStoredToken() : null;
+const storedUserInfo = getStoredUserInfo() || (isProductionMode ? null : DEFAULT_USER);
+const storedRefreshToken = getStoredToken();
 
 const initialState: AuthState = {
   userInfo: storedUserInfo,
   accessToken: storedAccessToken,
   refreshToken: storedRefreshToken,
-  isAuthenticated: Boolean(storedAccessToken),
+  isAuthenticated: isProductionMode ? Boolean(storedAccessToken && !storedAccessToken.startsWith("test-token-")) : true,
   isLoading: false,
 };
 
@@ -157,12 +161,23 @@ export const authSlice = createSlice({
       }
     },
 
+    // Action to set bypass dev session
+    setDevBypassSession: (state) => {
+      state.userInfo = DEFAULT_USER;
+      state.accessToken = "test-token-catalog_admin-1";
+      state.refreshToken = null;
+      state.isAuthenticated = true;
+      localStorage.setItem("auth_mode", "dev");
+      localStorage.setItem("accessToken", "test-token-catalog_admin-1");
+      localStorage.setItem("userInfo", JSON.stringify(DEFAULT_USER));
+    },
+
     // Clear state on logout
     logout: (state) => {
-      state.userInfo = null;
-      state.accessToken = null;
+      state.userInfo = isProductionMode ? null : DEFAULT_USER;
+      state.accessToken = isProductionMode ? null : "test-token-catalog_admin-1";
       state.refreshToken = null;
-      state.isAuthenticated = false;
+      state.isAuthenticated = !isProductionMode;
 
       // Clean up localStorage items
       localStorage.removeItem("userInfo");
@@ -179,6 +194,7 @@ export const {
   updateUserInfo,
   updateRefreshToken,
   updateAccessToken,
+  setDevBypassSession,
   logout,
 } = authSlice.actions;
 

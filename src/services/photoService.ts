@@ -20,7 +20,7 @@ export const buildPhotoUrl = (imagePath?: string, customToken?: string): string 
     customToken ||
     localStorage.getItem('accessToken');
 
-  const token = rawToken && !rawToken.startsWith('test-token-') ? rawToken : '';
+  const token = rawToken || (import.meta.env.DEV ? 'test-token-catalog_admin-1' : '');
 
   if (token) {
     if (imagePath.includes('token=')) return imagePath;
