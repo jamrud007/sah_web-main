@@ -129,6 +129,10 @@ export interface Photo {
   index_status?: IndexStatus;
   qa_message?: string | null;
   url?: string;
+  image_path?: string;
+  content_type?: string;
+  extraction_status?: string;
+  uploaded_at?: string;
   created_at?: string;
 }
 

@@ -4,7 +4,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useParams, Link } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '../../store';
-import { deleteProduct, fetchProductById } from '../../store/productSlice';
+import { deleteProduct, fetchProductById, fetchProducts } from '../../store/productSlice';
 import { useSahToast } from '../../context/ToastContext';
 import type { Product, Photo } from '../../types/apiDef';
 import { checkIsReadOnly } from '../../store/authSlice';
@@ -19,19 +19,33 @@ const ProductDetailPage: React.FC = () => {
   const isReadOnly = checkIsReadOnly(userInfo);
 
   const products = useAppSelector((s) => s.products.items);
+  const selectedProduct = useAppSelector((s) => s.products.selectedProduct);
   const photosByProductId = useAppSelector((s) => s.products.photosByProductId);
 
+  // Auto-fetch products list if empty
   useEffect(() => {
-    if (id && !products.some((p) => p.id === id || p.sku_code === id)) {
-      dispatch(fetchProductById(id));
+    if (products.length === 0) {
+      dispatch(fetchProducts({ reset: true, limit: 100 }));
     }
-  }, [id, products, dispatch]);
+  }, [dispatch, products.length]);
 
-  // Find product by id or sku_code, or fallback to first
+  const targetId = id || products[0]?.id;
+
+  // Always fetch detailed product (with photos) for targetId
+  useEffect(() => {
+    if (targetId) {
+      dispatch(fetchProductById(targetId));
+    }
+  }, [targetId, dispatch]);
+
+  // Find product by id or sku_code, prioritizing selectedProduct when matched
   const product: Product | undefined =
-    products.find((p: Product) => p.id === id || p.sku_code === id) || products[0];
+    (selectedProduct && (selectedProduct.id === targetId || selectedProduct.sku_code === targetId))
+      ? selectedProduct
+      : products.find((p: Product) => p.id === targetId || p.sku_code === targetId) || products[0];
 
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deleteConfirmText, setDeleteConfirmText] = useState('');
   const [isDeleting, setIsDeleting] = useState(false);
 
   // Search combobox state
@@ -110,16 +124,11 @@ const ProductDetailPage: React.FC = () => {
 
   const primaryPhoto = attachedPhotos.find((p) => p.is_primary) || attachedPhotos[0];
 
-  // Gallery items: use attached photos directly, or fallback to clean placeholders
-  const galleryItems = attachedPhotos.length > 0
-    ? attachedPhotos.map((p, idx) => ({
-        label: p.file_name || `Foto ${idx + 1}`,
-        photo: p,
-      }))
-    : Array.from({ length: 4 }).map((_, idx) => ({
-        label: `Foto ${idx + 1}`,
-        photo: undefined as Photo | undefined,
-      }));
+  // Gallery items: use attached photos directly
+  const galleryItems = attachedPhotos.map((p, idx) => ({
+    label: p.file_name?.startsWith('image ') ? p.file_name : `image ${String(idx + 1).padStart(2, '0')}`,
+    photo: p,
+  }));
 
   // Metadata grid items
   const metadataItems = [
@@ -163,11 +172,11 @@ const ProductDetailPage: React.FC = () => {
     },
     {
       k: 'Status indeks visual',
-      v: attachedPhotos.length > 0 ? `${attachedPhotos.length} foto terdaftar` : '4 foto terdaftar',
+      v: attachedPhotos.length > 0 ? `${attachedPhotos.length} foto terdaftar` : 'Belum ada foto terdaftar',
     },
     {
       k: 'Terakhir diubah',
-      v: `${formattedDate} · Rizky Ananda`,
+      v: `${formattedDate}${userInfo?.display_name ? ` · ${userInfo.display_name}` : ''}`,
     },
   ];
 
@@ -558,14 +567,31 @@ const ProductDetailPage: React.FC = () => {
           </div>
 
           {/* Grid of photo cards */}
-          <div
-            style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fill, minmax(130px, 1fr))',
-              gap: 12,
-            }}
-          >
-            {galleryItems.map((item, idx) => {
+          {galleryItems.length === 0 ? (
+            <div
+              style={{
+                padding: '36px 18px',
+                textAlign: 'center',
+                border: '1.5px dashed var(--sah-line)',
+                borderRadius: 16,
+                background: 'var(--sah-ivory)',
+                color: 'var(--sah-muted)',
+                fontSize: 12.5,
+              }}
+            >
+              {lang === 'id'
+                ? 'Belum ada foto kemasan yang terdaftar untuk produk ini.'
+                : 'No packaging photos registered for this product yet.'}
+            </div>
+          ) : (
+            <div
+              style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fill, minmax(130px, 1fr))',
+                gap: 12,
+              }}
+            >
+              {galleryItems.map((item, idx) => {
               const hasCustomPhoto = Boolean(item.photo?.url);
               const photoBg = hasCustomPhoto
                 ? `url(${item.photo?.url}) center / cover no-repeat`
@@ -652,8 +678,9 @@ const ProductDetailPage: React.FC = () => {
                   </div>
                 </div>
               );
-            })}
-          </div>
+              })}
+            </div>
+          )}
         </div>
       </div>
 
@@ -950,6 +977,30 @@ const ProductDetailPage: React.FC = () => {
               Apakah Anda yakin ingin menghapus <strong>{product.name}</strong> ({product.sku_code})? Tindakan ini akan mencabut vektor fitur visual terkait dari katalog.
             </div>
 
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+              <label style={{ fontSize: 12, fontWeight: 600, color: 'var(--sah-navy)' }}>
+                {lang === 'id'
+                  ? `Ketik kode SKU "${product.sku_code}" untuk konfirmasi:`
+                  : `Type SKU code "${product.sku_code}" to confirm:`}
+              </label>
+              <input
+                type="text"
+                value={deleteConfirmText}
+                onChange={(e) => setDeleteConfirmText(e.target.value)}
+                placeholder={product.sku_code}
+                style={{
+                  height: 38,
+                  padding: '0 12px',
+                  borderRadius: 10,
+                  border: '1px solid var(--sah-line)',
+                  background: 'var(--sah-white)',
+                  fontSize: 13,
+                  color: 'var(--sah-navy)',
+                  outline: 'none',
+                }}
+              />
+            </div>
+
             <div style={{ display: 'flex', gap: 10, marginTop: 6 }}>
               <button
                 disabled={isDeleting}
@@ -969,7 +1020,7 @@ const ProductDetailPage: React.FC = () => {
                 Batal
               </button>
               <button
-                disabled={isDeleting}
+                disabled={isDeleting || deleteConfirmText.trim() !== product.sku_code}
                 onClick={handleDelete}
                 style={{
                   flex: 1,
@@ -980,7 +1031,8 @@ const ProductDetailPage: React.FC = () => {
                   color: 'var(--sah-white)',
                   fontWeight: 700,
                   fontSize: 13,
-                  cursor: 'pointer',
+                  cursor: deleteConfirmText.trim() !== product.sku_code ? 'not-allowed' : 'pointer',
+                  opacity: deleteConfirmText.trim() !== product.sku_code ? 0.45 : 1,
                 }}
               >
                 {isDeleting ? 'Menghapus…' : 'Ya, Hapus'}

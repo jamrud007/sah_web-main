@@ -36,10 +36,9 @@ const PageLoader = () => (
   </div>
 );
 
-/** Redirect ke /login jika belum terautentikasi */
+/** Bypass login untuk pengujian API langsung (Login dimasukkan ke future update) */
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
-  const isAuthenticated = store.getState().auth.isAuthenticated;
-  return isAuthenticated ? <>{children}</> : <Navigate to="/login" replace />;
+  return <>{children}</>;
 };
 
 function App() {

@@ -2,7 +2,7 @@
 // Exact 1:1 SCR-WEB-03 (Daftar Produk) from SAH Web Admin (standalone).html
 
 import React, { useState, useMemo, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '../../store';
 import { deleteProduct, fetchProducts } from '../../store/productSlice';
 import { useSahToast } from '../../context/ToastContext';
@@ -12,18 +12,27 @@ import { checkIsReadOnly } from '../../store/authSlice';
 
 const ProductListPage: React.FC = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const dispatch = useAppDispatch();
   const { showToast, stateDemo, setStateDemo, lang } = useSahToast();
 
-  const { items: products, loading: isLoading, error } = useAppSelector((s) => s.products);
+  const { items: products, loading: isLoading, error, hasMore, nextCursor } = useAppSelector((s) => s.products);
   const userInfo = useAppSelector((s) => s.auth.userInfo);
   const isReadOnly = checkIsReadOnly(userInfo);
 
-  const [searchQuery, setSearchQuery] = useState('');
-  const [halalFilter, setHalalFilter] = useState<'all' | 'halal' | 'pending' | 'non_halal' | 'not_halal'>('all');
+  const [searchQuery, setSearchQuery] = useState(searchParams.get('q') || searchParams.get('search') || '');
+
+  useEffect(() => {
+    const q = searchParams.get('q') || searchParams.get('search');
+    if (q !== null) {
+      setSearchQuery(q);
+    }
+  }, [searchParams]);
+  const [halalFilter, setHalalFilter] = useState<'all' | 'halal' | 'not_halal'>('all');
   const [indexFilter, setIndexFilter] = useState<'all' | 'indexed' | 'pending' | 'failed'>('all');
   const [manufacturerFilter, setManufacturerFilter] = useState('all');
-  const [currentPage] = useState(1);
+  const [currentPage, setCurrentPage] = useState(1);
+  const PAGE_SIZE = 10;
 
   useEffect(() => {
     dispatch(fetchProducts({ reset: true, limit: 100 }));
@@ -31,7 +40,13 @@ const ProductListPage: React.FC = () => {
 
   // Delete modal state
   const [deleteTarget, setDeleteTarget] = useState<Product | null>(null);
+  const [deleteConfirmText, setDeleteConfirmText] = useState('');
   const [isDeleting, setIsDeleting] = useState(false);
+
+  // Reset page when filter changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery, halalFilter, indexFilter, manufacturerFilter]);
 
   // Filter products
   const filteredProducts = useMemo(() => {
@@ -52,6 +67,11 @@ const ProductListPage: React.FC = () => {
       return matchQuery && matchHalal && matchIndex && matchManufacturer;
     });
   }, [products, searchQuery, halalFilter, indexFilter, manufacturerFilter]);
+
+  const totalPages = Math.max(1, Math.ceil(filteredProducts.length / PAGE_SIZE));
+  const paginatedProducts = useMemo(() => {
+    return filteredProducts.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
+  }, [filteredProducts, currentPage, PAGE_SIZE]);
 
   // Unique manufacturer list for dropdown
   const manufacturerOptions = useMemo(() => {
@@ -221,7 +241,6 @@ const ProductListPage: React.FC = () => {
           >
             <option value="all">Status Halal</option>
             <option value="halal">Halal</option>
-            <option value="pending">Menunggu</option>
             <option value="not_halal">Tidak Halal</option>
           </select>
           <span style={{ position: 'absolute', right: 10, pointerEvents: 'none', fontSize: 9, color: 'var(--sah-muted)' }}>▾</span>
@@ -465,7 +484,42 @@ const ProductListPage: React.FC = () => {
                 </tr>
               </thead>
               <tbody>
-                {filteredProducts.map((p: Product, idx: number) => (
+                {paginatedProducts.length === 0 ? (
+                  <tr>
+                    <td
+                      colSpan={6}
+                      style={{
+                        padding: '48px 24px',
+                        textAlign: 'center',
+                        color: 'var(--sah-muted)',
+                      }}
+                    >
+                      {error ? (
+                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6 }}>
+                          <span style={{ fontSize: 18, color: 'var(--danger)' }}>⚠</span>
+                          <div style={{ fontWeight: 600, color: 'var(--danger)', fontSize: 13.5 }}>
+                            {lang === 'id' ? 'Gagal memuat produk dari server API' : 'Failed to load products from API server'}
+                          </div>
+                          <div style={{ fontSize: 12, color: 'var(--sah-muted)', maxWidth: 450 }}>
+                            {error}
+                          </div>
+                        </div>
+                      ) : (
+                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
+                          <div style={{ fontWeight: 600, color: 'var(--sah-navy)', fontSize: 13.5 }}>
+                            {lang === 'id' ? 'Tidak ada produk' : 'No products found'}
+                          </div>
+                          <div style={{ fontSize: 12 }}>
+                            {searchQuery
+                              ? (lang === 'id' ? `Tidak ada produk yang cocok dengan "${searchQuery}".` : `No products matching "${searchQuery}".`)
+                              : (lang === 'id' ? 'Belum ada data produk di katalog server.' : 'No products in catalog.')}
+                          </div>
+                        </div>
+                      )}
+                    </td>
+                  </tr>
+                ) : (
+                  paginatedProducts.map((p: Product, idx: number) => (
                   <tr
                     key={p.id}
                     style={{
@@ -502,14 +556,43 @@ const ProductListPage: React.FC = () => {
                         verticalAlign: 'middle',
                       }}
                     >
-                      <div style={{ fontWeight: 600, color: 'var(--sah-navy)' }}>{p.name}</div>
-                      <div style={{ fontSize: 11.5, color: 'var(--sah-muted)', marginTop: 1 }}>
-                        Terdaftar{' '}
-                        {new Date(p.created_at || '2026-01-12T00:00:00Z').toLocaleDateString('id-ID', {
-                          day: 'numeric',
-                          month: 'short',
-                          year: 'numeric',
-                        })}
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                        <div
+                          style={{
+                            width: 34,
+                            height: 34,
+                            borderRadius: 10,
+                            background: p.photos?.[0]?.url
+                              ? `url(${p.photos[0].url}) center / cover no-repeat`
+                              : 'linear-gradient(135deg,var(--sah-copper-pale),var(--sah-mist))',
+                            border: '1px solid var(--sah-line)',
+                            display: 'grid',
+                            placeItems: 'center',
+                            fontSize: 12,
+                            fontWeight: 700,
+                            color: 'var(--sah-copper-dark)',
+                            flex: 'none',
+                          }}
+                        >
+                          {!p.photos?.[0]?.url && p.name.slice(0, 2).toUpperCase()}
+                        </div>
+                        <div style={{ minWidth: 0 }}>
+                          <div
+                            style={{
+                              fontWeight: 600,
+                              fontSize: 13,
+                              color: 'var(--sah-navy)',
+                              whiteSpace: 'nowrap',
+                              overflow: 'hidden',
+                              textOverflow: 'ellipsis',
+                            }}
+                          >
+                            {p.name}
+                          </div>
+                          <div style={{ fontSize: 11.5, color: 'var(--sah-muted)' }}>
+                            {p.brand || p.category || 'Umum'}
+                          </div>
+                        </div>
                       </div>
                     </td>
 
@@ -519,13 +602,14 @@ const ProductListPage: React.FC = () => {
                         padding: '8px 16px',
                         borderBottom: '1px solid var(--sah-line)',
                         verticalAlign: 'middle',
-                        color: 'var(--sah-navy)',
+                        fontSize: 12.5,
+                        color: 'var(--sah-frame)',
                       }}
                     >
-                      {p.manufacturer}
+                      {p.manufacturer || '—'}
                     </td>
 
-                    {/* Status halal */}
+                    {/* Status Halal */}
                     <td
                       style={{
                         padding: '8px 16px',
@@ -536,7 +620,7 @@ const ProductListPage: React.FC = () => {
                       {renderStatusChip('halal', p.halal_status)}
                     </td>
 
-                    {/* Status indeks */}
+                    {/* Status Indeks */}
                     <td
                       style={{
                         padding: '8px 16px',
@@ -547,22 +631,21 @@ const ProductListPage: React.FC = () => {
                       {renderStatusChip('index', p.index_status)}
                     </td>
 
-                    {/* Aksi */}
+                    {/* Actions */}
                     <td
                       style={{
                         padding: '8px 16px',
                         borderBottom: '1px solid var(--sah-line)',
+                        verticalAlign: 'middle',
                         textAlign: 'right',
                         whiteSpace: 'nowrap',
-                        verticalAlign: 'middle',
                       }}
                     >
                       <button
-                        onClick={() => navigate(`/produk/detail/${p.id}`)}
+                        onClick={() => navigate(`/produk/detail/${p.id || p.sku_code}`)}
                         style={{
                           height: 31,
-                          padding: '0 12px',
-                          marginLeft: 6,
+                          padding: '0 11px',
                           border: '1px solid var(--sah-line)',
                           borderRadius: 11,
                           background: 'var(--sah-white)',
@@ -578,10 +661,10 @@ const ProductListPage: React.FC = () => {
                       </button>
 
                       <button
-                        onClick={() => navigate(`/produk/form/${p.id}`)}
+                        onClick={() => navigate(`/produk/form/${p.id || p.sku_code}`)}
                         style={{
                           height: 31,
-                          padding: '0 12px',
+                          padding: '0 11px',
                           marginLeft: 6,
                           border: '1px solid var(--sah-line)',
                           borderRadius: 11,
@@ -599,7 +682,10 @@ const ProductListPage: React.FC = () => {
 
                       {!isReadOnly && (
                         <button
-                          onClick={() => setDeleteTarget(p)}
+                          onClick={() => {
+                            setDeleteTarget(p);
+                            setDeleteConfirmText('');
+                          }}
                           style={{
                             height: 31,
                             padding: '0 10px',
@@ -620,7 +706,7 @@ const ProductListPage: React.FC = () => {
                       )}
                     </td>
                   </tr>
-                ))}
+                )))}
               </tbody>
             </table>
           </div>
@@ -638,12 +724,13 @@ const ProductListPage: React.FC = () => {
           >
             <div style={{ fontSize: 12, color: 'var(--sah-muted)', flex: 1 }}>
               {lang === 'id'
-                ? `Menampilkan 1–${filteredProducts.length} dari ${products.length} baris`
-                : `Showing 1–${filteredProducts.length} of ${products.length} rows`}
+                ? `Menampilkan ${filteredProducts.length === 0 ? 0 : (currentPage - 1) * PAGE_SIZE + 1}–${Math.min(currentPage * PAGE_SIZE, filteredProducts.length)} dari ${filteredProducts.length} baris`
+                : `Showing ${filteredProducts.length === 0 ? 0 : (currentPage - 1) * PAGE_SIZE + 1}–${Math.min(currentPage * PAGE_SIZE, filteredProducts.length)} of ${filteredProducts.length} rows`}
             </div>
-            <div style={{ display: 'flex', gap: 6 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
               <button
-                disabled={currentPage === 1}
+                disabled={currentPage <= 1}
+                onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
                 style={{
                   minWidth: 33,
                   height: 33,
@@ -651,47 +738,37 @@ const ProductListPage: React.FC = () => {
                   border: '1px solid var(--sah-line)',
                   borderRadius: 11,
                   background: 'var(--sah-white)',
-                  color: 'var(--sah-muted)',
+                  color: currentPage <= 1 ? 'var(--sah-line)' : 'var(--sah-navy)',
                   fontSize: 12.5,
                   fontWeight: 600,
-                  cursor: 'pointer',
+                  cursor: currentPage <= 1 ? 'not-allowed' : 'pointer',
                 }}
               >
                 ‹
               </button>
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map((pNum) => (
+                <button
+                  key={pNum}
+                  onClick={() => setCurrentPage(pNum)}
+                  style={{
+                    minWidth: 33,
+                    height: 33,
+                    padding: '0 9px',
+                    border: '1px solid var(--sah-line)',
+                    borderRadius: 11,
+                    background: pNum === currentPage ? 'var(--sah-navy)' : 'var(--sah-white)',
+                    color: pNum === currentPage ? 'var(--sah-white)' : 'var(--sah-navy)',
+                    fontSize: 12.5,
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                  }}
+                >
+                  {pNum}
+                </button>
+              ))}
               <button
-                style={{
-                  minWidth: 33,
-                  height: 33,
-                  padding: '0 9px',
-                  border: '1px solid var(--sah-line)',
-                  borderRadius: 11,
-                  background: 'var(--sah-navy)',
-                  color: 'var(--sah-white)',
-                  fontSize: 12.5,
-                  fontWeight: 600,
-                  cursor: 'pointer',
-                }}
-              >
-                1
-              </button>
-              <button
-                style={{
-                  minWidth: 33,
-                  height: 33,
-                  padding: '0 9px',
-                  border: '1px solid var(--sah-line)',
-                  borderRadius: 11,
-                  background: 'var(--sah-white)',
-                  color: 'var(--sah-navy)',
-                  fontSize: 12.5,
-                  fontWeight: 600,
-                  cursor: 'pointer',
-                }}
-              >
-                2
-              </button>
-              <button
+                disabled={currentPage >= totalPages}
+                onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
                 style={{
                   minWidth: 33,
                   height: 33,
@@ -699,30 +776,34 @@ const ProductListPage: React.FC = () => {
                   border: '1px solid var(--sah-line)',
                   borderRadius: 11,
                   background: 'var(--sah-white)',
-                  color: 'var(--sah-navy)',
+                  color: currentPage >= totalPages ? 'var(--sah-line)' : 'var(--sah-navy)',
                   fontSize: 12.5,
                   fontWeight: 600,
-                  cursor: 'pointer',
-                }}
-              >
-                3
-              </button>
-              <button
-                style={{
-                  minWidth: 33,
-                  height: 33,
-                  padding: '0 9px',
-                  border: '1px solid var(--sah-line)',
-                  borderRadius: 11,
-                  background: 'var(--sah-white)',
-                  color: 'var(--sah-navy)',
-                  fontSize: 12.5,
-                  fontWeight: 600,
-                  cursor: 'pointer',
+                  cursor: currentPage >= totalPages ? 'not-allowed' : 'pointer',
                 }}
               >
                 ›
               </button>
+              {hasMore && (
+                <button
+                  onClick={() => dispatch(fetchProducts({ cursor: nextCursor || undefined, limit: 50 }))}
+                  disabled={isLoading}
+                  style={{
+                    marginLeft: 8,
+                    height: 33,
+                    padding: '0 12px',
+                    border: '1px solid var(--sah-copper)',
+                    borderRadius: 11,
+                    background: 'var(--sah-copper-pale)',
+                    color: 'var(--sah-copper-dark)',
+                    fontSize: 12,
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                  }}
+                >
+                  {isLoading ? 'Memuat…' : (lang === 'id' ? 'Muat Lebih Banyak' : 'Load More')}
+                </button>
+              )}
             </div>
           </div>
         </>
@@ -988,6 +1069,30 @@ const ProductListPage: React.FC = () => {
               Penghapusan SKU akan mencabut seluruh vektor fitur visual dan menghapus foto referensi terkait dari indeks pencarian (FR-CAT-05, -10).
             </div>
 
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+              <label style={{ fontSize: 12, fontWeight: 600, color: 'var(--sah-navy)' }}>
+                {lang === 'id'
+                  ? `Ketik kode SKU "${deleteTarget.sku_code}" untuk konfirmasi:`
+                  : `Type SKU code "${deleteTarget.sku_code}" to confirm:`}
+              </label>
+              <input
+                type="text"
+                value={deleteConfirmText}
+                onChange={(e) => setDeleteConfirmText(e.target.value)}
+                placeholder={deleteTarget.sku_code}
+                style={{
+                  height: 38,
+                  padding: '0 12px',
+                  borderRadius: 10,
+                  border: '1px solid var(--sah-line)',
+                  background: 'var(--sah-white)',
+                  fontSize: 13,
+                  color: 'var(--sah-navy)',
+                  outline: 'none',
+                }}
+              />
+            </div>
+
             <div style={{ display: 'flex', gap: 10, marginTop: 6 }}>
               <button
                 disabled={isDeleting}
@@ -1007,7 +1112,7 @@ const ProductListPage: React.FC = () => {
                 Batal
               </button>
               <button
-                disabled={isDeleting}
+                disabled={isDeleting || deleteConfirmText.trim() !== deleteTarget.sku_code}
                 onClick={handleDeleteConfirm}
                 style={{
                   flex: 1,
@@ -1018,7 +1123,8 @@ const ProductListPage: React.FC = () => {
                   color: 'var(--sah-white)',
                   fontWeight: 700,
                   fontSize: 13,
-                  cursor: 'pointer',
+                  cursor: deleteConfirmText.trim() !== deleteTarget.sku_code ? 'not-allowed' : 'pointer',
+                  opacity: deleteConfirmText.trim() !== deleteTarget.sku_code ? 0.45 : 1,
                 }}
               >
                 {isDeleting ? 'Menghapus…' : 'Ya, Hapus SKU'}

@@ -37,52 +37,15 @@ export interface StandalonePhoto {
 }
 
 const G1 = 'linear-gradient(145deg,#477fa2,#25384a 58%,#6f3f32)';
-const G2 = 'linear-gradient(130deg,#f0944d,#a84e3d 58%,#6f3f32)';
 const G3 = 'linear-gradient(145deg,#24384e,#182436 60%,#4a2c22)';
 
-const DEFAULT_STANDALONE_PHOTOS: StandalonePhoto[] = [
-  { n: 'Foto 1', packageSide: 'front', f: 'bango-275-front.jpg', gr: G1, ini: 'BG', st: CH.ok, warn: null, dim: '2048 × 2048 · 1,8 MB' },
-  { n: 'Foto 2', packageSide: 'back', f: 'bango-275-back.jpg', gr: G1, ini: 'BG', st: CH.ok, warn: null, dim: '2048 × 2048 · 1,9 MB' },
-  {
-    n: 'Foto 3',
-    packageSide: 'left',
-    f: 'bango-275-left.jpg',
-    gr: G2,
-    ini: 'BG',
-    st: CH.wait,
-    warn: 'Pantulan cahaya pada label — kontras teks rendah.',
-    dim: '1536 × 1536 · 1,1 MB',
-  },
-  {
-    n: 'Foto 4',
-    packageSide: 'right',
-    f: 'bango-275-right.jpg',
-    gr: G2,
-    ini: 'BG',
-    st: CH.bad,
-    warn: 'Objek terpotong di tepi kanan; ekstraksi fitur ditolak.',
-    dim: '1280 × 1280 · 0,9 MB',
-  },
-  { n: 'Foto 5', packageSide: 'top', f: 'bango-275-cap.jpg', gr: G1, ini: 'BG', st: CH.ok, warn: null, dim: '1536 × 1536 · 1,0 MB' },
-  {
-    n: 'Foto 6',
-    packageSide: 'other',
-    f: 'bango-refill.jpg',
-    gr: G2,
-    ini: 'BG',
-    st: CH.wait,
-    warn: 'Latar belakang berpola — disarankan latar polos.',
-    dim: '2048 × 1536 · 1,6 MB',
-  },
-];
-
 const PHOTO_TOOLS = [
-  'Pangkas',
+  'Pangkas (Crop Focus)',
   'Putar 90°',
-  'Ratakan horizon',
-  'Hapus latar',
-  'Naikkan kontras',
-  'Tandai objek utama',
+  'Ratakan Horizon',
+  'Hapus Latar (Simulasi)',
+  'Naikkan Kontras',
+  'Tandai Objek Utama',
 ];
 
 const ProductPhotosPage: React.FC = () => {
@@ -103,6 +66,8 @@ const ProductPhotosPage: React.FC = () => {
 
   const userInfo = useAppSelector((s) => s.auth.userInfo);
   const isReadOnly = checkIsReadOnly(userInfo);
+  const selectedProduct = useAppSelector((s) => s.products.selectedProduct);
+  const activeProductId = productId || products[0]?.id;
 
   // Ensure products list is loaded from backend on mount
   useEffect(() => {
@@ -111,26 +76,28 @@ const ProductPhotosPage: React.FC = () => {
     }
   }, [dispatch, products.length]);
 
-  // If specific productId provided, fetch it if missing
+  // Always fetch full product with photos whenever activeProductId changes
   useEffect(() => {
-    if (productId && !products.some((p) => p.id === productId || p.sku_code === productId)) {
-      dispatch(fetchProductById(productId));
+    if (activeProductId) {
+      dispatch(fetchProductById(activeProductId));
     }
-  }, [dispatch, productId, products]);
+  }, [dispatch, activeProductId]);
 
   const product =
-    products.find((p: Product) => p.id === productId || p.sku_code === productId) || products[0];
-  const skuLabel = product ? product.sku_code : 'SKU-100241';
-  const prodName = product ? product.name : 'Kecap Manis Bango 275 ml';
-  const prodInitials = (product?.name || 'Bango')
+    (selectedProduct && (selectedProduct.id === activeProductId || selectedProduct.sku_code === activeProductId))
+      ? selectedProduct
+      : products.find((p: Product) => p.id === activeProductId || p.sku_code === activeProductId) || products[0];
+  const skuLabel = product ? product.sku_code : '—';
+  const prodName = product ? product.name : (products.length === 0 ? 'Katalog Kosong' : 'Pilih Produk');
+  const prodInitials = (product?.name || 'PR')
     .split(' ')
     .filter(Boolean)
     .slice(0, 2)
     .map((w) => w[0])
     .join('')
-    .toUpperCase() || 'BG';
+    .toUpperCase() || 'PR';
 
-  const [photoList, setPhotoList] = useState<StandalonePhoto[]>(DEFAULT_STANDALONE_PHOTOS);
+  const [photoList, setPhotoList] = useState<StandalonePhoto[]>([]);
   const [selectedPhotoIndex, setSelectedPhotoIndex] = useState(0);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -164,20 +131,16 @@ const ProductPhotosPage: React.FC = () => {
         ? product.photos
         : (photosByProductId[product.id] || []);
 
-    const cleanSlug = (product.name || 'produk')
-      .toLowerCase()
-      .replace(/[^a-z0-9]+/g, '-')
-      .replace(/^-|-$/g, '')
-      .slice(0, 22) || 'sku';
-
     if (attached.length > 0) {
       const mapped: StandalonePhoto[] = attached.map((p: Photo, idx: number) => {
         const side = normalizePackageSide(p.package_side || p.angle);
+        const indexStr = String(idx + 1).padStart(2, '0');
+        const imageName = `image ${indexStr}`;
         return {
           id: p.id,
           packageSide: side,
-          n: p.file_name || `Foto ${idx + 1}`,
-          f: p.file_name || `${cleanSlug}-${idx + 1}.jpg`,
+          n: imageName,
+          f: imageName,
           gr: G3,
           url: p.url,
           ini: prodInitials,
@@ -189,15 +152,7 @@ const ProductPhotosPage: React.FC = () => {
       setPhotoList(mapped);
       setSelectedPhotoIndex(0);
     } else {
-      // Dynamic standard default photos
-      setPhotoList([
-        { n: 'Foto 1', packageSide: 'front', f: `${cleanSlug}-1.jpg`, gr: G1, ini: prodInitials, st: CH.ok, warn: null, dim: '2048 × 2048 · 1.8 MB' },
-        { n: 'Foto 2', packageSide: 'back', f: `${cleanSlug}-2.jpg`, gr: G1, ini: prodInitials, st: CH.ok, warn: null, dim: '2048 × 2048 · 1.9 MB' },
-        { n: 'Foto 3', packageSide: 'left', f: `${cleanSlug}-3.jpg`, gr: G2, ini: prodInitials, st: CH.wait, warn: 'Pantulan cahaya pada label — kontras teks rendah.', dim: '1536 × 1536 · 1.1 MB' },
-        { n: 'Foto 4', packageSide: 'right', f: `${cleanSlug}-4.jpg`, gr: G2, ini: prodInitials, st: CH.ok, warn: null, dim: '1536 × 1536 · 1.2 MB' },
-        { n: 'Foto 5', packageSide: 'top', f: `${cleanSlug}-5.jpg`, gr: G1, ini: prodInitials, st: CH.ok, warn: null, dim: '1024 × 1024 · 0.9 MB' },
-        { n: 'Foto 6', packageSide: 'other', f: `${cleanSlug}-6.jpg`, gr: G2, ini: prodInitials, st: CH.wait, warn: 'Latar belakang berpola — disarankan latar polos.', dim: '2048 × 1536 · 1.6 MB' },
-      ]);
+      setPhotoList([]);
       setSelectedPhotoIndex(0);
     }
   }, [product, photosByProductId, prodInitials]);
@@ -212,30 +167,27 @@ const ProductPhotosPage: React.FC = () => {
     let successCount = 0;
     const errors: string[] = [];
 
-    const sideOrder: BackendPhotoPackageSide[] = ['front', 'back', 'left', 'right', 'top', 'bottom', 'other'];
-
     for (let i = 0; i < files.length; i++) {
       const file = files[i];
-
-      // Automatically determine package side
-      const assignedSide: BackendPhotoPackageSide =
-        sideOrder[(photoList.length + i) % sideOrder.length];
+      const photoNum = photoList.length + i + 1;
+      const indexStr = String(photoNum).padStart(2, '0');
+      const imageName = `image ${indexStr}`;
 
       try {
         const actionResult = await dispatch(
           uploadPhoto({
             productId: product.id,
             file,
-            packageSide: assignedSide,
+            packageSide: 'other',
           })
         ).unwrap();
 
         const uploadedPhoto = actionResult.photo;
         const newPhotoItem: StandalonePhoto = {
           id: uploadedPhoto.id,
-          packageSide: assignedSide,
-          n: file.name,
-          f: file.name,
+          packageSide: 'other',
+          n: imageName,
+          f: imageName,
           gr: G1,
           url: uploadedPhoto.url,
           ini: prodInitials,
@@ -284,12 +236,15 @@ const ProductPhotosPage: React.FC = () => {
     }
 
     const activePhoto = photoList[selectedPhotoIndex];
-    if (!activePhoto) return;
+    if (!activePhoto?.id) {
+      showToast(lang === 'id' ? 'Foto tidak memiliki ID valid di server.' : 'Photo does not have a valid server ID.');
+      return;
+    }
 
     setIsReindexing(true);
 
     try {
-      const targetPhotoId = activePhoto.id || `photo-mock-${selectedPhotoIndex}`;
+      const targetPhotoId = activePhoto.id;
       await dispatch(
         reindexPhoto({
           productId: product.id,
@@ -308,9 +263,43 @@ const ProductPhotosPage: React.FC = () => {
 
       showToast(
         lang === 'id'
-          ? `Permintaan indeks ulang foto "${activePhoto.n}" berhasil dikirim (API-017 / 202 Accepted). Status antrean: PENDING.`
-          : `Reindex requested for "${activePhoto.n}" (API-017 / 202 Accepted). Status: PENDING.`
+          ? `Permintaan indeks ulang foto "${activePhoto.n}" berhasil dikirim (API-017 / 202 Accepted). Menunggu proses antrean…`
+          : `Reindex requested for "${activePhoto.n}" (API-017 / 202 Accepted). Awaiting queue…`
       );
+
+      // Status polling (check backend status up to 4 times, every 4 seconds)
+      let attempts = 0;
+      const pollTimer = setInterval(async () => {
+        attempts++;
+        try {
+          const freshProduct = await dispatch(fetchProductById(product.id)).unwrap();
+          const freshPhotos = freshProduct.photos || [];
+          const refreshed = freshPhotos.find((p: any) => p.id === targetPhotoId);
+          if (refreshed) {
+            const extStatus = refreshed.extraction_status || refreshed.status;
+            if (extStatus === 'extracted' || extStatus === 'indexed') {
+              clearInterval(pollTimer);
+              showToast(
+                lang === 'id'
+                  ? `Foto "${activePhoto.n}" selesai diindeks. Vektor fitur visual diperbarui.`
+                  : `Photo "${activePhoto.n}" reindexed successfully. Visual feature vectors updated.`
+              );
+            } else if (extStatus === 'failed') {
+              clearInterval(pollTimer);
+              showToast(
+                lang === 'id'
+                  ? `Ekstraksi indeks ulang foto "${activePhoto.n}" ditolak oleh model AI.`
+                  : `Reindexing for "${activePhoto.n}" rejected by AI model.`
+              );
+            }
+          }
+        } catch {
+          // ignore transient poll error
+        }
+        if (attempts >= 4) {
+          clearInterval(pollTimer);
+        }
+      }, 4000);
     } catch (err: any) {
       showToast(
         lang === 'id'
@@ -324,12 +313,15 @@ const ProductPhotosPage: React.FC = () => {
 
   // ─── 3. DELETE PHOTO (DELETE /api/v1/products/{product_id}/photos/{photo_id})
   const handleConfirmDelete = async () => {
-    if (isReadOnly || !product || !deleteTargetPhoto) return;
+    if (!deleteTargetPhoto?.id) {
+      showToast(lang === 'id' ? 'Foto tidak memiliki ID valid di server.' : 'Photo does not have a valid server ID.');
+      return;
+    }
 
     setIsDeletingPhoto(true);
 
     try {
-      const targetPhotoId = deleteTargetPhoto.id || `photo-mock-${selectedPhotoIndex}`;
+      const targetPhotoId = deleteTargetPhoto.id;
       await dispatch(
         deletePhoto({
           productId: product.id,
@@ -417,57 +409,48 @@ const ProductPhotosPage: React.FC = () => {
 
     const currentPhotoName = photoList[selectedPhotoIndex]?.f || `Foto ${selectedPhotoIndex + 1}`;
 
-    switch (tool) {
-      case 'Putar 90°':
-        setRotation((prev) => (prev + 90) % 360);
-        showToast(
-          lang === 'id'
-            ? `Foto "${currentPhotoName}" diputar 90°.`
-            : `Rotated 90°.`
-        );
-        break;
-      case 'Naikkan kontras':
-        setHighContrast((prev) => !prev);
-        showToast(
-          lang === 'id'
-            ? `Kontras foto "${currentPhotoName}" disesuaikan.`
-            : `Contrast adjusted.`
-        );
-        break;
-      case 'Pangkas':
-        setIsCropped((prev) => !prev);
-        showToast(
-          lang === 'id'
-            ? `Area pangkas (crop) foto "${currentPhotoName}" diaktifkan.`
-            : `Crop box toggled.`
-        );
-        break;
-      case 'Ratakan horizon':
-        setIsLeveled((prev) => !prev);
-        showToast(
-          lang === 'id'
-            ? `Horizon foto "${currentPhotoName}" diratakan secara otomatis.`
-            : `Horizon auto-leveled.`
-        );
-        break;
-      case 'Hapus latar':
-        setRemovedBg((prev) => !prev);
-        showToast(
-          lang === 'id'
-            ? `Segmentasi latar belakang foto "${currentPhotoName}" diterapkan.`
-            : `Background removed.`
-        );
-        break;
-      case 'Tandai objek utama':
-        setMarkedObject((prev) => !prev);
-        showToast(
-          lang === 'id'
-            ? `Bounding box objek utama foto "${currentPhotoName}" ditandai.`
-            : `Main object boundary highlighted.`
-        );
-        break;
-      default:
-        break;
+    if (tool.startsWith('Putar')) {
+      setRotation((prev) => (prev + 90) % 360);
+      showToast(
+        lang === 'id'
+          ? `Foto "${currentPhotoName}" diputar 90°. (Pratinjau visual)`
+          : `Rotated 90°. (Visual preview)`
+      );
+    } else if (tool.startsWith('Naikkan')) {
+      setHighContrast((prev) => !prev);
+      showToast(
+        lang === 'id'
+          ? `Kontras foto "${currentPhotoName}" disesuaikan untuk inspeksi teks label.`
+          : `Contrast adjusted for label inspection.`
+      );
+    } else if (tool.startsWith('Pangkas')) {
+      setIsCropped((prev) => !prev);
+      showToast(
+        lang === 'id'
+          ? `Area fokus objek foto "${currentPhotoName}" disesuaikan.`
+          : `Crop focus toggled.`
+      );
+    } else if (tool.startsWith('Ratakan')) {
+      setIsLeveled((prev) => !prev);
+      showToast(
+        lang === 'id'
+          ? `Kemiringan horizon foto "${currentPhotoName}" diratakan secara visual.`
+          : `Horizon visual leveling applied.`
+      );
+    } else if (tool.startsWith('Hapus')) {
+      setRemovedBg((prev) => !prev);
+      showToast(
+        lang === 'id'
+          ? `Segmentasi pratinjau latar belakang foto "${currentPhotoName}" diterapkan.`
+          : `Background preview segmentation toggled.`
+      );
+    } else if (tool.startsWith('Tandai')) {
+      setMarkedObject((prev) => !prev);
+      showToast(
+        lang === 'id'
+          ? `Area bounding-box objek utama foto "${currentPhotoName}" ditandai.`
+          : `Main object bounding box highlighted.`
+      );
     }
   };
 
@@ -778,11 +761,53 @@ const ProductPhotosPage: React.FC = () => {
           <div
             style={{
               display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fill, minmax(212px, 1fr))',
+              gridTemplateColumns: photoList.length === 0 ? '1fr' : 'repeat(auto-fill, minmax(212px, 1fr))',
               gap: 14,
             }}
           >
-            {photoList.map((p, idx) => {
+            {photoList.length === 0 ? (
+              <div
+                style={{
+                  padding: '48px 24px',
+                  background: 'var(--sah-white)',
+                  border: '1.5px dashed var(--sah-line)',
+                  borderRadius: 20,
+                  textAlign: 'center',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  gap: 12,
+                }}
+              >
+                <div
+                  style={{
+                    width: 52,
+                    height: 52,
+                    borderRadius: 16,
+                    background: 'rgba(23,36,58,.04)',
+                    border: '1px solid rgba(23,36,58,.08)',
+                    display: 'grid',
+                    placeItems: 'center',
+                    color: 'var(--sah-muted)',
+                  }}
+                >
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+                    <circle cx="8.5" cy="8.5" r="1.5" />
+                    <polyline points="21 15 16 10 5 21" />
+                  </svg>
+                </div>
+                <div style={{ fontWeight: 700, fontSize: 14, color: 'var(--sah-navy)' }}>
+                  {lang === 'id' ? 'Belum ada foto kemasan terdaftar' : 'No packaging photos registered'}
+                </div>
+                <div style={{ fontSize: 12, color: 'var(--sah-muted)', maxWidth: 420, lineHeight: 1.5 }}>
+                  {lang === 'id'
+                    ? 'Produk ini belum memiliki foto kemasan referensi. Gunakan tombol "Unggah Foto Baru" di atas untuk menambahkan berkas foto.'
+                    : 'This product has no reference packaging photos yet. Use the "Upload New Photo" button above to add photo files.'}
+                </div>
+              </div>
+            ) : (
+              photoList.map((p, idx) => {
               const isSelected = selectedPhotoIndex === idx;
               const hasUrl = Boolean(p.url);
 
@@ -942,7 +967,8 @@ const ProductPhotosPage: React.FC = () => {
                   </div>
                 </div>
               );
-            })}
+            })
+          )}
           </div>
         </div>
 
@@ -969,29 +995,52 @@ const ProductPhotosPage: React.FC = () => {
               gap: 14,
             }}
           >
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <div
-                style={{
-                  fontFamily: "'Plus Jakarta Sans', sans-serif",
-                  fontWeight: 700,
-                  fontSize: 14.5,
-                  color: 'var(--sah-navy)',
-                }}
-              >
-                Editor foto — {activePhoto?.f ? activePhoto.f : `Foto ${selectedPhotoIndex + 1}`}
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
+                <div
+                  style={{
+                    fontFamily: "'Plus Jakarta Sans', sans-serif",
+                    fontWeight: 700,
+                    fontSize: 14.5,
+                    color: 'var(--sah-navy)',
+                  }}
+                >
+                  Editor foto — {activePhoto?.f ? activePhoto.f : `Foto ${selectedPhotoIndex + 1}`}
+                </div>
+                <span
+                  style={{
+                    fontSize: 10,
+                    padding: '2px 8px',
+                    borderRadius: 6,
+                    background: 'var(--sah-ivory)',
+                    color: 'var(--sah-muted)',
+                    border: '1px solid var(--sah-line)',
+                  }}
+                >
+                  {activePhoto?.dim || activePhoto?.f}
+                </span>
               </div>
-              <span
-                style={{
-                  fontSize: 10,
-                  padding: '2px 8px',
-                  borderRadius: 6,
-                  background: 'var(--sah-ivory)',
-                  color: 'var(--sah-muted)',
-                  border: '1px solid var(--sah-line)',
-                }}
-              >
-                {activePhoto?.dim || activePhoto?.f}
-              </span>
+              
+              {/* Informative Sub-header Badge (BUG-07) */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 4, marginBottom: 10 }}>
+                <span
+                  style={{
+                    fontSize: 9.5,
+                    fontWeight: 700,
+                    letterSpacing: 0.8,
+                    textTransform: 'uppercase',
+                    color: 'var(--sah-copper-dark)',
+                    background: 'var(--sah-copper-pale)',
+                    padding: '2px 7px',
+                    borderRadius: 6,
+                  }}
+                >
+                  {lang === 'id' ? 'Alat Bantu Visual AI' : 'AI Visual Helper'}
+                </span>
+                <span style={{ fontSize: 11, color: 'var(--sah-muted)' }}>
+                  {lang === 'id' ? 'Pratinjau inspeksi pra-indeks' : 'Pre-index inspection preview'}
+                </span>
+              </div>
             </div>
 
             {/* Interactive Workspace / Canvas */}
@@ -1003,85 +1052,97 @@ const ProductPhotosPage: React.FC = () => {
                 overflow: 'hidden',
                 boxShadow: 'inset 0 0 20px rgba(0,0,0,.25)',
                 background: '#17243a',
+                display: photoList.length === 0 ? 'grid' : 'block',
+                placeItems: photoList.length === 0 ? 'center' : undefined,
               }}
             >
-              {/* Inner background & image layer with smooth transform */}
-              <div
-                style={{
-                  position: 'absolute',
-                  inset: -60,
-                  background: removedBg
-                    ? '#ffffff'
-                    : (activePhoto?.url
-                      ? `url(${activePhoto.url}) center / cover no-repeat`
-                      : activePhoto?.gr || G1),
-                  display: 'grid',
-                  placeItems: 'center',
-                  filter: highContrast ? 'contrast(135%) brightness(1.05)' : 'none',
-                  transform: `rotate(${rotation}deg) scale(${isCropped ? 1.2 : 1}) rotate(${isLeveled ? -2 : 0}deg)`,
-                  transformOrigin: 'center center',
-                  transition: 'transform .25s ease, filter .2s ease, background .2s ease',
-                }}
-              >
-                {!activePhoto?.url && !removedBg && (
-                  <span
+              {photoList.length === 0 ? (
+                <div style={{ color: 'rgba(255,253,248,0.5)', fontSize: 12, textAlign: 'center', padding: 16 }}>
+                  {lang === 'id'
+                    ? 'Belum ada foto yang dipilih untuk inspeksi'
+                    : 'No photo selected for inspection'}
+                </div>
+              ) : (
+                <>
+                  {/* Inner background & image layer with smooth transform */}
+                  <div
                     style={{
-                      fontFamily: "'Plus Jakarta Sans', sans-serif",
-                      fontWeight: 800,
-                      fontSize: 34,
-                      color: 'rgba(255,253,248,.9)',
-                      letterSpacing: -1,
+                      position: 'absolute',
+                      inset: -60,
+                      background: removedBg
+                        ? '#ffffff'
+                        : (activePhoto?.url
+                          ? `url(${activePhoto.url}) center / cover no-repeat`
+                          : activePhoto?.gr || G1),
+                      display: 'grid',
+                      placeItems: 'center',
+                      filter: highContrast ? 'contrast(135%) brightness(1.05)' : 'none',
+                      transform: `rotate(${rotation}deg) scale(${isCropped ? 1.2 : 1}) rotate(${isLeveled ? -2 : 0}deg)`,
+                      transformOrigin: 'center center',
+                      transition: 'transform .25s ease, filter .2s ease, background .2s ease',
                     }}
                   >
-                    {activePhoto?.ini || prodInitials}
-                  </span>
-                )}
-              </div>
+                    {!activePhoto?.url && !removedBg && (
+                      <span
+                        style={{
+                          fontFamily: "'Plus Jakarta Sans', sans-serif",
+                          fontWeight: 800,
+                          fontSize: 34,
+                          color: 'rgba(255,253,248,.9)',
+                          letterSpacing: -1,
+                        }}
+                      >
+                        {activePhoto?.ini || prodInitials}
+                      </span>
+                    )}
+                  </div>
 
-              {/* Area Objek Utama Dashed Box */}
-              <div
-                style={{
-                  position: 'absolute',
-                  inset: 20,
-                  border: markedObject
-                    ? '2px dashed rgba(255,253,248,.75)'
-                    : '2px dashed rgba(255,253,248,.35)',
-                  borderRadius: 12,
-                  boxShadow: markedObject ? '0 0 12px rgba(197,138,99,.5)' : 'none',
-                  display: 'grid',
-                  placeItems: 'center',
-                  pointerEvents: 'none',
-                  zIndex: 2,
-                }}
-              >
-                <span
-                  style={{
-                    fontSize: 11,
-                    fontWeight: 700,
-                    letterSpacing: '1.4px',
-                    textTransform: 'uppercase',
-                    color: 'rgba(255,253,248,.9)',
-                    background: 'rgba(23,36,58,.5)',
-                    padding: '4px 10px',
-                    borderRadius: 8,
-                    backdropFilter: 'blur(4px)',
-                  }}
-                >
-                  Area objek utama
-                </span>
-              </div>
+                  {/* Area Objek Utama Dashed Box */}
+                  <div
+                    style={{
+                      position: 'absolute',
+                      inset: 20,
+                      border: markedObject
+                        ? '2px dashed rgba(255,253,248,.75)'
+                        : '2px dashed rgba(255,253,248,.35)',
+                      borderRadius: 12,
+                      boxShadow: markedObject ? '0 0 12px rgba(197,138,99,.5)' : 'none',
+                      display: 'grid',
+                      placeItems: 'center',
+                      pointerEvents: 'none',
+                      zIndex: 2,
+                    }}
+                  >
+                    <span
+                      style={{
+                        fontSize: 11,
+                        fontWeight: 700,
+                        letterSpacing: '1.4px',
+                        textTransform: 'uppercase',
+                        color: 'rgba(255,253,248,.9)',
+                        background: 'rgba(23,36,58,.5)',
+                        padding: '4px 10px',
+                        borderRadius: 8,
+                        backdropFilter: 'blur(4px)',
+                      }}
+                    >
+                      Area objek utama
+                    </span>
+                  </div>
+                </>
+              )}
             </div>
 
             {/* Tool Buttons */}
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 7 }}>
               {PHOTO_TOOLS.map((tool) => {
                 const isToolActive =
-                  (tool === 'Putar 90°' && rotation !== 0) ||
-                  (tool === 'Naikkan kontras' && highContrast) ||
-                  (tool === 'Pangkas' && isCropped) ||
-                  (tool === 'Ratakan horizon' && isLeveled) ||
-                  (tool === 'Hapus latar' && removedBg) ||
-                  (tool === 'Tandai objek utama' && markedObject);
+                  (tool.startsWith('Putar') && rotation !== 0) ||
+                  (tool.startsWith('Naikkan') && highContrast) ||
+                  (tool.startsWith('Pangkas') && isCropped) ||
+                  (tool.startsWith('Ratakan') && isLeveled) ||
+                  (tool.startsWith('Hapus') && removedBg) ||
+                  (tool.startsWith('Tandai') && markedObject);
 
                 return (
                   <button
@@ -1098,7 +1159,7 @@ const ProductPhotosPage: React.FC = () => {
                         : (isReadOnly ? 'rgba(23,36,58,.04)' : 'var(--sah-ivory)'),
                       fontSize: 12,
                       fontWeight: 600,
-                      color: isReadOnly ? 'var(--sah-muted)' : 'var(--sah-navy)',
+                      color: isReadOnly ? 'var(--sah-muted)' : (isToolActive ? 'var(--sah-frame)' : 'var(--sah-navy)'),
                       cursor: isReadOnly ? 'not-allowed' : 'pointer',
                       transition: 'all .12s ease',
                     }}

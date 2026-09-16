@@ -265,6 +265,26 @@ const LoginPage: React.FC = () => {
             >
               {isSubmitting ? 'Memverifikasi…' : 'Masuk'}
             </button>
+
+            {/* Direct Bypass Button for API Testing */}
+            <button
+              type="button"
+              onClick={() => navigate('/produk', { replace: true })}
+              style={{
+                height: 44,
+                borderRadius: 14,
+                border: '1px solid rgba(197,138,99,0.35)',
+                background: 'rgba(255,253,248,0.06)',
+                color: '#c58a63',
+                fontFamily: 'inherit',
+                fontSize: 13.5,
+                fontWeight: 700,
+                cursor: 'pointer',
+                transition: 'all .15s',
+              }}
+            >
+              Masuk Langsung (Mode Pengujian API) →
+            </button>
           </form>
         </div>
 

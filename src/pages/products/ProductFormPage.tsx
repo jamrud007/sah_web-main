@@ -5,9 +5,14 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useParams, Link } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '../../store';
-import { createProduct, updateProduct, fetchProductById } from '../../store/productSlice';
+import {
+  createProduct,
+  updateProduct,
+  fetchProductById,
+  uploadPhoto,
+} from '../../store/productSlice';
 import { useSahToast } from '../../context/ToastContext';
-import type { Product, Photo, HalalStatus } from '../../types/apiDef';
+import type { Product, Photo, HalalStatus, BackendPhotoPackageSide } from '../../types/apiDef';
 import { checkIsReadOnly } from '../../store/authSlice';
 
 const CATEGORIES = [
@@ -24,8 +29,7 @@ const ISSUERS = ['BPJPH', 'MUI (legacy)', 'Otoritas halal negara setempat'];
 
 const HALAL_STATUS_OPTIONS = [
   { value: 'halal', label: 'Halal terverifikasi' },
-  { value: 'pending', label: 'Menunggu pembaruan sertifikat' },
-  { value: 'non_halal', label: 'Tidak bersertifikat' },
+  { value: 'not_halal', label: 'Tidak bersertifikat' },
 ];
 
 const ProductFormPage: React.FC = () => {
@@ -39,17 +43,20 @@ const ProductFormPage: React.FC = () => {
 
   const products = useAppSelector((s) => s.products.items);
   const photosByProductId = useAppSelector((s) => s.products.photosByProductId);
+  const selectedProduct = useAppSelector((s) => s.products.selectedProduct);
   const existingProduct = id
-    ? products.find((p: Product) => p.id === id || p.sku_code === id)
+    ? ((selectedProduct && (selectedProduct.id === id || selectedProduct.sku_code === id))
+        ? selectedProduct
+        : products.find((p: Product) => p.id === id || p.sku_code === id) || null)
     : null;
   const isEditing = Boolean(id);
 
-  // Fetch product if editing and not in store yet
+  // Always fetch full product data with photos when editing
   useEffect(() => {
-    if (id && (!existingProduct || (existingProduct.id !== id && existingProduct.sku_code !== id))) {
+    if (id) {
       dispatch(fetchProductById(id));
     }
-  }, [id, existingProduct, dispatch]);
+  }, [id, dispatch]);
 
   // Form states
   const [skuCode, setSkuCode] = useState(
@@ -84,7 +91,13 @@ const ProductFormPage: React.FC = () => {
   const [autoIndex, setAutoIndex] = useState(true);
 
   // Inline Photos (Gambar 2 requirement)
+  interface PendingPhotoUpload {
+    tempId: string;
+    file: File;
+    packageSide: BackendPhotoPackageSide;
+  }
   const [photos, setPhotos] = useState<Photo[]>(existingProduct?.photos || []);
+  const [pendingFiles, setPendingFiles] = useState<PendingPhotoUpload[]>([]);
   const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -120,7 +133,7 @@ const ProductFormPage: React.FC = () => {
     .split(' ')
     .filter(Boolean)
     .slice(0, 2)
-    .map((w) => w[0])
+    .map((w: string) => w[0])
     .join('')
     .toUpperCase() || 'SK';
 
@@ -212,34 +225,46 @@ const ProductFormPage: React.FC = () => {
 
     const hasExistingPrimary = photos.some((p) => p.is_primary);
 
-    validFiles.forEach((file, idx) => {
-      const isPrimary = !hasExistingPrimary && idx === 0;
+    const newPhotos: Photo[] = [];
+    const newPending: PendingPhotoUpload[] = [];
 
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        const dataUrl = event.target?.result as string;
-        const newPhoto: Photo = {
-          id: `photo-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`,
-          product_id: existingProduct?.id || 'temp',
-          url: dataUrl,
-          file_name: file.name,
-          angle: 'Depan',
-          package_side: 'front',
-          dimensions: `${(file.size / (1024 * 1024)).toFixed(1)} MB`,
-          status: 'indexed',
-          index_status: 'indexed',
-          is_primary: isPrimary,
-          created_at: new Date().toISOString(),
-        };
-        setPhotos((prev) => [...prev, newPhoto]);
-        showToast(
-          lang === 'id'
-            ? `Foto "${file.name}" berhasil ditambahkan.`
-            : `Photo "${file.name}" added.`
-        );
-      };
-      reader.readAsDataURL(file);
+    validFiles.forEach((file, idx) => {
+      const isPrimary = !hasExistingPrimary && photos.length === 0 && idx === 0;
+      const photoNum = photos.length + idx + 1;
+      const indexStr = String(photoNum).padStart(2, '0');
+      const imageName = `image ${indexStr}`;
+      const assignedSide: BackendPhotoPackageSide = isPrimary ? 'front' : 'other';
+      const tempId = `photo-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`;
+      const objectUrl = URL.createObjectURL(file);
+
+      newPhotos.push({
+        id: tempId,
+        product_id: existingProduct?.id || 'temp',
+        url: objectUrl,
+        file_name: imageName,
+        angle: imageName,
+        package_side: assignedSide,
+        dimensions: `${(file.size / (1024 * 1024)).toFixed(1)} MB`,
+        status: 'pending',
+        index_status: 'pending',
+        is_primary: isPrimary,
+        created_at: new Date().toISOString(),
+      });
+
+      newPending.push({
+        tempId,
+        file,
+        packageSide: assignedSide,
+      });
     });
+
+    setPhotos((prev) => [...prev, ...newPhotos]);
+    setPendingFiles((prev) => [...prev, ...newPending]);
+    showToast(
+      lang === 'id'
+        ? `${validFiles.length} foto ditambahkan ke daftar antrean simpan.`
+        : `${validFiles.length} photo(s) queued for upload.`
+    );
 
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
@@ -274,7 +299,7 @@ const ProductFormPage: React.FC = () => {
     }
   };
 
-  // Add instant realistic mock photo (convenience for demo / testing)
+  // Add instant realistic sample photo for testing / user convenience
   const handleAddSamplePhoto = () => {
     if (isReadOnly) return;
     const cleanProdName = name.trim() || 'Produk Halal';
@@ -296,13 +321,15 @@ const ProductFormPage: React.FC = () => {
     </svg>`;
     const dataUrl = `data:image/svg+xml;utf8,${encodeURIComponent(svgData)}`;
 
+    const sampleIndexStr = String(photos.length + 1).padStart(2, '0');
+    const sampleName = `image ${sampleIndexStr}`;
     const newPhoto: Photo = {
       id: `photo-sample-${Date.now()}-${Math.random().toString(36).substr(2, 4)}`,
       product_id: existingProduct?.id || 'temp',
       url: dataUrl,
-      file_name: `${(name || skuCode).toLowerCase().replace(/[^a-z0-9]/g, '_')}_sample_${photos.length + 1}.jpg`,
-      angle: 'Depan',
-      package_side: 'front',
+      file_name: sampleName,
+      angle: sampleName,
+      package_side: photos.length === 0 ? 'front' : 'other',
       dimensions: '2048 × 2048 · 1.8 MB',
       status: 'indexed',
       index_status: 'indexed',
@@ -320,6 +347,7 @@ const ProductFormPage: React.FC = () => {
   const handleRemovePhoto = (photoId: string) => {
     if (isReadOnly) return;
     setPhotos((prev) => prev.filter((p) => p.id !== photoId));
+    setPendingFiles((prev) => prev.filter((pf) => pf.tempId !== photoId));
     showToast(lang === 'id' ? 'Foto referensi dihapus.' : 'Photo removed.');
   };
 
@@ -345,53 +373,74 @@ const ProductFormPage: React.FC = () => {
 
     setIsSubmitting(true);
     try {
-      const productPayload: Partial<Product> = {
+      const normalizedHalalStatus: HalalStatus = halalStatus === 'halal' ? 'halal' : 'not_halal';
+      const certTrim = certNo.trim();
+      const productPayload: any = {
         sku_code: skuCode.trim(),
         name: name.trim(),
         manufacturer: manufacturer.trim(),
         category: category,
         brand: brand.trim() || name.split(' ')[0],
         description: description,
-        halal_status: halalStatus,
+        halal_status: normalizedHalalStatus,
         index_status: autoIndex ? (photos.length > 0 ? 'indexed' : 'pending') : 'pending',
-        halal_certificate: {
-          certificate_no: certNo.trim(),
-          issuer: issuer,
-          issued_date: issuedDate,
-          valid_until: validUntil,
-        },
-        photos: photos,
+        halal_certificate: certTrim
+          ? {
+              certificate_no: certTrim,
+              issuer: issuer || 'BPJPH',
+              issued_date: issuedDate.trim() ? issuedDate.trim() : null,
+              valid_until: validUntil.trim() ? validUntil.trim() : null,
+            }
+          : null,
       };
 
+      let targetId = '';
       if (isEditing) {
-        const targetId = existingProduct?.id || id!;
+        targetId = existingProduct?.id || id!;
         await dispatch(
-          updateProduct({ id: targetId, payload: productPayload as any })
+          updateProduct({ id: targetId, payload: productPayload })
         ).unwrap();
-        showToast(
-          lang === 'id'
-            ? 'Perubahan disimpan. Jejak audit dicatat (ENT-29).'
-            : 'Changes saved. Audit trail recorded (ENT-29).'
-        );
+      } else {
+        const res: any = await dispatch(createProduct(productPayload)).unwrap();
+        targetId = res?.data?.id || res?.id;
+      }
+
+      // Upload pending photo files directly to API-016 (POST /api/v1/products/{id}/photos)
+      if (targetId && pendingFiles.length > 0) {
+        for (const pf of pendingFiles) {
+          try {
+            await dispatch(
+              uploadPhoto({
+                productId: targetId,
+                file: pf.file,
+                packageSide: pf.packageSide,
+              })
+            ).unwrap();
+          } catch (uploadErr) {
+            console.warn('Failed to upload photo for product:', pf.file.name, uploadErr);
+          }
+        }
+        setPendingFiles([]);
+        await dispatch(fetchProductById(targetId));
+      }
+
+      showToast(
+        lang === 'id'
+          ? (isEditing ? 'Perubahan disimpan. Jejak audit dicatat (ENT-29).' : 'SKU berhasil didaftarkan. Jejak audit dicatat (ENT-29).')
+          : (isEditing ? 'Changes saved. Audit trail recorded (ENT-29).' : 'SKU successfully registered. Audit trail recorded (ENT-29).')
+      );
+
+      if (targetId) {
         navigate(`/produk/detail/${targetId}`);
       } else {
-        const res: any = await dispatch(createProduct(productPayload as any)).unwrap();
-        showToast(
-          lang === 'id'
-            ? 'SKU berhasil didaftarkan. Jejak audit dicatat (ENT-29).'
-            : 'SKU successfully registered. Audit trail recorded (ENT-29).'
-        );
-        const newId = res?.data?.id || res?.id;
-        if (newId) {
-          navigate(`/produk/detail/${newId}`);
-        } else {
-          navigate('/produk');
-        }
+        navigate('/produk');
       }
-    } catch {
-      showToast(
-        lang === 'id' ? 'Gagal menyimpan produk.' : 'Failed to save product.'
-      );
+    } catch (err: any) {
+      const errMsg =
+        err?.response?.data?.error?.user_message ||
+        err?.response?.data?.message ||
+        (lang === 'id' ? 'Gagal menyimpan produk.' : 'Failed to save product.');
+      showToast(errMsg);
     } finally {
       setIsSubmitting(false);
     }
@@ -1622,7 +1671,7 @@ const ProductFormPage: React.FC = () => {
                   marginTop: 6,
                 }}
               >
-                {photos.map((p) => (
+                {photos.map((p, idx) => (
                   <div
                     key={p.id}
                     style={{
@@ -1693,7 +1742,7 @@ const ProductFormPage: React.FC = () => {
                           }}
                           title={p.file_name}
                         >
-                          {p.file_name}
+                          {p.file_name?.startsWith('image ') ? p.file_name : `image ${String(idx + 1).padStart(2, '0')}`}
                         </div>
                         {p.dimensions && (
                           <span

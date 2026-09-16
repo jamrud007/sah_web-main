@@ -1,10 +1,73 @@
 // src/services/photoService.ts
 import api from './AxiosInstance';
 import type {
+  Photo,
+  PhotoStatus,
   BackendPhotoPackageSide,
   PhotoUploadResponse,
   PhotoActionResponse,
 } from '../types/apiDef';
+
+/**
+ * Builds an authenticated URL for an image endpoint.
+ * If imagePath starts with http or /api, appends ?token=... if token is available.
+ */
+export const buildPhotoUrl = (imagePath?: string, customToken?: string): string => {
+  if (!imagePath) return '';
+  if (imagePath.startsWith('blob:') || imagePath.startsWith('data:')) return imagePath;
+
+  const token =
+    customToken ||
+    localStorage.getItem('accessToken') ||
+    'test-token-catalog_admin-1';
+
+  if (token) {
+    if (imagePath.includes('token=')) return imagePath;
+    const separator = imagePath.includes('?') ? '&' : '?';
+    return `${imagePath}${separator}token=${encodeURIComponent(token)}`;
+  }
+  return imagePath;
+};
+
+/**
+ * Normalizes backend raw photo object into frontend Photo interface
+ */
+export const normalizePhoto = (raw: any, productId: string, token?: string): Photo => {
+  const photoId = raw.id || raw.photo_id;
+  const rawPath =
+    raw.image_path ||
+    raw.url ||
+    (photoId && productId ? `/api/v1/products/${productId}/photos/${photoId}/image` : '');
+  const url = buildPhotoUrl(rawPath, token);
+  const side = normalizePackageSide(raw.package_side || raw.angle);
+  const extractionStatus = raw.extraction_status || raw.status || raw.index_status || 'pending';
+  const status: PhotoStatus =
+    extractionStatus === 'extracted' || extractionStatus === 'indexed'
+      ? 'indexed'
+      : extractionStatus === 'failed'
+      ? 'failed'
+      : 'pending';
+
+  return {
+    id: photoId || `ph-${Math.random().toString(36).slice(2)}`,
+    product_id: productId || raw.product_id || '',
+    url,
+    image_path: raw.image_path || raw.url,
+    content_type: raw.content_type || 'image/jpeg',
+    package_side: side,
+    angle: packageSideDisplayLabel(side),
+    status,
+    index_status: status,
+    file_name: raw.file_name || `${packageSideDisplayLabel(side)}.jpg`,
+    file_size: raw.file_size,
+    width: raw.width || 2048,
+    height: raw.height || 2048,
+    dimensions: raw.dimensions || `${packageSideDisplayLabel(side)} · Foto SKU`,
+    qa_message: raw.qa_message || null,
+    created_at: raw.created_at || raw.uploaded_at || new Date().toISOString(),
+    is_primary: Boolean(raw.is_primary || side === 'front'),
+  };
+};
 
 /**
  * Normalizes input angle / package side into one of the backend allowed enum values:

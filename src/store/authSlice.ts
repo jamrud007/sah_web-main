@@ -11,12 +11,12 @@ export const ROLE_USER_MAP: Record<SahRole, { name: string; roleName: string; em
 };
 
 export const DEFAULT_USER: UserInfo = {
-  id: "usr-admin-02",
-  email: ROLE_USER_MAP['US-02'].email,
-  display_name: ROLE_USER_MAP['US-02'].name,
+  id: "usr-admin-01",
+  email: "catalog@sah.id",
+  display_name: "Administrator Katalog",
   role: "content_manager",
-  roles: ["content_manager"],
-  isAllRole: false,
+  roles: ["content_manager", "catalog_admin"],
+  isAllRole: true,
 };
 
 // Helper functions to safely read from localStorage
@@ -53,24 +53,22 @@ const getStoredToken = (): string | null => {
 
 const getStoredAccessToken = (): string | null => {
   try {
-    return localStorage.getItem("accessToken") || null;
+    return localStorage.getItem("accessToken") || "test-token-catalog_admin-1";
   } catch {
-    return null;
+    return "test-token-catalog_admin-1";
   }
 };
 
 // Initial state hydrated from localStorage or default dev user
-const storedUserInfo = getStoredUserInfo();
+const storedUserInfo = getStoredUserInfo() || DEFAULT_USER;
 const storedRefreshToken = getStoredToken();
 const storedAccessToken = getStoredAccessToken();
-// Only auto-authenticate if we have saved user info AND a token
-const hasSession = storedUserInfo !== null && (storedRefreshToken !== null || storedAccessToken !== null);
 
 const initialState: AuthState = {
   userInfo: storedUserInfo,
   accessToken: storedAccessToken,
   refreshToken: storedRefreshToken,
-  isAuthenticated: hasSession,
+  isAuthenticated: true, // Login dibypass untuk pengujian langsung API (Future Update)
   isLoading: false,
 };
 
@@ -157,10 +155,10 @@ export const authSlice = createSlice({
 
     // Clear state on logout
     logout: (state) => {
-      state.userInfo = null;
-      state.accessToken = null;
+      state.userInfo = DEFAULT_USER;
+      state.accessToken = "test-token-catalog_admin-1";
       state.refreshToken = null;
-      state.isAuthenticated = false;
+      state.isAuthenticated = true; // Tetap aktif dalam mode pengujian API
 
       // Clean up localStorage items
       localStorage.removeItem("userInfo");

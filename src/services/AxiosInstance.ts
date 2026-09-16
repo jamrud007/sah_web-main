@@ -11,27 +11,12 @@ const instance = axios.create({
 });
 
 instance.interceptors.request.use(
-  async (config) => {
+  (config) => {
     let token = store.getState().auth.accessToken || localStorage.getItem("accessToken");
-
-    // If no valid JWT token is available, attempt transparent login
-    if (!token || !token.startsWith("ey")) {
-      try {
-        const authRes = await axios.post("/auth/admin/login", {
-          email: "su@sah.id",
-          password: "halotec123",
-        });
-        if (authRes.data?.data?.token) {
-          const freshToken = String(authRes.data.data.token);
-          token = freshToken;
-          store.dispatch(updateAccessToken(freshToken));
-          localStorage.setItem("accessToken", freshToken);
-        }
-      } catch {
-        // ignore
-      }
+    // Fallback to documented dev test token if not set, so calls to sah-dev.halotec.site succeed
+    if (!token && (import.meta.env.DEV || !import.meta.env.VITE_BE_BASEURL)) {
+      token = "test-token-catalog_admin-1";
     }
-
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
@@ -75,32 +60,10 @@ instance.interceptors.response.use(
     return response;
   },
   async (error) => {
-    const originalRequest = error.config;
-    if ((error.response?.status === 401 || error.response?.status === 403) && !originalRequest._retry) {
-      originalRequest._retry = true;
-
-      const msg = error.response?.data?.message || error.response?.data?.error?.message || "";
-
-      // Blacklisted/revoked → full logout
-      if (msg.includes("blacklisted") || msg.includes("revoked")) {
-        store.dispatch(logout());
-        return Promise.reject(error);
-      }
-
-      // Try transparent re-authentication with dev credentials
-      try {
-        const authRes = await axios.post("/auth/admin/login", {
-          email: "su@sah.id",
-          password: "halotec123",
-        });
-        if (authRes.data?.data?.token) {
-          const freshToken = authRes.data.data.token;
-          store.dispatch(updateAccessToken(freshToken));
-          localStorage.setItem("accessToken", freshToken);
-          originalRequest.headers.Authorization = `Bearer ${freshToken}`;
-          return instance(originalRequest);
-        }
-      } catch {
+    // If token expired or unauthorized on protected endpoint, clear session cleanly
+    if (error.response?.status === 401) {
+      const currentToken = store.getState().auth.accessToken || localStorage.getItem("accessToken");
+      if (currentToken) {
         store.dispatch(logout());
       }
     }
@@ -108,9 +71,7 @@ instance.interceptors.response.use(
     if (error.response && error.response.status === 503) {
       const bc = new BroadcastChannel("error_channel");
       bc.postMessage("503");
-      console.log(
-        "Service Unavailable (503) error. Redirecting to error page.",
-      );
+      console.warn("Service Unavailable (503) error received.");
     }
 
     return Promise.reject(error);

@@ -105,3 +105,29 @@ table {
   background: rgba(23, 36, 58, 0.16);
   border-radius: 999px;
 }
+
+/* ── Responsive Mobile & Tablet Drawer ────────────────────────── */
+.sah-hamburger-btn {
+  display: none !important;
+}
+
+@media (max-width: 992px) {
+  .sah-hamburger-btn {
+    display: grid !important;
+  }
+  
+  .sah-sidebar-desktop {
+    display: none !important;
+  }
+}
+
+@media (max-width: 640px) {
+  .sah-topbar-search {
+    width: 140px !important;
+  }
+  
+  .sah-topbar-title {
+    display: none !important;
+  }
+}
+

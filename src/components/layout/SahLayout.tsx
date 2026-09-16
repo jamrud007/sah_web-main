@@ -1,7 +1,7 @@
 // src/components/layout/SahLayout.tsx
 // Exact 1:1 markup, styling, and navigation from SAH Web Admin (standalone).html
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useLocation, Link, useNavigate } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '../../store';
 import {
@@ -33,9 +33,27 @@ const SahLayout: React.FC<SahLayoutProps> = ({ children }) => {
   const userInfo = useAppSelector((s) => s.auth.userInfo);
   const { showToast, stateDemo, setStateDemo, lang, setLang } = useSahToast();
 
+  const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
+  const [globalSearch, setGlobalSearch] = useState('');
+
+  // Close mobile drawer on route change
+  useEffect(() => {
+    setMobileDrawerOpen(false);
+  }, [location.pathname]);
+
   const handleLogout = async () => {
     await dispatch(logoutAsync());
     navigate('/login', { replace: true });
+  };
+
+  const handleGlobalSearch = (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    const q = globalSearch.trim();
+    if (q) {
+      navigate(`/produk?q=${encodeURIComponent(q)}`);
+    } else {
+      navigate('/produk');
+    }
   };
 
   const isAllRole = checkIsAllRole(userInfo);
@@ -97,10 +115,280 @@ const SahLayout: React.FC<SahLayoutProps> = ({ children }) => {
 
   const gapMessage = GAPS[currentScreen.h];
 
+  const renderNavList = () => (
+    <div
+      style={{
+        flex: 1,
+        overflowY: 'auto',
+        padding: '14px 12px 10px',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 16,
+      }}
+    >
+      {navGroups.map((g, gi) => (
+        <div key={gi} style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+          <div
+            style={{
+              padding: '0 10px 6px',
+              fontSize: 9.5,
+              fontWeight: 700,
+              letterSpacing: 1.8,
+              textTransform: 'uppercase',
+              color: 'var(--sah-copper)',
+            }}
+          >
+            {g?.label}
+          </div>
+          {g?.items.map((it, ii) => (
+            <Link
+              key={ii}
+              to={it.href}
+              onClick={() => setMobileDrawerOpen(false)}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 10,
+                padding: '9px 11px',
+                borderRadius: 13,
+                background: it.active ? 'rgba(197,138,99,.22)' : 'transparent',
+                border: it.active ? '1px solid var(--sah-copper)' : '1px solid transparent',
+                color: it.active ? 'var(--sah-white)' : 'rgba(255,253,248,.76)',
+                fontSize: 13,
+                fontWeight: it.active ? 600 : 400,
+                textDecoration: 'none',
+                transition: 'all .15s ease',
+              }}
+              onMouseEnter={(e) => {
+                if (!it.active) e.currentTarget.style.background = 'rgba(255,253,248,.07)';
+              }}
+              onMouseLeave={(e) => {
+                if (!it.active) e.currentTarget.style.background = 'transparent';
+              }}
+            >
+              <svg
+                width="17"
+                height="17"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.8"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                style={{ flex: 'none', opacity: 0.9 }}
+              >
+                <path d={it.icon} />
+              </svg>
+              <span
+                style={{
+                  flex: 1,
+                  minWidth: 0,
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  whiteSpace: 'nowrap',
+                }}
+              >
+                {it.label}
+              </span>
+              <span style={{ fontSize: 9, letterSpacing: 0.5, color: 'rgba(255,253,248,.4)' }}>
+                {it.num}
+              </span>
+            </Link>
+          ))}
+        </div>
+      ))}
+    </div>
+  );
+
+  const renderUserFooter = () => (
+    <div
+      style={{
+        padding: '14px 16px',
+        borderTop: '1px solid rgba(255,253,248,.1)',
+        display: 'flex',
+        alignItems: 'center',
+        gap: 11,
+      }}
+    >
+      <div
+        style={{
+          width: 34,
+          height: 34,
+          borderRadius: 12,
+          background: 'var(--sah-blue)',
+          display: 'grid',
+          placeItems: 'center',
+          fontFamily: "'Plus Jakarta Sans', sans-serif",
+          fontWeight: 700,
+          fontSize: 12.5,
+          color: 'var(--sah-white)',
+          flex: 'none',
+        }}
+      >
+        {meInit}
+      </div>
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div
+          style={{
+            fontSize: 12.5,
+            fontWeight: 600,
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            whiteSpace: 'nowrap',
+            color: 'var(--sah-white)',
+          }}
+        >
+          {meName}
+        </div>
+        <div
+          style={{
+            fontSize: 10.5,
+            color: 'rgba(255,253,248,.55)',
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            whiteSpace: 'nowrap',
+          }}
+        >
+          {meEmail || roleName}
+        </div>
+      </div>
+      <button
+        title="Keluar"
+        onClick={handleLogout}
+        style={{
+          background: 'none',
+          border: 0,
+          color: 'rgba(255,253,248,.6)',
+          padding: 0,
+          cursor: 'pointer',
+          display: 'grid',
+          placeItems: 'center',
+        }}
+      >
+        <svg
+          width="17"
+          height="17"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.8"
+          strokeLinecap="round"
+        >
+          <path d="M15 17l5-5-5-5M20 12H9M12 20H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h6" />
+        </svg>
+      </button>
+    </div>
+  );
+
   return (
-    <div style={{ display: 'flex', minHeight: '100vh', background: 'var(--sah-ivory)' }}>
-      {/* ── SIDEBAR ────────────────────────────────────────── */}
+    <div style={{ display: 'flex', minHeight: '100vh', background: 'var(--sah-ivory)', position: 'relative' }}>
+      {/* ── MOBILE DRAWER BACKDROP ───────────────────────────── */}
+      {mobileDrawerOpen && (
+        <div
+          onClick={() => setMobileDrawerOpen(false)}
+          style={{
+            position: 'fixed',
+            inset: 0,
+            background: 'rgba(14, 22, 36, 0.65)',
+            backdropFilter: 'blur(3px)',
+            WebkitBackdropFilter: 'blur(3px)',
+            zIndex: 90,
+          }}
+        />
+      )}
+
+      {/* ── MOBILE OFF-CANVAS DRAWER ─────────────────────────── */}
+      <div
+        style={{
+          position: 'fixed',
+          top: 0,
+          bottom: 0,
+          left: 0,
+          width: 260,
+          background: 'var(--sah-navy)',
+          color: 'var(--sah-white)',
+          display: 'flex',
+          flexDirection: 'column',
+          zIndex: 100,
+          boxShadow: mobileDrawerOpen ? '0 0 30px rgba(0,0,0,0.5)' : 'none',
+          transform: mobileDrawerOpen ? 'translateX(0)' : 'translateX(-100%)',
+          transition: 'transform 0.28s cubic-bezier(0.4, 0, 0.2, 1)',
+          pointerEvents: mobileDrawerOpen ? 'auto' : 'none',
+          visibility: mobileDrawerOpen ? 'visible' : 'hidden',
+        }}
+      >
+        <div
+          style={{
+            padding: '20px 18px 16px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            borderBottom: '1px solid rgba(255,253,248,.1)',
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: 11 }}>
+            <div
+              style={{
+                width: 34,
+                height: 34,
+                borderRadius: 12,
+                background: 'var(--sah-copper)',
+                display: 'grid',
+                placeItems: 'center',
+                fontFamily: "'Plus Jakarta Sans', sans-serif",
+                fontWeight: 800,
+                fontSize: 13.5,
+                color: 'var(--sah-white)',
+              }}
+            >
+              SH
+            </div>
+            <div>
+              <div
+                style={{
+                  fontFamily: "'Plus Jakarta Sans', sans-serif",
+                  fontWeight: 700,
+                  fontSize: 14.5,
+                  letterSpacing: -0.2,
+                  color: 'var(--sah-white)',
+                }}
+              >
+                Sahabat Halal
+              </div>
+              <div style={{ fontSize: 10.5, color: 'rgba(255,253,248,.55)', letterSpacing: 0.4 }}>
+                Web Administratif
+              </div>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={() => setMobileDrawerOpen(false)}
+            title="Tutup Menu"
+            style={{
+              background: 'rgba(255,253,248,.1)',
+              border: 0,
+              borderRadius: 8,
+              width: 32,
+              height: 32,
+              display: 'grid',
+              placeItems: 'center',
+              color: 'var(--sah-white)',
+              cursor: 'pointer',
+            }}
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+              <line x1="18" y1="6" x2="6" y2="18" />
+              <line x1="6" y1="6" x2="18" y2="18" />
+            </svg>
+          </button>
+        </div>
+        {renderNavList()}
+        {renderUserFooter()}
+      </div>
+
+      {/* ── DESKTOP STICKY SIDEBAR ──────────────────────────── */}
       <aside
+        className="sah-sidebar-desktop"
         style={{
           width: 248,
           flex: 'none',
@@ -159,167 +447,8 @@ const SahLayout: React.FC<SahLayoutProps> = ({ children }) => {
           </div>
         </div>
 
-        {/* Navigation List */}
-        <div
-          style={{
-            flex: 1,
-            overflowY: 'auto',
-            padding: '14px 12px 10px',
-            display: 'flex',
-            flexDirection: 'column',
-            gap: 16,
-          }}
-        >
-          {navGroups.map((g, gi) => (
-            <div key={gi} style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-              <div
-                style={{
-                  padding: '0 10px 6px',
-                  fontSize: 9.5,
-                  fontWeight: 700,
-                  letterSpacing: 1.8,
-                  textTransform: 'uppercase',
-                  color: 'var(--sah-copper)',
-                }}
-              >
-                {g?.label}
-              </div>
-              {g?.items.map((it, ii) => (
-                <Link
-                  key={ii}
-                  to={it.href}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 10,
-                    padding: '9px 11px',
-                    borderRadius: 13,
-                    background: it.active ? 'rgba(197,138,99,.22)' : 'transparent',
-                    border: it.active ? '1px solid var(--sah-copper)' : '1px solid transparent',
-                    color: it.active ? 'var(--sah-white)' : 'rgba(255,253,248,.76)',
-                    fontSize: 13,
-                    fontWeight: it.active ? 600 : 400,
-                    textDecoration: 'none',
-                    transition: 'all .15s ease',
-                  }}
-                  onMouseEnter={(e) => {
-                    if (!it.active) e.currentTarget.style.background = 'rgba(255,253,248,.07)';
-                  }}
-                  onMouseLeave={(e) => {
-                    if (!it.active) e.currentTarget.style.background = 'transparent';
-                  }}
-                >
-                  <svg
-                    width="17"
-                    height="17"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="1.8"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    style={{ flex: 'none', opacity: 0.9 }}
-                  >
-                    <path d={it.icon} />
-                  </svg>
-                  <span
-                    style={{
-                      flex: 1,
-                      minWidth: 0,
-                      overflow: 'hidden',
-                      textOverflow: 'ellipsis',
-                      whiteSpace: 'nowrap',
-                    }}
-                  >
-                    {it.label}
-                  </span>
-                  <span style={{ fontSize: 9, letterSpacing: 0.5, color: 'rgba(255,253,248,.4)' }}>
-                    {it.num}
-                  </span>
-                </Link>
-              ))}
-            </div>
-          ))}
-        </div>
-
-        {/* User Profile Footer */}
-        <div
-          style={{
-            padding: '14px 16px',
-            borderTop: '1px solid rgba(255,253,248,.1)',
-            display: 'flex',
-            alignItems: 'center',
-            gap: 11,
-          }}
-        >
-          <div
-            style={{
-              width: 34,
-              height: 34,
-              borderRadius: 12,
-              background: 'var(--sah-blue)',
-              display: 'grid',
-              placeItems: 'center',
-              fontFamily: "'Plus Jakarta Sans', sans-serif",
-              fontWeight: 700,
-              fontSize: 12.5,
-              color: 'var(--sah-white)',
-              flex: 'none',
-            }}
-          >
-            {meInit}
-          </div>
-          <div style={{ flex: 1, minWidth: 0 }}>
-            <div
-              style={{
-                fontSize: 12.5,
-                fontWeight: 600,
-                overflow: 'hidden',
-                textOverflow: 'ellipsis',
-                whiteSpace: 'nowrap',
-                color: 'var(--sah-white)',
-              }}
-            >
-              {meName}
-            </div>
-            <div
-              style={{
-                fontSize: 10.5,
-                color: 'rgba(255,253,248,.55)',
-                overflow: 'hidden',
-                textOverflow: 'ellipsis',
-                whiteSpace: 'nowrap',
-              }}
-            >
-              {meEmail || roleName}
-            </div>
-          </div>
-          <button
-            title="Keluar"
-            onClick={handleLogout}
-            style={{
-              background: 'none',
-              border: 0,
-              color: 'rgba(255,253,248,.6)',
-              padding: 0,
-              cursor: 'pointer',
-              display: 'grid',
-              placeItems: 'center',
-            }}
-          >
-            <svg
-              width="17"
-              height="17"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="1.8"
-              strokeLinecap="round"
-            >
-              <path d="M15 17l5-5-5-5M20 12H9M12 20H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h6" />
-            </svg>
-          </button>
-        </div>
+        {renderNavList()}
+        {renderUserFooter()}
       </aside>
 
       {/* ── MAIN CONTENT CONTAINER ──────────────────────────── */}
@@ -338,15 +467,49 @@ const SahLayout: React.FC<SahLayoutProps> = ({ children }) => {
             borderBottom: '1px solid var(--sah-line)',
             display: 'flex',
             alignItems: 'center',
-            gap: 18,
-            padding: '0 28px',
+            gap: 14,
+            padding: '0 24px',
           }}
         >
+          {/* Mobile / Tablet Hamburger Toggle */}
+          <button
+            type="button"
+            className="sah-hamburger-btn"
+            onClick={() => setMobileDrawerOpen(true)}
+            title="Buka Menu Navigasi"
+            style={{
+              width: 38,
+              height: 38,
+              border: '1px solid var(--sah-line)',
+              borderRadius: 14,
+              background: 'var(--sah-white)',
+              placeItems: 'center',
+              cursor: 'pointer',
+              flex: 'none',
+              color: 'var(--sah-navy)',
+            }}
+          >
+            <svg
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+            >
+              <line x1="3" y1="6" x2="21" y2="6" />
+              <line x1="3" y1="12" x2="21" y2="12" />
+              <line x1="3" y1="18" x2="21" y2="18" />
+            </svg>
+          </button>
+
           <div style={{ minWidth: 0 }}>
             <div style={{ fontSize: 10.5, color: 'var(--sah-muted)', letterSpacing: 0.3 }}>
               Sahabat Halal · {currentMod[lang]} · {currentScreen.c}
             </div>
             <div
+              className="sah-topbar-title"
               style={{
                 fontFamily: "'Plus Jakarta Sans', sans-serif",
                 fontWeight: 700,
@@ -364,8 +527,10 @@ const SahLayout: React.FC<SahLayoutProps> = ({ children }) => {
 
           <div style={{ flex: 1 }} />
 
-          {/* Search bar */}
-          <label
+          {/* Search bar (BUG-12) */}
+          <form
+            onSubmit={handleGlobalSearch}
+            className="sah-topbar-search"
             style={{
               display: 'flex',
               alignItems: 'center',
@@ -376,20 +541,37 @@ const SahLayout: React.FC<SahLayoutProps> = ({ children }) => {
               borderRadius: 14,
               background: 'var(--sah-white)',
               width: 236,
+              margin: 0,
             }}
           >
-            <svg
-              width="15"
-              height="15"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="var(--sah-muted)"
-              strokeWidth="1.8"
-              strokeLinecap="round"
+            <button
+              type="submit"
+              title="Cari"
+              style={{
+                background: 'none',
+                border: 0,
+                padding: 0,
+                display: 'grid',
+                placeItems: 'center',
+                cursor: 'pointer',
+                color: 'var(--sah-muted)',
+              }}
             >
-              <path d="M11 19a8 8 0 1 1 0-16 8 8 0 0 1 0 16M21 21l-4.3-4.3" />
-            </svg>
+              <svg
+                width="15"
+                height="15"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.8"
+                strokeLinecap="round"
+              >
+                <path d="M11 19a8 8 0 1 1 0-16 8 8 0 0 1 0 16M21 21l-4.3-4.3" />
+              </svg>
+            </button>
             <input
+              value={globalSearch}
+              onChange={(e) => setGlobalSearch(e.target.value)}
               placeholder={t.search}
               style={{
                 border: 0,
@@ -400,7 +582,7 @@ const SahLayout: React.FC<SahLayoutProps> = ({ children }) => {
                 color: 'var(--sah-navy)',
               }}
             />
-          </label>
+          </form>
 
           {/* Notification Button */}
           <button

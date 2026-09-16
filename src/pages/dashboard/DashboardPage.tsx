@@ -18,21 +18,27 @@ const DashboardPage: React.FC = () => {
   const me = ROLE_USER_MAP[currentSahRole] || ROLE_USER_MAP['US-02'];
   const firstName = (userInfo?.display_name || me.name).split(' ')[0];
 
+  const pendingIndexCount = products.filter((p) => p.index_status === 'pending').length;
+  const failedIndexCount = products.filter((p) => p.index_status === 'failed').length;
+  const indexedCount = products.filter((p) => p.index_status === 'indexed').length;
+  const halalCount = products.filter((p) => p.halal_status === 'halal').length;
+  const nonHalalCount = products.filter((p) => p.halal_status !== 'halal').length;
+
   const kpiRole = {
     'US-02': [
-      { v: String(products.length || '1.284'), l: 'SKU aktif di katalog' },
-      { v: '146', l: 'Materi konten' },
-      { v: '37', l: 'Antrean kurasi & laporan' },
+      { v: String(products.length), l: 'SKU aktif di katalog' },
+      { v: String(indexedCount), l: 'SKU terindeks AI' },
+      { v: String(pendingIndexCount), l: 'Antrean indeks AI' },
     ],
     'US-04': [
-      { v: '14', l: 'Akun internal aktif' },
-      { v: '23', l: 'Klaim menunggu keputusan' },
-      { v: '5', l: 'Permintaan hapus akun' },
+      { v: String(products.length), l: 'SKU terdaftar' },
+      { v: String(halalCount), l: 'Sertifikat halal valid' },
+      { v: String(nonHalalCount), l: 'Belum bersertifikat' },
     ],
     'US-05': [
-      { v: '92.417', l: 'Sesi pemindaian 30 hari' },
-      { v: '0,84', l: 'Skor kemiripan rata-rata' },
-      { v: '8', l: 'Produk di bawah ambang mutu' },
+      { v: String(products.length), l: 'SKU terdaftar' },
+      { v: String(indexedCount), l: 'Vektor visual siap' },
+      { v: String(failedIndexCount), l: 'Perlu perbaikan mutu' },
     ],
   }[currentSahRole];
 
@@ -40,10 +46,13 @@ const DashboardPage: React.FC = () => {
     {
       tag: 'Katalog produk',
       code: 'SCR-WEB-03',
-      n: '6',
+      n: String(pendingIndexCount),
       t: 'SKU menunggu indeks',
-      d: '2 SKU galat ekstraksi fitur visual.',
-      pct: '22%',
+      d:
+        failedIndexCount > 0
+          ? `${failedIndexCount} SKU galat ekstraksi fitur visual.`
+          : 'Seluruh antrean siap diproses.',
+      pct: products.length > 0 ? `${Math.round((pendingIndexCount / products.length) * 100)}%` : '0%',
       bar: 'var(--sah-copper)',
       meta: 'Penambahan SKU tanpa pelatihan ulang model (AR-01).',
       href: '/produk',
@@ -84,7 +93,15 @@ const DashboardPage: React.FC = () => {
               color: 'var(--sah-copper-pale)',
             }}
           >
-            {lang === 'id' ? 'Antrean hari ini · 12 April 2026' : "Today's queues · 12 April 2026"}
+            {(() => {
+              const now = new Date();
+              const dateStr = now.toLocaleDateString(lang === 'id' ? 'id-ID' : 'en-US', {
+                day: 'numeric',
+                month: 'long',
+                year: 'numeric',
+              });
+              return lang === 'id' ? `Antrean hari ini · ${dateStr}` : `Today's queues · ${dateStr}`;
+            })()}
           </div>
           <div
             style={{
@@ -95,7 +112,19 @@ const DashboardPage: React.FC = () => {
               marginTop: 6,
             }}
           >
-            {lang === 'id' ? `Selamat pagi, ${firstName}.` : `Good morning, ${firstName}.`}
+            {(() => {
+              const hour = new Date().getHours();
+              if (lang === 'id') {
+                if (hour >= 4 && hour < 11) return `Selamat pagi, ${firstName}.`;
+                if (hour >= 11 && hour < 15) return `Selamat siang, ${firstName}.`;
+                if (hour >= 15 && hour < 18) return `Selamat sore, ${firstName}.`;
+                return `Selamat malam, ${firstName}.`;
+              } else {
+                if (hour >= 4 && hour < 12) return `Good morning, ${firstName}.`;
+                if (hour >= 12 && hour < 17) return `Good afternoon, ${firstName}.`;
+                return `Good evening, ${firstName}.`;
+              }
+            })()}
           </div>
           <div style={{ fontSize: 13, color: 'rgba(255,253,248,.78)', marginTop: 4, maxWidth: 440 }}>
             {lang === 'id'
