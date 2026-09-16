@@ -103,6 +103,27 @@ const ProductFormPage: React.FC = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const isSubmittingRef = useRef(false);
 
+  // Duplicate Conflict Modal State (ERR-4002)
+  const [duplicateModalOpen, setDuplicateModalOpen] = useState(false);
+  const [duplicateConflictInfo, setDuplicateConflictInfo] = useState<{
+    skuCode: string;
+    certNo: string;
+    message: string;
+  } | null>(null);
+
+  const handleAutoResolveDuplicate = () => {
+    const newSku = `SKU-${Math.floor(100000 + Math.random() * 900000)}`;
+    const newCert = `ID00410000${Math.floor(100000000 + Math.random() * 900000000)}`;
+    setSkuCode(newSku);
+    setCertNo(newCert);
+    setDuplicateModalOpen(false);
+    showToast(
+      lang === 'id'
+        ? 'Kode SKU & Nomor Sertifikat diperbarui dengan nomor unik baru. Silakan klik Simpan kembali.'
+        : 'SKU Code & Certificate Number updated with unique values. Please click Save again.'
+    );
+  };
+
   // Sync form state on route param / product change, and cleanly RESET when adding new SKU
   useEffect(() => {
     if (id && existingProduct) {
@@ -471,9 +492,15 @@ const ProductFormPage: React.FC = () => {
         (lang === 'id' ? 'Gagal menyimpan produk.' : 'Failed to save product.');
 
       if (serverErrCode === 'ERR-4002' || errMsg.includes('already exists') || errMsg.includes('Data sudah ada')) {
+        setDuplicateConflictInfo({
+          skuCode: skuCode.trim(),
+          certNo: certNo.trim(),
+          message: rawUserMsg || 'Active sku_code already exists',
+        });
+        setDuplicateModalOpen(true);
         errMsg = lang === 'id'
-          ? 'Data sudah ada (ERR-4002): Kode SKU atau Nomor Sertifikat Halal sudah terdaftar pada database. Harap ubah Kode SKU / Nomor Sertifikat.'
-          : 'Duplicate (ERR-4002): The SKU Code or Halal Certificate Number already exists in the database. Please use a unique Code / Certificate Number.';
+          ? 'Data sudah terdaftar pada produk lain (ERR-4002).'
+          : 'Data already exists on another product (ERR-4002).';
       }
       showToast(errMsg);
     } finally {
@@ -483,7 +510,8 @@ const ProductFormPage: React.FC = () => {
   };
 
   return (
-    <form onSubmit={handleSubmit}>
+    <>
+      <form onSubmit={handleSubmit}>
       {/* Top Context Navigation Bar */}
       <div
         style={{
@@ -2166,6 +2194,200 @@ const ProductFormPage: React.FC = () => {
         </div>
       </div>
     </form>
+
+    {/* Informative Duplicate Data Modal (ERR-4002) */}
+    {duplicateModalOpen && (
+      <div
+        style={{
+          position: 'fixed',
+          inset: 0,
+          zIndex: 9999,
+          background: 'rgba(23,36,58,.55)',
+          backdropFilter: 'blur(5px)',
+          display: 'grid',
+          placeItems: 'center',
+          padding: 20,
+          animation: 'fadeIn .15s ease',
+        }}
+        onClick={(e) => {
+          if (e.target === e.currentTarget) setDuplicateModalOpen(false);
+        }}
+      >
+        <div
+          style={{
+            width: '100%',
+            maxWidth: 480,
+            background: 'var(--sah-white)',
+            borderRadius: 24,
+            border: '1px solid var(--sah-line)',
+            boxShadow: '0 20px 45px rgba(23,36,58,.25)',
+            padding: '28px 26px 24px',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 16,
+            animation: 'rise .2s ease',
+            boxSizing: 'border-box',
+          }}
+        >
+          {/* Modal Header */}
+          <div style={{ display: 'flex', alignItems: 'flex-start', gap: 14 }}>
+            <div
+              style={{
+                width: 46,
+                height: 46,
+                borderRadius: 15,
+                background: 'rgba(217, 119, 6, 0.12)',
+                display: 'grid',
+                placeItems: 'center',
+                color: '#d97706',
+                flex: 'none',
+                border: '1px solid rgba(217, 119, 6, 0.25)',
+              }}
+            >
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
+                <line x1="12" y1="9" x2="12" y2="13" />
+                <line x1="12" y1="17" x2="12.01" y2="17" />
+              </svg>
+            </div>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div
+                style={{
+                  fontFamily: "'Plus Jakarta Sans', sans-serif",
+                  fontWeight: 800,
+                  fontSize: 17,
+                  color: 'var(--sah-navy)',
+                  lineHeight: 1.3,
+                }}
+              >
+                Data Sudah Terdaftar di Produk Lain
+              </div>
+              <div style={{ fontSize: 12, color: '#d97706', fontWeight: 600, marginTop: 3 }}>
+                Konflik Keunikan Database (Kode: ERR-4002)
+              </div>
+            </div>
+          </div>
+
+          {/* Explanation text */}
+          <div style={{ fontSize: 12.5, color: 'var(--sah-frame)', lineHeight: 1.55 }}>
+            Database Sahabat Halal mewajibkan <strong>Kode SKU</strong> dan <strong>Nomor Sertifikat Halal</strong> bersifat unik. Salah satu atau kedua nilai berikut saat ini sudah terdaftar pada produk lain di katalog:
+          </div>
+
+          {/* Conflict Detail Box */}
+          <div
+            style={{
+              background: 'var(--sah-ivory)',
+              border: '1px solid var(--sah-line)',
+              borderRadius: 16,
+              padding: '12px 16px',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 8,
+            }}
+          >
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: 12.5 }}>
+              <span style={{ color: 'var(--sah-muted)', fontWeight: 600 }}>Kode SKU Input:</span>
+              <span
+                style={{
+                  fontFamily: "'Plus Jakarta Sans', monospace",
+                  fontWeight: 800,
+                  color: 'var(--sah-navy)',
+                  background: 'var(--sah-white)',
+                  padding: '2px 8px',
+                  borderRadius: 6,
+                  border: '1px solid var(--sah-line)',
+                }}
+              >
+                {duplicateConflictInfo?.skuCode || skuCode}
+              </span>
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: 12.5 }}>
+              <span style={{ color: 'var(--sah-muted)', fontWeight: 600 }}>Nomor Sertifikat Halal:</span>
+              <span
+                style={{
+                  fontFamily: "'Plus Jakarta Sans', monospace",
+                  fontWeight: 800,
+                  color: 'var(--sah-navy)',
+                  background: 'var(--sah-white)',
+                  padding: '2px 8px',
+                  borderRadius: 6,
+                  border: '1px solid var(--sah-line)',
+                }}
+              >
+                {duplicateConflictInfo?.certNo || certNo || '(Kosong)'}
+              </span>
+            </div>
+          </div>
+
+          {/* Tip Box */}
+          <div
+            style={{
+              fontSize: 12,
+              color: 'var(--sah-navy)',
+              background: 'rgba(39, 110, 144, 0.08)',
+              border: '1px solid rgba(39, 110, 144, 0.2)',
+              borderRadius: 12,
+              padding: '10px 12px',
+              lineHeight: 1.45,
+            }}
+          >
+            💡 <strong>Solusi Cepat:</strong> Klik tombol <strong>"Acak Ulang Otomatis"</strong> di bawah agar sistem membuatkan Kode SKU dan Nomor Sertifikat baru yang terjamin unik, tanpa menghapus nama produk yang sudah Anda ketik.
+          </div>
+
+          {/* Action Buttons */}
+          <div style={{ display: 'flex', gap: 10, marginTop: 4 }}>
+            <button
+              type="button"
+              onClick={handleAutoResolveDuplicate}
+              style={{
+                flex: 1,
+                height: 42,
+                borderRadius: 14,
+                border: 0,
+                background: 'var(--sah-copper)',
+                color: 'var(--sah-white)',
+                fontFamily: "'Plus Jakarta Sans', sans-serif",
+                fontWeight: 700,
+                fontSize: 13,
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: 6,
+                transition: 'background .15s ease',
+              }}
+              onMouseEnter={(e) => (e.currentTarget.style.background = 'var(--sah-copper-pressed)')}
+              onMouseLeave={(e) => (e.currentTarget.style.background = 'var(--sah-copper)')}
+            >
+              <span>⚡ Acak Ulang Otomatis</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setDuplicateModalOpen(false)}
+              style={{
+                height: 42,
+                padding: '0 18px',
+                borderRadius: 14,
+                border: '1px solid var(--sah-line)',
+                background: 'var(--sah-white)',
+                color: 'var(--sah-navy)',
+                fontFamily: "'Plus Jakarta Sans', sans-serif",
+                fontWeight: 700,
+                fontSize: 13,
+                cursor: 'pointer',
+                transition: 'border-color .15s ease',
+              }}
+              onMouseEnter={(e) => (e.currentTarget.style.borderColor = 'var(--sah-copper)')}
+              onMouseLeave={(e) => (e.currentTarget.style.borderColor = 'var(--sah-line)')}
+            >
+              Ubah Manual
+            </button>
+          </div>
+        </div>
+      </div>
+    )}
+    </>
   );
 };
 
