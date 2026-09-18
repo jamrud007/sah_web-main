@@ -28,9 +28,9 @@ export default defineConfig({
         secure: false,
         rewrite: (path) => path.replace(/^\/admin/, '/v1/admin'),
       },
-      // Product & Photo & Scan API (FastAPI /ai endpoint)
+      // Product & Photo & Scan API (FastAPI / sah-dev)
       '/api': {
-        target: 'http://47.237.223.240:8010/ai',
+        target: 'https://sah-dev.halotec.site',
         changeOrigin: true,
         secure: false,
         headers: {
