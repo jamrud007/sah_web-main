@@ -291,13 +291,17 @@ export const getSahRole = (userInfo?: UserInfo | null): SahRole => {
   if (['super_user', 'admin', 'administrator', 'superuser', 'system_admin'].includes(role)) {
     return 'US-04';
   }
-  if (['analyst', 'analytic', 'us-05'].includes(role) || email.includes('lestari')) {
+  if (['analyst', 'analytic', 'us-05', 'viewer', 'guest', 'read_only', 'user'].includes(role) || email.includes('lestari') || email.includes('viewer')) {
     return 'US-05';
   }
   return 'US-02';
 };
 
 export const checkIsReadOnly = (userInfo?: UserInfo | null): boolean => {
+  // Support explicit view-only mode via .env (VITE_READ_ONLY=true) or localStorage
+  if (import.meta.env.VITE_READ_ONLY === 'true' || localStorage.getItem('view_only_mode') === 'true') {
+    return true;
+  }
   if (checkIsAllRole(userInfo)) return false; // Super admin / allrole is never read-only
   const role = getSahRole(userInfo);
   return role === 'US-04' || role === 'US-05';
