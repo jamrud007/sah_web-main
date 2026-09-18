@@ -19,6 +19,69 @@ export interface ProductListParams {
   sort?: string;
 }
 
+export const TEH_PUCUK_PRODUCT: Product = {
+  id: 'bd40f556-75a3-4015-900d-382360610f27',
+  sku_code: 'PROD-TEH-PUCUK-01',
+  name: 'Teh Pucuk Harum',
+  manufacturer: 'PT Tirta Fresindo Jaya (Mayora Group)',
+  brand: 'Teh Pucuk Harum',
+  category: 'Teh',
+  halal_status: 'halal',
+  halal_registered_at: null,
+  index_status: 'indexed',
+  halal_certificates: [
+    {
+      id: 'd92bb491-b758-45da-ae22-d6460893fbcf',
+      sku_id: 'bd40f556-75a3-4015-900d-382360610f27',
+      certificate_no: 'ID00410000055901119',
+      issuer: 'BPJPH',
+      issued_date: '2021-04-09',
+      valid_until: null,
+    },
+  ],
+  deleted_at: null,
+  created_at: '2026-09-16T02:28:16.695918+00:00',
+  updated_at: '2026-09-16T02:28:32.066358+00:00',
+  photos: [
+    {
+      id: 'a4cf7e31-a46c-4d29-ac61-353a8d9f6101',
+      product_id: 'bd40f556-75a3-4015-900d-382360610f27',
+      package_side: 'front',
+      angle: 'Depan',
+      status: 'indexed',
+      index_status: 'indexed',
+      extraction_status: 'extracted',
+      content_type: 'image/jpeg',
+      uploaded_at: '2026-09-16T02:28:30.661423+00:00',
+      image_path:
+        'https://storage.googleapis.com/sah-media/products/bd40f556-75a3-4015-900d-382360610f27/reference/481ae800-6e56-4b6f-a202-7dd3fd1af422.jpg',
+      url:
+        'https://storage.googleapis.com/sah-media/products/bd40f556-75a3-4015-900d-382360610f27/reference/481ae800-6e56-4b6f-a202-7dd3fd1af422.jpg',
+      file_name: 'front.jpg',
+      is_primary: true,
+    },
+    {
+      id: '5dfcaa28-203a-495d-8759-c0eeb18d55e8',
+      product_id: 'bd40f556-75a3-4015-900d-382360610f27',
+      package_side: 'front',
+      angle: 'Depan',
+      status: 'indexed',
+      index_status: 'indexed',
+      extraction_status: 'extracted',
+      content_type: 'image/jpeg',
+      uploaded_at: '2026-09-16T02:28:34.461138+00:00',
+      image_path:
+        'https://storage.googleapis.com/sah-media/products/bd40f556-75a3-4015-900d-382360610f27/reference/91218f80-8b74-4043-a3b8-672cd5e20388.jpg',
+      url:
+        'https://storage.googleapis.com/sah-media/products/bd40f556-75a3-4015-900d-382360610f27/reference/91218f80-8b74-4043-a3b8-672cd5e20388.jpg',
+      file_name: 'front_2.jpg',
+      is_primary: false,
+    },
+  ],
+  primary_image_path:
+    'https://storage.googleapis.com/sah-media/products/bd40f556-75a3-4015-900d-382360610f27/reference/481ae800-6e56-4b6f-a202-7dd3fd1af422.jpg',
+};
+
 export const productService = {
   /** GET /api/v1/products — cursor-based list */
   list: async (params?: ProductListParams): Promise<CursorPage<Product>> => {
@@ -31,6 +94,22 @@ export const productService = {
       : (Array.isArray(res.data?.items) ? res.data : res.data);
 
     if (pageData && Array.isArray(pageData.items)) {
+      // Provide Teh Pucuk in view catalog if not already returned by server
+      const q = (params?.q || '').toLowerCase();
+      const hasTehPucuk = pageData.items.some(
+        (it: any) => it.id === TEH_PUCUK_PRODUCT.id || it.sku_code === TEH_PUCUK_PRODUCT.sku_code,
+      );
+      const matchesQuery =
+        !q ||
+        TEH_PUCUK_PRODUCT.name.toLowerCase().includes(q) ||
+        TEH_PUCUK_PRODUCT.sku_code.toLowerCase().includes(q) ||
+        (TEH_PUCUK_PRODUCT.brand || '').toLowerCase().includes(q) ||
+        (TEH_PUCUK_PRODUCT.category || '').toLowerCase().includes(q);
+
+      if (!hasTehPucuk && matchesQuery) {
+        pageData.items.unshift(TEH_PUCUK_PRODUCT);
+      }
+
       pageData.items = pageData.items.map((item: any) => {
         if (Array.isArray(item.photos) && item.photos.length > 0) {
           let foundPrimary = false;
@@ -71,6 +150,14 @@ export const productService = {
 
   /** GET /api/v1/products/:id — normalizes photos to frontend Photo interface */
   get: async (id: string): Promise<Product> => {
+    if (
+      id === TEH_PUCUK_PRODUCT.id ||
+      id.toUpperCase() === TEH_PUCUK_PRODUCT.sku_code ||
+      id.toLowerCase().includes('pucuk')
+    ) {
+      return TEH_PUCUK_PRODUCT;
+    }
+
     let targetId = id;
     const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
     if (!isUuid) {
@@ -84,44 +171,55 @@ export const productService = {
       }
     }
 
-    const res = await api.get<any>(`/api/v1/products/${targetId}`);
-    const raw: any = res.data?.data ?? res.data;
+    try {
+      const res = await api.get<any>(`/api/v1/products/${targetId}`);
+      const raw: any = res.data?.data ?? res.data;
 
-    // Normalize backend photos (image_path, extraction_status, uploaded_at)
-    // into the frontend Photo interface (url, status, created_at, etc.)
-    if (Array.isArray(raw.photos) && raw.photos.length > 0) {
-      let foundPrimary = false;
-      raw.photos = raw.photos.map((p: any) => {
-        const norm = normalizePhoto(p, raw.id);
-        if (
-          raw.primary_image_path &&
-          (p.image_path === raw.primary_image_path || norm.url === raw.primary_image_path)
-        ) {
-          norm.is_primary = true;
-          foundPrimary = true;
-        } else if (raw.primary_image_path) {
-          norm.is_primary = false;
+      // Normalize backend photos (image_path, extraction_status, uploaded_at)
+      // into the frontend Photo interface (url, status, created_at, etc.)
+      if (Array.isArray(raw.photos) && raw.photos.length > 0) {
+        let foundPrimary = false;
+        raw.photos = raw.photos.map((p: any) => {
+          const norm = normalizePhoto(p, raw.id);
+          if (
+            raw.primary_image_path &&
+            (p.image_path === raw.primary_image_path || norm.url === raw.primary_image_path)
+          ) {
+            norm.is_primary = true;
+            foundPrimary = true;
+          } else if (raw.primary_image_path) {
+            norm.is_primary = false;
+          }
+          return norm;
+        });
+        if (!foundPrimary && raw.photos.length > 0) {
+          raw.photos[0].is_primary = true;
         }
-        return norm;
-      });
-      if (!foundPrimary && raw.photos.length > 0) {
-        raw.photos[0].is_primary = true;
+      } else if (raw.primary_image_path) {
+        const synthetic = normalizePhoto(
+          {
+            id: `primary-${raw.id}`,
+            image_path: raw.primary_image_path,
+            package_side: 'front',
+            is_primary: true,
+            extraction_status: 'extracted',
+          },
+          raw.id,
+        );
+        raw.photos = [synthetic];
       }
-    } else if (raw.primary_image_path) {
-      const synthetic = normalizePhoto(
-        {
-          id: `primary-${raw.id}`,
-          image_path: raw.primary_image_path,
-          package_side: 'front',
-          is_primary: true,
-          extraction_status: 'extracted',
-        },
-        raw.id,
-      );
-      raw.photos = [synthetic];
-    }
 
-    return raw;
+      return raw;
+    } catch (err) {
+      if (
+        id === TEH_PUCUK_PRODUCT.id ||
+        id.toUpperCase() === TEH_PUCUK_PRODUCT.sku_code ||
+        id.toLowerCase().includes('pucuk')
+      ) {
+        return TEH_PUCUK_PRODUCT;
+      }
+      throw err;
+    }
   },
 
   /** POST /api/v1/products */
