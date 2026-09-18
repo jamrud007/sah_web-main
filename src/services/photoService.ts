@@ -10,11 +10,26 @@ import type {
 
 /**
  * Builds an authenticated URL for an image endpoint.
- * If imagePath starts with http or /api, appends ?token=... if token is available.
+ * Cloud storage and direct public URLs (such as storage.googleapis.com, S3, etc.)
+ * are preserved as-is without appending query tokens.
+ * Only internal backend API endpoints (e.g. /api/v1/products/.../image) append ?token=...
  */
 export const buildPhotoUrl = (imagePath?: string, customToken?: string): string => {
   if (!imagePath) return '';
   if (imagePath.startsWith('blob:') || imagePath.startsWith('data:')) return imagePath;
+
+  // Cloud storage / CDN / external media URLs must NOT have ?token=... attached
+  if (imagePath.startsWith('http://') || imagePath.startsWith('https://')) {
+    if (
+      imagePath.includes('storage.googleapis.com') ||
+      imagePath.includes('amazonaws.com') ||
+      imagePath.includes('blob.core.windows.net') ||
+      imagePath.includes('cloudinary.com') ||
+      !imagePath.includes('/api/v1/')
+    ) {
+      return imagePath;
+    }
+  }
 
   const rawToken =
     customToken ||

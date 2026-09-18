@@ -19,6 +19,7 @@ import {
   formatPhotoTimestamp,
   getExtractionStatusConfig,
   formatPhotoFileName,
+  buildPhotoUrl,
 } from '../../services/photoService';
 
 const CATEGORIES = [
@@ -145,7 +146,29 @@ const ProductFormPage: React.FC = () => {
         setValidUntil(cert.valid_until || '');
       }
       setHalalStatus(existingProduct.halal_status);
-      setPhotos(existingProduct.photos || []);
+      const initialPhotos: Photo[] = (() => {
+        if (existingProduct.photos && existingProduct.photos.length > 0) return existingProduct.photos;
+        if (photosByProductId[existingProduct.id] && photosByProductId[existingProduct.id].length > 0) {
+          return photosByProductId[existingProduct.id];
+        }
+        if (existingProduct.primary_image_path) {
+          return [{
+            id: `primary-${existingProduct.id}`,
+            product_id: existingProduct.id,
+            url: buildPhotoUrl(existingProduct.primary_image_path),
+            image_path: existingProduct.primary_image_path,
+            is_primary: true,
+            package_side: 'front',
+            angle: 'Depan',
+            status: 'indexed' as const,
+            index_status: 'indexed' as const,
+            extraction_status: 'extracted',
+            file_name: 'front.jpg',
+          }];
+        }
+        return [];
+      })();
+      setPhotos(initialPhotos);
       setPendingFiles([]);
     } else if (!id) {
       // Clean reset for new SKU so old values are never "cached" across route changes
@@ -166,11 +189,32 @@ const ProductFormPage: React.FC = () => {
   }, [id, existingProduct]);
 
   // Photos and Monogram helper
-  const attachedPhotos: Photo[] =
-    (existingProduct?.photos && existingProduct.photos.length > 0)
-      ? existingProduct.photos
-      : (existingProduct ? (photosByProductId[existingProduct.id] || []) : []);
-  const primaryPhoto = photos.find((p) => p.is_primary) || photos[0] || attachedPhotos.find((p) => p.is_primary) || attachedPhotos[0];
+  const attachedPhotos: Photo[] = (() => {
+    if (existingProduct?.photos && existingProduct.photos.length > 0) return existingProduct.photos;
+    if (existingProduct && photosByProductId[existingProduct.id]?.length > 0) return photosByProductId[existingProduct.id];
+    if (existingProduct?.primary_image_path) {
+      return [{
+        id: `primary-${existingProduct.id}`,
+        product_id: existingProduct.id,
+        url: buildPhotoUrl(existingProduct.primary_image_path),
+        image_path: existingProduct.primary_image_path,
+        is_primary: true,
+        package_side: 'front',
+        angle: 'Depan',
+        status: 'indexed' as const,
+        index_status: 'indexed' as const,
+        extraction_status: 'extracted',
+        file_name: 'front.jpg',
+      }];
+    }
+    return [];
+  })();
+
+  const primaryPhoto =
+    photos.find((p) => p.is_primary) ||
+    photos[0] ||
+    attachedPhotos.find((p) => p.is_primary) ||
+    attachedPhotos[0];
 
   const initialLetters = (name || existingProduct?.name || 'SK')
     .split(' ')

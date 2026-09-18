@@ -24,6 +24,7 @@ import {
   packageSideDisplayLabel,
   formatPhotoTimestamp,
   formatPhotoFileName,
+  buildPhotoUrl,
 } from '../../services/photoService';
 
 export interface StandalonePhoto {
@@ -131,10 +132,26 @@ const ProductPhotosPage: React.FC = () => {
   // Hydrate photo list dynamically for the selected product
   useEffect(() => {
     if (!product) return;
-    const attached =
-      (product.photos && product.photos.length > 0)
-        ? product.photos
-        : (photosByProductId[product.id] || []);
+    const attached: Photo[] = (() => {
+      if (product.photos && product.photos.length > 0) return product.photos;
+      if (photosByProductId[product.id] && photosByProductId[product.id].length > 0) return photosByProductId[product.id];
+      if (product.primary_image_path) {
+        return [{
+          id: `primary-${product.id}`,
+          product_id: product.id,
+          url: buildPhotoUrl(product.primary_image_path),
+          image_path: product.primary_image_path,
+          is_primary: true,
+          package_side: 'front',
+          angle: 'Depan',
+          status: 'indexed' as const,
+          index_status: 'indexed' as const,
+          extraction_status: 'extracted',
+          file_name: 'front.jpg',
+        }];
+      }
+      return [];
+    })();
 
     if (attached.length > 0) {
       const sideCounts: Record<string, number> = {};

@@ -32,8 +32,36 @@ export const productService = {
 
     if (pageData && Array.isArray(pageData.items)) {
       pageData.items = pageData.items.map((item: any) => {
-        if (Array.isArray(item.photos)) {
-          item.photos = item.photos.map((p: any) => normalizePhoto(p, item.id));
+        if (Array.isArray(item.photos) && item.photos.length > 0) {
+          let foundPrimary = false;
+          item.photos = item.photos.map((p: any) => {
+            const norm = normalizePhoto(p, item.id);
+            if (
+              item.primary_image_path &&
+              (p.image_path === item.primary_image_path || norm.url === item.primary_image_path)
+            ) {
+              norm.is_primary = true;
+              foundPrimary = true;
+            } else if (item.primary_image_path) {
+              norm.is_primary = false;
+            }
+            return norm;
+          });
+          if (!foundPrimary && item.photos.length > 0) {
+            item.photos[0].is_primary = true;
+          }
+        } else if (item.primary_image_path) {
+          const synthetic = normalizePhoto(
+            {
+              id: `primary-${item.id}`,
+              image_path: item.primary_image_path,
+              package_side: 'front',
+              is_primary: true,
+              extraction_status: 'extracted',
+            },
+            item.id,
+          );
+          item.photos = [synthetic];
         }
         return item;
       });
@@ -62,13 +90,35 @@ export const productService = {
     // Normalize backend photos (image_path, extraction_status, uploaded_at)
     // into the frontend Photo interface (url, status, created_at, etc.)
     if (Array.isArray(raw.photos) && raw.photos.length > 0) {
+      let foundPrimary = false;
       raw.photos = raw.photos.map((p: any) => {
         const norm = normalizePhoto(p, raw.id);
-        if (raw.primary_image_path && p.image_path === raw.primary_image_path) {
+        if (
+          raw.primary_image_path &&
+          (p.image_path === raw.primary_image_path || norm.url === raw.primary_image_path)
+        ) {
           norm.is_primary = true;
+          foundPrimary = true;
+        } else if (raw.primary_image_path) {
+          norm.is_primary = false;
         }
         return norm;
       });
+      if (!foundPrimary && raw.photos.length > 0) {
+        raw.photos[0].is_primary = true;
+      }
+    } else if (raw.primary_image_path) {
+      const synthetic = normalizePhoto(
+        {
+          id: `primary-${raw.id}`,
+          image_path: raw.primary_image_path,
+          package_side: 'front',
+          is_primary: true,
+          extraction_status: 'extracted',
+        },
+        raw.id,
+      );
+      raw.photos = [synthetic];
     }
 
     return raw;

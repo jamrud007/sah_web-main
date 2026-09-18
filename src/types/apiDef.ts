@@ -56,6 +56,7 @@ export interface Product {
   /** Legacy / mock compat — singular object */
   halal_certificate?: HalalCertificate | null;
   photos?: Photo[];
+  primary_image_path?: string | null;
   deleted_at?: string | null;
   created_at?: string;
   updated_at?: string;
@@ -74,6 +75,7 @@ export interface ProductCreate {
   /** Send as singular object on create/update */
   halal_certificate?: HalalCertificate | null;
   photos?: Photo[];
+  primary_image_path?: string | null;
 }
 
 export interface ProductUpdate {
@@ -89,6 +91,7 @@ export interface ProductUpdate {
   /** Send as singular object on create/update */
   halal_certificate?: HalalCertificate | null;
   photos?: Photo[];
+  primary_image_path?: string | null;
 }
 
 // ─── Photo ────────────────────────────────────────────────────────────────

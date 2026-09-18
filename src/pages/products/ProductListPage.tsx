@@ -9,6 +9,7 @@ import { useSahToast } from '../../context/ToastContext';
 import { CH, type StatusChipDef } from '../../constants/sahNav';
 import type { Product } from '../../types/apiDef';
 import { checkIsReadOnly } from '../../store/authSlice';
+import { buildPhotoUrl } from '../../services/photoService';
 
 const ProductListPage: React.FC = () => {
   const navigate = useNavigate();
@@ -556,58 +557,67 @@ const ProductListPage: React.FC = () => {
                         verticalAlign: 'middle',
                       }}
                     >
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                        <div
-                          style={{
-                            width: 36,
-                            height: 36,
-                            borderRadius: 10,
-                            background: p.photos?.[0]?.url
-                              ? '#ffffff'
-                              : 'linear-gradient(135deg,var(--sah-copper-pale),var(--sah-mist))',
-                            border: '1px solid var(--sah-line)',
-                            display: 'grid',
-                            placeItems: 'center',
-                            fontSize: 12,
-                            fontWeight: 700,
-                            color: 'var(--sah-copper-dark)',
-                            flex: 'none',
-                            overflow: 'hidden',
-                            padding: p.photos?.[0]?.url ? 2 : 0,
-                          }}
-                        >
-                          {p.photos?.[0]?.url ? (
-                            <img
-                              src={p.photos[0].url}
-                              alt={p.name}
+                      {(() => {
+                        const thumbUrl =
+                          p.photos?.find((ph) => ph.is_primary)?.url ||
+                          p.photos?.[0]?.url ||
+                          (p.primary_image_path ? buildPhotoUrl(p.primary_image_path) : '');
+
+                        return (
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                            <div
                               style={{
-                                width: '100%',
-                                height: '100%',
-                                objectFit: 'contain',
+                                width: 36,
+                                height: 36,
+                                borderRadius: 10,
+                                background: thumbUrl
+                                  ? '#ffffff'
+                                  : 'linear-gradient(135deg,var(--sah-copper-pale),var(--sah-mist))',
+                                border: '1px solid var(--sah-line)',
+                                display: 'grid',
+                                placeItems: 'center',
+                                fontSize: 12,
+                                fontWeight: 700,
+                                color: 'var(--sah-copper-dark)',
+                                flex: 'none',
+                                overflow: 'hidden',
+                                padding: thumbUrl ? 2 : 0,
                               }}
-                            />
-                          ) : (
-                            p.name.slice(0, 2).toUpperCase()
-                          )}
-                        </div>
-                        <div style={{ minWidth: 0 }}>
-                          <div
-                            style={{
-                              fontWeight: 600,
-                              fontSize: 13,
-                              color: 'var(--sah-navy)',
-                              whiteSpace: 'nowrap',
-                              overflow: 'hidden',
-                              textOverflow: 'ellipsis',
-                            }}
-                          >
-                            {p.name}
+                            >
+                              {thumbUrl ? (
+                                <img
+                                  src={thumbUrl}
+                                  alt={p.name}
+                                  style={{
+                                    width: '100%',
+                                    height: '100%',
+                                    objectFit: 'contain',
+                                  }}
+                                />
+                              ) : (
+                                p.name.slice(0, 2).toUpperCase()
+                              )}
+                            </div>
+                            <div style={{ minWidth: 0 }}>
+                              <div
+                                style={{
+                                  fontWeight: 600,
+                                  fontSize: 13,
+                                  color: 'var(--sah-navy)',
+                                  whiteSpace: 'nowrap',
+                                  overflow: 'hidden',
+                                  textOverflow: 'ellipsis',
+                                }}
+                              >
+                                {p.name}
+                              </div>
+                              <div style={{ fontSize: 11, color: 'var(--sah-muted)' }}>
+                                {p.brand ? `${p.brand} · ` : ''}{p.category || 'Bumbu & saus'}
+                              </div>
+                            </div>
                           </div>
-                          <div style={{ fontSize: 11.5, color: 'var(--sah-muted)' }}>
-                            {p.brand || p.category || 'Umum'}
-                          </div>
-                        </div>
-                      </div>
+                        );
+                      })()}
                     </td>
 
                     {/* Produsen */}

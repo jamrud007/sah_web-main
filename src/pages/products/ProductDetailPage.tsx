@@ -13,6 +13,7 @@ import {
   formatPhotoTimestamp,
   getExtractionStatusConfig,
   formatPhotoFileName,
+  buildPhotoUrl,
 } from '../../services/photoService';
 
 const ProductDetailPage: React.FC = () => {
@@ -119,16 +120,35 @@ const ProductDetailPage: React.FC = () => {
     formattedDate = '12 Januari 2026';
   }
 
-  // Merge photos from product object and photosByProductId
-  const attachedPhotos: Photo[] =
-    (product.photos && product.photos.length > 0)
-      ? product.photos
-      : (photosByProductId[product.id] || []);
+  // Merge photos from product object and photosByProductId, with primary_image_path fallback
+  const attachedPhotos: Photo[] = (() => {
+    if (product.photos && product.photos.length > 0) return product.photos;
+    if (photosByProductId[product.id] && photosByProductId[product.id].length > 0) return photosByProductId[product.id];
+    if (product.primary_image_path) {
+      return [{
+        id: `primary-${product.id}`,
+        product_id: product.id,
+        url: buildPhotoUrl(product.primary_image_path),
+        image_path: product.primary_image_path,
+        is_primary: true,
+        package_side: 'front',
+        angle: 'Depan',
+        status: 'indexed' as const,
+        index_status: 'indexed' as const,
+        extraction_status: 'extracted',
+        file_name: 'front.jpg',
+      }];
+    }
+    return [];
+  })();
 
   // Resolve certificate — API returns array (halal_certificates), mock uses singular (halal_certificate)
   const activeCert = product.halal_certificates?.[0] ?? product.halal_certificate ?? null;
 
-  const primaryPhoto = attachedPhotos.find((p) => p.is_primary) || attachedPhotos[0];
+  const primaryPhoto =
+    attachedPhotos.find((p) => product.primary_image_path && (p.image_path === product.primary_image_path || p.url === product.primary_image_path)) ||
+    attachedPhotos.find((p) => p.is_primary) ||
+    attachedPhotos[0];
 
   // Gallery items: use attached photos directly
   const galleryItems = attachedPhotos.map((p, idx) => ({
