@@ -13,9 +13,9 @@ const instance = axios.create({
 instance.interceptors.request.use(
   (config) => {
     let token = store.getState().auth.accessToken || localStorage.getItem("accessToken");
-    // Fallback to dev test token in dev mode if no real token set
-    if (!token && (import.meta.env.DEV || !import.meta.env.VITE_BE_BASEURL)) {
-      token = "test-token-catalog_admin-1";
+    // Fallback to dev token if no real token set or if using mock token
+    if ((!token || token.startsWith("test-token-")) && (import.meta.env.DEV || !import.meta.env.VITE_BE_BASEURL)) {
+      token = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwOi8vNDcuMjM3LjIyMy4yNDAvYXBpL3YxL2F1dGgvYWRtaW4vbG9naW4iLCJpYXQiOjE3ODk3MTYyNDgsImV4cCI6MTc5MDkyNTg0OCwibmJmIjoxNzg5NzE2MjQ4LCJqdGkiOiJ2WmNTMlFHcEpiQWxMRWxsIiwic3ViIjoiNDBiMzlhYTEtZWU5MC00NmJlLWEwNWYtZDA2YWYxM2FjNGIyIiwicHJ2IjoiZDVlNmNiMzZiZjM2NjRlOWY1ZGFiNDIxNGEyZGYyYjdmM2YzNWI5MiIsInJlYWxtIjoiaW50ZXJuYWwifQ.UK6Zj1jOSf7RMBz9D5TTbbR-UejmDeCrRy26XbRU2lg";
     }
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;

@@ -53,7 +53,12 @@ export const authService = {
    * Proxied → http://47.237.223.240:8010/api/v1/auth/admin/login
    */
   login: async (payload: AdminLoginPayload): Promise<AdminLoginResponse['data']> => {
-    const res = await authApi.post<AdminLoginResponse>('/auth/admin/login', payload);
+    const params = new URLSearchParams();
+    params.append('email', payload.email);
+    params.append('password', payload.password);
+    const res = await authApi.post<AdminLoginResponse>('/auth/admin/login', params, {
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    });
     return res.data.data;
   },
 
