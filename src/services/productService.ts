@@ -85,7 +85,8 @@ export const TEH_PUCUK_PRODUCT: Product = {
 export const productService = {
   /** GET /api/v1/products — cursor-based list */
   list: async (params?: ProductListParams): Promise<CursorPage<Product>> => {
-    const { reset: _reset, ...queryParams } = (params || {}) as any;
+    const queryParams: any = { ...(params || {}) };
+    delete queryParams.reset;
     const res = await api.get<any>('/api/v1/products', {
       params: queryParams,
     });
